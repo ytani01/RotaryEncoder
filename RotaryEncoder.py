@@ -22,12 +22,16 @@ logger.propagate = False
 # Rotary Keyboard Class
 #
 class RotaryKey:
-    CH_LIST = ' 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\n\b'
+    CH_BS = '\b'
+    CH_ENTER = '\n'
+    CH_LIST = ' 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' \
+              + CH_ENTER + CH_BS
     
-    def __init__(self, pin_rot, pin_sw, rk_callback):
-        self.pin_rot	= pin_rot
-        self.pin_sw	= pin_sw
-        self.rk_callback = rk_callback
+    def __init__(self, pin_rot, rk_rot_callback, pin_sw, rk_sw_callback):
+        self.pin_rot		= pin_rot
+        self.pin_sw		= pin_sw
+        self.rk_rot_callback	= rk_rot_callback
+        self.rk_sw_callback	= rk_sw_callback
 
         self.ch_list = __class__.CH_LIST
         self.idx = 0
@@ -52,29 +56,38 @@ class RotaryKey:
     def rot_callback(self, v):
         self.idx = (self.idx + v) % len(self.ch_list)
         ch = self.get_ch()
-        if ch == '\n':
-            ch = '<ENTER>'
-        if ch == '\b':
-            ch = '<BackSpace>'
-        logger.debug('%s[%s]', self.text, ch)
+        ch1 = ch
+        if ch == __class__.CH_ENTER:
+            ch1 = '<ENTER>'
+        if ch == __class__.CH_BS:
+            ch1 = '<BS>'
+        logger.debug('\'%s[%s]\'', self.text, ch1)
+        self.rk_rot_callback(self.text, ch)
 
     def get_ch(self):
         return self.ch_list[self.idx]
 
+    def get_text(self):
+        return self.text
+
     def sw_callback(self):
         ch = self.get_ch()
-        if ch == '\n':
-            self.rk_callback(self.text)
+        if ch == __class__.CH_ENTER:
+            logger.debug('\'%s\' -> callback', self.text)
+            self.rk_sw_callback(self.text)
             self.text = ''
             self.idx = 0
+            self.rk_rot_callback(self.text, ch)
             return
 
-        if ch == '\b':
+        if ch == __class__.CH_BS:
             if len(self.text) > 0:
                 self.text = self.text[:-1]
+                logger.debug('\'%s\'', self.text)
         else:
             self.text += ch
-        logger.debug('%s', self.text)
+            logger.debug('\'%s\'', self.text)
+        self.rk_rot_callback(self.text, ch)
 
 #
 # Rotary Encoder Class
@@ -88,6 +101,8 @@ class RotaryEncoder:
         self.rot_callback = rot_callback
         self.pin_sw = pin_sw
         self.sw_callback = sw_callback
+
+        self.rot_stat = [-1, -1]
 
     def __enter__(self):
         self.open()
@@ -163,11 +178,18 @@ InText = ''
 Val = 0
 EndFlag = False
 
-def rk_callback(text):
+def rk_rot_callback(text, ch):
+    if ch == RotaryKey.CH_BS:
+        ch = '[BS]'
+    if ch == RotaryKey.CH_ENTER:
+        ch = '[ENTER]'
+    print('%s%s' % (text, ch))
+
+def rk_sw_callback(text):
     global InText
-    
-    print('>>> %s <<<' % text)
+
     InText = text
+    print('>>> %s <<<' % InText)
 
 def rot_callback(v):
     global Val
@@ -203,7 +225,7 @@ def main(pin1, pin2, pin_sw):
             time.sleep(1)
             print('%s' % re.getall())
 
-    with RotaryKey([pin1, pin2], pin_sw, rk_callback) as rk:
+    with RotaryKey([pin1, pin2], rk_rot_callback, pin_sw, rk_sw_callback) as rk:
         while True:
             if InText == '0000':
                 break
