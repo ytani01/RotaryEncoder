@@ -91,7 +91,7 @@ class RotaryEncoder:
 
     def __enter__(self):
         self.open()
-        return self:q
+        return self
 
     def __exit__(self, ex_type, ex_value, trace):
         self.close()
