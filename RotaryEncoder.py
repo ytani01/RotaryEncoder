@@ -1,4 +1,4 @@
-<#!/usr/bin/env python3
+#!/usr/bin/env python3
 #
 # (c) 2019 Yoichi Tanibayashi
 #
@@ -9,7 +9,7 @@ import click
 
 from logging import getLogger, StreamHandler, Formatter, DEBUG, INFO, WARN
 logger = getLogger(__name__)
-logger.setLevel(DEBUG)
+logger.setLevel(INFO)
 handler = StreamHandler()
 handler.setLevel(DEBUG)
 handler_fmt = Formatter('%(asctime)s %(levelname)s %(funcName)s> %(message)s',
@@ -147,13 +147,6 @@ class RotaryEncoder:
                 self.v = -1
             else:
                 self.v = 1
-        '''
-        else:
-            if chg_i == 0:
-                self.v = 1
-            else:
-                self.v = -1
-        '''
         self.rot_stat[chg_i] = val
                 
         #logger.debug('rot_stat=%s, v = %d', self.rot_stat, self.v)
