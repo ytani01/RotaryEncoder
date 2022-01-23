@@ -42,7 +42,7 @@ class Button {
   static const unsigned long    ON                      = LOW;
   static const unsigned long    OFF                     = HIGH;
 
-  static const unsigned long	DEBOUNCE        	=   10;
+  static const unsigned long	DEBOUNCE        	=  100;
   static const unsigned long	LONG_PRESS_MSEC 	= 1000;
   static const unsigned long	REPEAT_MSEC     	=  300;
   static const unsigned long	CLICK_MSEC		=  800;
