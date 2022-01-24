@@ -7,6 +7,22 @@
 
 #include "Esp32PcntRotaryEncoder.h"
 #include "NetMgr.h"
+#include "Button.h"
+
+// Buttons
+const uint8_t PIN_BTN_ONBOARD = 39;
+const uint8_t PIN_BTN_RE = 26;
+const unsigned long DEBOUNCE = 50; // msec
+Button *btnOnboard, *btnRe;
+
+typedef struct {
+  uint8_t pin;
+  bool value;
+  count_t count;
+  count_t click_count;
+  bool long_pressed;
+  bool repeated;
+} ButtonInfo_t;
 
 // Rotary Encoder
 const uint8_t PIN_PULSE_DT = 32;
@@ -14,9 +30,9 @@ const uint8_t PIN_PULSE_CLK = 33;
 const uint16_t PULSE_MAX = 30;
 const pcnt_unit_t PCNT_UNIT = PCNT_UNIT_0;
 
-// Queue
+// Queues
 #define Q_SIZE 64
-QueueHandle_t xQue;
+QueueHandle_t queRe, queBtn;
 
 // NeoPixel
 const uint8_t PIN_NEOPIXEL = 27;
@@ -50,7 +66,6 @@ mode_t netMgrMode;
  *
  */
 void timer_cb_ntp(TimerHandle_t xTimer) {
-  log_d("%x> start netMgrMode=0x%02X", xTimer, netMgrMode);
   if ( netMgrMode != NetMgr::MODE_WIFI_ON ) {
     return;
   }
@@ -108,12 +123,10 @@ void task_re_watcher(void *pvParameters) {
     }
     
     int16_t angle = re->angle;
-    log_d("> angle=%d/%d, d_angle=%d", angle, PULSE_MAX, d_angle);
 
     portBASE_TYPE ret;
-    // log_d("AAA");
 
-    while ( (ret = xQueueSend(xQue, (void *)&angle, 10)) != pdPASS ) {
+    while ( (ret = xQueueSend(queRe, (void *)&angle, 10)) != pdPASS ) {
       log_w("put queue failed");
       delay(1);
     }
@@ -126,9 +139,6 @@ void task_re_watcher(void *pvParameters) {
  * 
  */
 unsigned long hsv2rgb(uint8_t hue, uint8_t sat, uint8_t val) {
-  log_d("hue=%d, sat=%d, val=%d", hue, sat, val);
-
-
   if ( sat == 0 ) {
     unsigned long rgb = (val << 16) + (val << 8) + val;
     return rgb;
@@ -175,9 +185,7 @@ unsigned long hsv2rgb(uint8_t hue, uint8_t sat, uint8_t val) {
     break;
   }
 
-  log_d("r=%d, g=%d, b=%d", r, g, b);
   unsigned long rgb = (r << 16) + (g << 8) + b;
-  log_d("rgb=#%06X", rgb);
   return rgb;
 }
 
@@ -198,10 +206,9 @@ void task1(void *pvParameters) {
   
   while (true) {
     // get queue
-    while ( (ret = xQueueReceive(xQue, (void *)&angle, 10)) != pdPASS ) {
+    while ( (ret = xQueueReceive(queRe, (void *)&angle, 10)) != pdPASS ) {
       delay(1);
     }
-    log_d("     < angle=   %d/%d", angle, PULSE_MAX);
 
     // calc color
     uint16_t hue = angle * 255 / PULSE_MAX;
@@ -215,8 +222,100 @@ void task1(void *pvParameters) {
     uint8_t g = (rgb & 0x00ff00) >> 8;
     uint8_t b = (rgb & 0x0000ff);
 
-    log_d("r=%d, g=%d, b=%d", r, g, b);
     ch_color(r, g, b);
+
+    delay(1);
+  } // while(true)
+} // task1()
+
+/**
+ *
+ */
+void IRAM_ATTR btn_intr_hdr() {
+  static unsigned long prev_ms = 0;
+  unsigned long cur_ms = millis();
+  ButtonInfo_t btn_info;
+
+  if ( cur_ms - prev_ms < 50 ) {
+    return;
+  }
+
+  portBASE_TYPE ret;
+  
+  if ( btnOnboard->get() ) {
+    btn_info.pin = btnOnboard->_pin;
+    btn_info.value = btnOnboard->_value;
+    btn_info.count = btnOnboard->_count;
+    btn_info.click_count = btnOnboard->_click_count;
+    btn_info.long_pressed = btnOnboard->_long_pressed;
+    btn_info.repeated = btnOnboard->_repeated;
+    while ( (ret = xQueueSend(queBtn, (void *)&btn_info, 10)) != pdPASS ) {
+      log_w("put queue failed");
+      delay(1);
+    }
+  }
+
+  if ( btnRe->get() ) {
+    btn_info.pin = btnRe->_pin;
+    btn_info.value = btnRe->_value;
+    btn_info.count = btnRe->_count;
+    btn_info.click_count = btnRe->_click_count;
+    btn_info.long_pressed = btnRe->_long_pressed;
+    btn_info.repeated = btnRe->_repeated;
+    while ( (ret = xQueueSend(queBtn, (void *)&btn_info, 10)) != pdPASS ) {
+      log_w("put queue failed");
+      delay(1);
+    }
+  }
+}
+
+/**
+ *
+ */
+void task_btn_watcher(void *pvParameters) {
+  portBASE_TYPE ret;
+  ButtonInfo_t btn_info;
+  
+  while (true) {
+    if ( btnOnboard->get() ) {
+      btn_info.pin = btnOnboard->_pin;
+      btn_info.value = btnOnboard->_value;
+      btn_info.count = btnOnboard->_count;
+      btn_info.click_count = btnOnboard->_click_count;
+      btn_info.long_pressed = btnOnboard->_long_pressed;
+      btn_info.repeated = btnOnboard->_repeated;
+      while ( (ret = xQueueSend(queBtn, (void *)&btn_info, 10)) != pdPASS ) {
+        log_w("put queue failed");
+        delay(1);
+      }
+    }
+
+    if ( btnRe->get() ) {
+      btn_info.pin = btnRe->_pin;
+      btn_info.value = btnRe->_value;
+      btn_info.count = btnRe->_count;
+      btn_info.click_count = btnRe->_click_count;
+      btn_info.long_pressed = btnRe->_long_pressed;
+      btn_info.repeated = btnRe->_repeated;
+      while ( (ret = xQueueSend(queBtn, (void *)&btn_info, 10)) != pdPASS ) {
+        log_w("put queue failed");
+        delay(1);
+      }
+    }
+
+    if ( (ret = xQueueReceive(queBtn, (void *)&btn_info, 0)) == pdPASS ) {
+      log_d("pin=%d,value=%d,count=%d,click_count=%d,long_pressed=%d,repeated=%d",
+            btn_info.pin, btn_info.value,
+            btn_info.count, btn_info.click_count,
+            btn_info.long_pressed, btn_info.repeated);
+
+      if ( btn_info.pin == PIN_BTN_ONBOARD ) {
+        ESP.restart();
+      }
+      if ( btn_info.pin == PIN_BTN_RE ) {
+        ch_color(255, 255, 255);
+      }
+    }
 
     delay(1);
   } // while(true)
@@ -229,36 +328,37 @@ void setup() {
   Serial.begin(115200);
   delay(50);  // Serial Init Wait
 
+  btnOnboard = new Button(PIN_BTN_ONBOARD, "BTN_ONBOARD");
+  btnRe = new Button(PIN_BTN_RE, "BTN_RE");
+  attachInterrupt(digitalPinToInterrupt(PIN_BTN_ONBOARD), btn_intr_hdr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(PIN_BTN_RE), btn_intr_hdr, CHANGE);
+  
 #if 0
   //@file color.h
   typedef enum {
-   // Color correction starting points
-
-   /// typical values for SMD5050 LEDs
-   ///@{
    TypicalSMD5050=0xFFB0F0 /* 255, 176, 240 */,
    TypicalLEDStrip=0xFFB0F0 /* 255, 176, 240 */,
-   ///@}
-
-   /// typical values for 8mm "pixels on a string"
-   /// also for many through-hole 'T' package LEDs
-   ///@{
    Typical8mmPixel=0xFFE08C /* 255, 224, 140 */,
    TypicalPixelString=0xFFE08C /* 255, 224, 140 */,
-   ///@}
-
-   /// uncorrected color
    UncorrectedColor=0xFFFFFF
-
-   } LEDColorCorrection;
+  } LEDColorCorrection;
 #endif
   FastLED.addLeds<WS2812B, PIN_NEOPIXEL, GRB>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
   FastLED.setBrightness(LED_BRIGHTNESS);
   leds[0] = CRGB(255,255,255);
   FastLED.show();
 
-  xQue = xQueueCreate(Q_SIZE, sizeof(int16_t));
-  if ( xQue == NULL ) {
+  queRe = xQueueCreate(Q_SIZE, sizeof(int16_t));
+  if ( queRe == NULL ) {
+    log_e("xQueueCreate: failed");
+
+    while(true) {
+      delay(1);
+    }
+  }
+
+  queBtn = xQueueCreate(Q_SIZE, sizeof(ButtonInfo_t));
+  if ( queBtn == NULL ) {
     log_e("xQueueCreate: failed");
 
     while(true) {
@@ -267,7 +367,15 @@ void setup() {
   }
 
   xTaskCreateUniversal(task_re_watcher, "re_watcher",
-                       0x1000,
+                       0x2000,
+                       NULL,
+                       1,
+                       NULL,
+                       APP_CPU_NUM
+                       );
+
+  xTaskCreateUniversal(task_btn_watcher, "btn_watcher",
+                       0x2000,
                        NULL,
                        1,
                        NULL,
@@ -275,7 +383,7 @@ void setup() {
                        );
 
   xTaskCreateUniversal(task_net_mgr, "net_mgr",
-                       (const uint32_t)0x1000 /* stack size */,
+                       (const uint32_t)0x2000 /* stack size */,
                        (void * const)NULL /* parameter */,
                        (UBaseType_t)10 /* priority */,
                        (TaskHandle_t * const)NULL /* task handle */,
@@ -295,5 +403,5 @@ void setup() {
  *
  */
 void loop() {
-  delay(100);
+  delay(1);
 }
