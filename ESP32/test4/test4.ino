@@ -352,19 +352,22 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(PIN_BTN_ONBOARD), btn_intr_hdr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(PIN_BTN_RE), btn_intr_hdr, CHANGE);
   
-  disp = new Adafruit_SSD1306(DISP_W, DISP_W, &Wire, -1);
+  disp = new Adafruit_SSD1306(DISP_W, DISP_H);
   if (!disp->begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     log_e("SSD1306: init failed");
     while (true) {
       delay(1);
     }
   }
+
+  disp->display(); // display Adafruit Logo
+  delay(2000);
   disp->clearDisplay();
   disp->setTextColor(WHITE);
   disp->setTextWrap(false);
-  disp->display();
 
-  FastLED.addLeds<WS2812B, PIN_NEOPIXEL, GRB>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<WS2812B, PIN_NEOPIXEL, GRB>
+    (leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(LED_BRIGHTNESS);
   leds[0] = CRGB(255,255,255);
   FastLED.show();
@@ -403,8 +406,10 @@ void loop() {
                  DISP_W - LINE_W * 4, DISP_H - LINE_W * 4,
                  BLACK);
   */
+  disp->clearDisplay();
   disp->drawRect(10,10,10,10,WHITE);
   disp->drawRect(100,30,20,20,WHITE);
+  disp->fillCircle(64, 32, 20, WHITE);
   disp->display();
   
   delay(1);
