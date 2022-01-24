@@ -23,7 +23,6 @@ Adafruit_SSD1306 *disp;
 setup() {
   disp = new Adafruit_SSD1306(128, 64);
   disp->display(); // Initially, display Adafruit logo
-  delay(2000);
 }
 
 void task(..) {
@@ -31,6 +30,7 @@ void task(..) {
   disp->drawRect(..);
   :
   disp->display();
+  
 }
 ```
 
