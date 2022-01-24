@@ -165,6 +165,7 @@ mode_t NetMgr::loop() {
     break;
   } // switch
 
+  delay(1);
   return this->cur_mode;
 } // NetMgr::loop()
 

@@ -11,7 +11,7 @@
 class Esp32PcntRotaryEncoder {
  public:
   uint8_t pin_dt, pin_clk;
-  uint16_t count_cycle;
+  uint16_t count_max;
   int16_t angle = 0;
   int16_t d_angle = 0;
   pcnt_unit_t pcnt_unit;
@@ -21,7 +21,7 @@ class Esp32PcntRotaryEncoder {
 
   Esp32PcntRotaryEncoder(uint8_t pin_dt, uint8_t pin_clk,
                          pcnt_unit_t pcnt_unit,
-                         uint16_t count_cycle,
+                         uint16_t count_max,
                          void (*intr_hdr)(void *), void *intr_arg=NULL);
 
   int16_t get();

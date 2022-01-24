@@ -9,13 +9,13 @@
 Esp32PcntRotaryEncoder::Esp32PcntRotaryEncoder(uint8_t pin_dt,
                                                uint8_t pin_clk,
                                                pcnt_unit_t pcnt_unit,
-                                               uint16_t count_cycle,
+                                               uint16_t count_max,
                                                void (*intr_hdr)(void *),
                                                void *intr_arg) {
   this->pin_dt = pin_dt;
   this->pin_clk = pin_clk;
   this->pcnt_unit = pcnt_unit;
-  this->count_cycle = count_cycle;
+  this->count_max = count_max;
   this->intr_hdr = intr_hdr;
   this->intr_arg = intr_arg;
 
@@ -28,8 +28,8 @@ Esp32PcntRotaryEncoder::Esp32PcntRotaryEncoder(uint8_t pin_dt,
   cnf.hctrl_mode = PCNT_MODE_REVERSE;
   cnf.pos_mode = PCNT_COUNT_INC;
   cnf.neg_mode = PCNT_COUNT_DEC;
-  cnf.counter_h_lim = count_cycle;
-  cnf.counter_l_lim = -count_cycle;
+  cnf.counter_h_lim = count_max;
+  cnf.counter_l_lim = -count_max;
   log_d("%s> pcnt_unit=%d", __FUNCTION__, this->pcnt_unit);
   pcnt_unit_config(&cnf);
 
@@ -55,14 +55,14 @@ int16_t Esp32PcntRotaryEncoder::get() {
   pcnt_get_counter_value(this->pcnt_unit, &(this->angle));
 
   this->d_angle = this->angle - prev_angle;
-  if ( d_angle < - this->count_cycle * 50 / 100 ) {
-    d_angle += this->count_cycle;
+  if ( d_angle < - this->count_max * 50 / 100 ) {
+    d_angle += this->count_max;
   }
-  if ( d_angle > this->count_cycle * 50 / 100 ) {
-    d_angle -= this->count_cycle;
+  if ( d_angle > this->count_max * 50 / 100 ) {
+    d_angle -= this->count_max;
   }
 
-  this->angle = (this->angle + this->count_cycle) % this->count_cycle;
+  this->angle = (this->angle + this->count_max) % this->count_max;
 
   return this->d_angle;
 }
