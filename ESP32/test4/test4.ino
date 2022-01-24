@@ -4,10 +4,20 @@
 #undef FASTLED_ALL_PINS_HARDWARE_SPI // for RMT (?)
 #undef FASTLED_ESP32_I2S // for RMT (?)
 #include <FastLED.h>
+#include <Adafruit_SSD1306.h>
+#include <Adafruit_GFX.h>
 
 #include "Esp32PcntRotaryEncoder.h"
 #include "NetMgr.h"
 #include "Button.h"
+
+// OLED
+const uint16_t DISP_W = 128;
+const uint16_t DISP_H = 64;
+const uint16_t CH_W = 6;
+const uint16_t CH_H = 8;
+const uint16_t LINE_W = 1;
+Adafruit_SSD1306 *disp;
 
 // Buttons
 const uint8_t PIN_BTN_ONBOARD = 39;
@@ -44,6 +54,7 @@ CRGB leds[NUM_LEDS];
 const String AP_SSID_HDR = "test3";
 const unsigned int WIFI_RETRY_COUNT = 10;
 NetMgr *netMgr;
+mode_t netMgrMode;
 
 // NTP
 const String NTP_SVR[] = {"ntp.nict.jp", "pool.ntp.org", "time.google.com"};
@@ -59,8 +70,6 @@ void IRAM_ATTR re_intr_hdr(void *arg) {
 
   PCNT.int_clr.val = PCNT.int_st.val;
 }
-
-mode_t netMgrMode;
 
 /**
  *
@@ -101,8 +110,10 @@ void task_net_mgr(void *pvParameters) {
       log_i("netMgrMode=0x%02X", netMgrMode);
       prev_netMgrMode = netMgrMode;
     }
+
+    delay(1);
   } // while(true)
-}
+} // task_net_mgr()
 
 /** Rotary Encoder watcher task function
  *
@@ -195,7 +206,7 @@ unsigned long hsv2rgb(uint8_t hue, uint8_t sat, uint8_t val) {
 void ch_color(uint8_t r, uint8_t g, uint8_t b) {
   leds[0] = CRGB(r, g, b);
   FastLED.show();
-}
+} // ch_color();
 
 /**
  *
@@ -216,7 +227,8 @@ void task1(void *pvParameters) {
     uint8_t val = 255;
 
     unsigned long rgb = hsv2rgb(hue, sat, val);
-    log_i("angle=%d, HSV=%d,%d,%d, rgb=#%06X", angle, hue, sat, val, rgb);
+    log_i("angle=%d, HSV=0x%02X,0x%02X,0x%02X, rgb=#%06X",
+          angle, hue, sat, val, rgb);
 
     uint8_t r = (rgb & 0xff0000) >> 16;
     uint8_t g = (rgb & 0x00ff00) >> 8;
@@ -267,7 +279,7 @@ void IRAM_ATTR btn_intr_hdr() {
       delay(1);
     }
   }
-}
+} // btn_intr_hdr()
 
 /**
  *
@@ -319,7 +331,14 @@ void task_btn_watcher(void *pvParameters) {
 
     delay(1);
   } // while(true)
-}
+} // task_btn_watcher()
+
+BaseType_t taskCreate(TaskFunction_t pxTaskCode,
+                      const char * pcName,
+                      const uint16_t usStackDepth=0x2000) {
+  return xTaskCreateUniversal(pxTaskCode, pcName, usStackDepth,
+                              NULL, 1, NULL, APP_CPU_NUM);
+} // taskCreate()
 
 /**
  *
@@ -333,16 +352,18 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(PIN_BTN_ONBOARD), btn_intr_hdr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(PIN_BTN_RE), btn_intr_hdr, CHANGE);
   
-#if 0
-  //@file color.h
-  typedef enum {
-   TypicalSMD5050=0xFFB0F0 /* 255, 176, 240 */,
-   TypicalLEDStrip=0xFFB0F0 /* 255, 176, 240 */,
-   Typical8mmPixel=0xFFE08C /* 255, 224, 140 */,
-   TypicalPixelString=0xFFE08C /* 255, 224, 140 */,
-   UncorrectedColor=0xFFFFFF
-  } LEDColorCorrection;
-#endif
+  disp = new Adafruit_SSD1306(DISP_W, DISP_W, &Wire, -1);
+  if (!disp->begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    log_e("SSD1306: init failed");
+    while (true) {
+      delay(1);
+    }
+  }
+  disp->clearDisplay();
+  disp->setTextColor(WHITE);
+  disp->setTextWrap(false);
+  disp->display();
+
   FastLED.addLeds<WS2812B, PIN_NEOPIXEL, GRB>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
   FastLED.setBrightness(LED_BRIGHTNESS);
   leds[0] = CRGB(255,255,255);
@@ -366,42 +387,25 @@ void setup() {
     }
   }
 
-  xTaskCreateUniversal(task_re_watcher, "re_watcher",
-                       0x2000,
-                       NULL,
-                       1,
-                       NULL,
-                       APP_CPU_NUM
-                       );
-
-  xTaskCreateUniversal(task_btn_watcher, "btn_watcher",
-                       0x2000,
-                       NULL,
-                       1,
-                       NULL,
-                       APP_CPU_NUM
-                       );
-
-  xTaskCreateUniversal(task_net_mgr, "net_mgr",
-                       (const uint32_t)0x2000 /* stack size */,
-                       (void * const)NULL /* parameter */,
-                       (UBaseType_t)10 /* priority */,
-                       (TaskHandle_t * const)NULL /* task handle */,
-                       (const BaseType_t)APP_CPU_NUM /* core */
-                       );
-  
-  xTaskCreateUniversal(task1, "task1",
-                       (const uint32_t)0x2000 /* stack size */,
-                       (void * const)NULL /* parameter */,
-                       (UBaseType_t)1 /* priority */,
-                       (TaskHandle_t * const)NULL /* task handle */,
-                       (const BaseType_t)APP_CPU_NUM /* core */
-                       );
+  taskCreate(task_re_watcher, "re_watcher");
+  taskCreate(task_btn_watcher, "btn_watcher");
+  taskCreate(task_net_mgr, "net_mgr");
+  taskCreate(task1, "task1");
 }
 
 /**
  *
  */
 void loop() {
+  /*
+  disp->fillRect(0,0, DISP_W-1, DISP_H-1, WHITE);
+  disp->fillRect(LINE_W, LINE_W,
+                 DISP_W - LINE_W * 4, DISP_H - LINE_W * 4,
+                 BLACK);
+  */
+  disp->drawRect(10,10,10,10,WHITE);
+  disp->drawRect(100,30,20,20,WHITE);
+  disp->display();
+  
   delay(1);
 }
