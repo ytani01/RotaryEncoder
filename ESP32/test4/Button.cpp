@@ -8,19 +8,18 @@
  */
 Button::Button(uint8_t pin, String name)
 {
-  this->info.pin               = pin;
-  strcpy(this->info.name, name.c_str());
-
-  this->info.value             = Button::OFF;
-  this->info.prev_value        = Button::OFF;
-  this->info.press_start       = 0;
+  this->info.pin = pin;
+  strcpy(this->info.name, name.c_str()); // XXX 文字数チェックをするべき
+  this->info.value = Button::OFF;
+  this->info.prev_value = Button::OFF;
+  this->info.press_start = 0;
   this->info.first_press_start = 0;
-  this->info.count             = 0;
-  this->info.click_count	   = 0;
-  this->info.long_pressed      = false;
-  this->info.repeated          = false;
+  this->info.count = 0;
+  this->info.click_count = 0;
+  this->info.long_pressed = false;
+  this->info.repeated = false;
 
-  this->info.active        = true;
+  this->info.active = true;
 
   pinMode(this->info.pin, INPUT_PULLUP);
 } // Button::Button()

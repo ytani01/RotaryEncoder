@@ -239,32 +239,33 @@ void IRAM_ATTR btn_intr_hdr() {
   static unsigned long prev_ms = 0;
   unsigned long cur_ms = millis();
 
-  if ( cur_ms - prev_ms < 50 ) {
+  if ( cur_ms - prev_ms < 100 ) {
     return;
   }
+  prev_ms = cur_ms;
 
   portBASE_TYPE ret;
   ButtonInfo_t btn_info;
-  log_d("sizeof(btn_info)=%d", sizeof(btn_info));
 
   if ( btnOnboard->get() ) {
     btn_info = btnOnboard->info;
+    log_d("btn_info.pin=%d, sizeof(btn_info)=%d", btn_info.pin, sizeof(btn_info));
     while ( (ret = xQueueSend(queBtn, (void *)&btn_info, 10)) != pdPASS ) {
       log_w("put queue failed");
       delay(1);
     }
-    return;
   }
 
   if ( btnRe->get() ) {
     btn_info = btnRe->info;
+    log_d("btn_info.pin=%d, sizeof(btn_info)=%d", btn_info.pin, sizeof(btn_info));
     while ( (ret = xQueueSend(queBtn, (void *)&btn_info, 10)) != pdPASS ) {
       log_w("put queue failed");
       delay(1);
     }
-    return;
   }
 
+  log_d("AAA");
 } // btn_intr_hdr()
 
 /**
@@ -300,8 +301,11 @@ void task_btn_watcher(void *pvParameters) {
 
       if ( btn_info.pin == PIN_BTN_ONBOARD ) {
         log_w("restart..");
-        delay(1000);
-        ESP.restart();
+        delay(2000);
+        //ESP.restart();
+        ESP.deepSleep(3000);
+        delay(2000);
+        return;
       }
       if ( btn_info.pin == PIN_BTN_RE ) {
         ch_color(255, 255, 255);
@@ -328,6 +332,11 @@ void setup() {
 
   btnOnboard = new Button(PIN_BTN_ONBOARD, "BTN_OB");
   btnRe = new Button(PIN_BTN_RE, "BTN_RE");
+
+  uint8_t intrPinOnboard = digitalPinToInterrupt(PIN_BTN_ONBOARD);
+  uint8_t intrPinRe = digitalPinToInterrupt(PIN_BTN_RE);
+  log_d("intrPinOnboard=%d, intrPinRe=%d", intrPinOnboard, intrPinRe);
+
   attachInterrupt(digitalPinToInterrupt(PIN_BTN_ONBOARD), btn_intr_hdr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(PIN_BTN_RE), btn_intr_hdr, CHANGE);
   
