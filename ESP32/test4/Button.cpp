@@ -8,21 +8,21 @@
  */
 Button::Button(uint8_t pin, String name)
 {
-  this->_pin               = pin;
-  this->_name              = name;
+  this->info.pin               = pin;
+  strcpy(this->info.name, name.c_str());
 
-  this->_value             = Button::OFF;
-  this->_prev_value        = Button::OFF;
-  this->_press_start       = 0;
-  this->_first_press_start = 0;
-  this->_count             = 0;
-  this->_click_count	   = 0;
-  this->_long_pressed      = false;
-  this->_repeated          = false;
+  this->info.value             = Button::OFF;
+  this->info.prev_value        = Button::OFF;
+  this->info.press_start       = 0;
+  this->info.first_press_start = 0;
+  this->info.count             = 0;
+  this->info.click_count	   = 0;
+  this->info.long_pressed      = false;
+  this->info.repeated          = false;
 
-  this->_is_enabled        = true;
+  this->info.active        = true;
 
-  pinMode(this->_pin, INPUT_PULLUP);
+  pinMode(this->info.pin, INPUT_PULLUP);
 } // Button::Button()
 
 /**
@@ -35,54 +35,53 @@ boolean Button::get()
   unsigned long cur_msec = millis();
   boolean 	ret = false;
 
-  if ( ! this->_is_enabled ) {
+  if ( ! this->info.active ) {
     return false;
   }
 
-  // is Enabled
-  
-  this->_prev_value = this->_value;
-  this->_value = digitalRead(this->_pin);
+  // Active
+  this->info.prev_value = this->info.value;
+  this->info.value = digitalRead(this->info.pin);
 
-  this->_click_count = 0;
-  if ( this->_count > 0 ){
-    if ( cur_msec - this->_first_press_start > CLICK_MSEC ) {
+  this->info.click_count = 0;
+  if ( this->info.count > 0 ){
+    if ( cur_msec - this->info.first_press_start > CLICK_MSEC ) {
       // click count is detected
-      this->_click_count = this->_count;
-      this->_count = 0;
+      this->info.click_count = this->info.count;
+      this->info.count = 0;
       ret = true;
     }
   }
 
-  if ( this->_value == Button::OFF ) {
+  if ( this->info.value == Button::OFF ) {
     // Released button then refresh some flags and do nothing any more
-    this->_press_start = 0;
-    this->_long_pressed = false;
-    this->_repeated = false;
+    this->info.press_start = 0;
+    this->info.long_pressed = false;
+    this->info.repeated = false;
 
-    if ( this->_prev_value == Button::ON) {
+    if ( this->info.prev_value == Button::ON) {
       // Released now !
       return true;
     }
     return ret;
   }
 
-  // this->_value == Button::ON
-  if ( this->_prev_value == Button::OFF ) {
+  // this->info.value == Button::ON
+  if ( this->info.prev_value == Button::OFF ) {
     // Pushed now !
-    this->_press_start = cur_msec;
-    this->_count++;
-    if ( this->_count == 1 ) {
-      this->_first_press_start = cur_msec;
+    this->info.press_start = cur_msec;
+    this->info.count++;
+    if ( this->info.count == 1 ) {
+      this->info.first_press_start = cur_msec;
     }
     return true;
   }
 
   // check long pressed
-  if ( ! this->_long_pressed ) {
-    if ( cur_msec - this->_press_start > LONG_PRESS_MSEC ) {
-      this->_long_pressed = true;
-      this->_press_start = cur_msec;
+  if ( ! this->info.long_pressed ) {
+    if ( cur_msec - this->info.press_start > LONG_PRESS_MSEC ) {
+      this->info.long_pressed = true;
+      this->info.press_start = cur_msec;
       return true;
     } else {
       return ret;
@@ -90,9 +89,9 @@ boolean Button::get()
   }
 
   // long pressed .. check repeat
-  if ( cur_msec - this->_press_start > REPEAT_MSEC ) {
-    this->_repeated = true;
-    this->_press_start = cur_msec;
+  if ( cur_msec - this->info.press_start > REPEAT_MSEC ) {
+    this->info.repeated = true;
+    this->info.press_start = cur_msec;
     return true;
   }
 
@@ -101,55 +100,62 @@ boolean Button::get()
 
 void Button::enable()
 {
-  this->_is_enabled = true;
+  this->info.active = true;
 }
 void Button::disable()
 {
-  this->_is_enabled = false;
+  this->info.active = false;
 }
-boolean Button::is_enabled()
+boolean Button::is_active()
 {
-  return this->_is_enabled;
+  return this->info.active;
 }
 
 String Button::get_name()
 {
-  return this->_name;
+  return String(this->info.name);
 }
 boolean Button::get_value()
 {
-  return this->_value;
+  return this->info.value;
 }
 count_t Button::get_count()
 {
-  return this->_count;
+  return this->info.count;
 }
 count_t Button::get_click_count()
 {
-  return this->_click_count;
+  return this->info.click_count;
 }
 boolean Button::is_long_pressed()
 {
-  return this->_long_pressed;
+  return this->info.long_pressed;
 }
 boolean Button::is_repeated()
 {
-  return this->_repeated;
+  return this->info.repeated;
 }
 
+/**
+ *
+ */
 void Button::print() {
   print(false);
 }
+
+/**
+ *
+ */
 void Button::print(boolean interrupt)
 {
   String str = interrupt ? "!" : " ";
   
-  str += "Btn[" + this->_name + "] ";
-  str += this->_value ? "OFF "  : "ON  ";
-  str += String(this->_count) + " ";
-  str += String(this->_click_count) + " ";
-  str += this->_long_pressed ? "Long " : "---- ";
-  str += this->_repeated ? "Repeat "  : "------ ";
+  str += "Btn[" + String(this->info.name) + "] ";
+  str += this->info.value ? "OFF "  : "ON  ";
+  str += String(this->info.count) + " ";
+  str += String(this->info.click_count) + " ";
+  str += this->info.long_pressed ? "Long " : "---- ";
+  str += this->info.repeated ? "Repeat "  : "------ ";
 
   Serial.println(str);
 }

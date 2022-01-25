@@ -1,9 +1,10 @@
 /**
- *
+ * Copyright (c) 2022 Yoichi Tanibayashi
  */
 #undef FASTLED_ALL_PINS_HARDWARE_SPI // for RMT (?)
 #undef FASTLED_ESP32_I2S // for RMT (?)
 #include <FastLED.h>
+
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
 
@@ -24,15 +25,6 @@ const uint8_t PIN_BTN_ONBOARD = 39;
 const uint8_t PIN_BTN_RE = 26;
 const unsigned long DEBOUNCE = 50; // msec
 Button *btnOnboard, *btnRe;
-
-typedef struct {
-  uint8_t pin;
-  bool value;
-  count_t count;
-  count_t click_count;
-  bool long_pressed;
-  bool repeated;
-} ButtonInfo_t;
 
 // Rotary Encoder
 const uint8_t PIN_PULSE_DT = 32;
@@ -222,12 +214,12 @@ void task1(void *pvParameters) {
     }
 
     // calc color
-    uint16_t hue = angle * 255 / PULSE_MAX;
+    uint16_t hue = int(round((float)angle * 255.0 / (float)PULSE_MAX));
     uint8_t sat = 255;
     uint8_t val = 255;
 
     unsigned long rgb = hsv2rgb(hue, sat, val);
-    log_i("angle=%d, HSV=0x%02X,0x%02X,0x%02X, rgb=#%06X",
+    log_i("angle=%02d, HSV=0x%02X,0x%02X,0x%02X, rgb=#%06X",
           angle, hue, sat, val, rgb);
 
     uint8_t r = (rgb & 0xff0000) >> 16;
@@ -246,56 +238,46 @@ void task1(void *pvParameters) {
 void IRAM_ATTR btn_intr_hdr() {
   static unsigned long prev_ms = 0;
   unsigned long cur_ms = millis();
-  ButtonInfo_t btn_info;
 
   if ( cur_ms - prev_ms < 50 ) {
     return;
   }
 
   portBASE_TYPE ret;
-  
+  ButtonInfo_t btn_info;
+  log_d("sizeof(btn_info)=%d", sizeof(btn_info));
+
   if ( btnOnboard->get() ) {
-    btn_info.pin = btnOnboard->_pin;
-    btn_info.value = btnOnboard->_value;
-    btn_info.count = btnOnboard->_count;
-    btn_info.click_count = btnOnboard->_click_count;
-    btn_info.long_pressed = btnOnboard->_long_pressed;
-    btn_info.repeated = btnOnboard->_repeated;
+    btn_info = btnOnboard->info;
     while ( (ret = xQueueSend(queBtn, (void *)&btn_info, 10)) != pdPASS ) {
       log_w("put queue failed");
       delay(1);
     }
+    return;
   }
 
   if ( btnRe->get() ) {
-    btn_info.pin = btnRe->_pin;
-    btn_info.value = btnRe->_value;
-    btn_info.count = btnRe->_count;
-    btn_info.click_count = btnRe->_click_count;
-    btn_info.long_pressed = btnRe->_long_pressed;
-    btn_info.repeated = btnRe->_repeated;
+    btn_info = btnRe->info;
     while ( (ret = xQueueSend(queBtn, (void *)&btn_info, 10)) != pdPASS ) {
       log_w("put queue failed");
       delay(1);
     }
+    return;
   }
+
 } // btn_intr_hdr()
 
 /**
  *
  */
 void task_btn_watcher(void *pvParameters) {
-  portBASE_TYPE ret;
-  ButtonInfo_t btn_info;
-  
-  while (true) {
+
+  while (true) { // main loop
+    portBASE_TYPE ret;
+    ButtonInfo_t btn_info;
+
     if ( btnOnboard->get() ) {
-      btn_info.pin = btnOnboard->_pin;
-      btn_info.value = btnOnboard->_value;
-      btn_info.count = btnOnboard->_count;
-      btn_info.click_count = btnOnboard->_click_count;
-      btn_info.long_pressed = btnOnboard->_long_pressed;
-      btn_info.repeated = btnOnboard->_repeated;
+      btn_info = btnOnboard->info;
       while ( (ret = xQueueSend(queBtn, (void *)&btn_info, 10)) != pdPASS ) {
         log_w("put queue failed");
         delay(1);
@@ -303,12 +285,7 @@ void task_btn_watcher(void *pvParameters) {
     }
 
     if ( btnRe->get() ) {
-      btn_info.pin = btnRe->_pin;
-      btn_info.value = btnRe->_value;
-      btn_info.count = btnRe->_count;
-      btn_info.click_count = btnRe->_click_count;
-      btn_info.long_pressed = btnRe->_long_pressed;
-      btn_info.repeated = btnRe->_repeated;
+      btn_info = btnRe->info;
       while ( (ret = xQueueSend(queBtn, (void *)&btn_info, 10)) != pdPASS ) {
         log_w("put queue failed");
         delay(1);
@@ -322,6 +299,8 @@ void task_btn_watcher(void *pvParameters) {
             btn_info.long_pressed, btn_info.repeated);
 
       if ( btn_info.pin == PIN_BTN_ONBOARD ) {
+        log_w("restart..");
+        delay(1000);
         ESP.restart();
       }
       if ( btn_info.pin == PIN_BTN_RE ) {
@@ -347,7 +326,7 @@ void setup() {
   Serial.begin(115200);
   delay(50);  // Serial Init Wait
 
-  btnOnboard = new Button(PIN_BTN_ONBOARD, "BTN_ONBOARD");
+  btnOnboard = new Button(PIN_BTN_ONBOARD, "BTN_OB");
   btnRe = new Button(PIN_BTN_RE, "BTN_RE");
   attachInterrupt(digitalPinToInterrupt(PIN_BTN_ONBOARD), btn_intr_hdr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(PIN_BTN_RE), btn_intr_hdr, CHANGE);

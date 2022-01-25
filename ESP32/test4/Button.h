@@ -37,53 +37,49 @@
 typedef uint8_t		button_event_t;
 typedef uint8_t		count_t;
 
+typedef struct {
+  uint8_t pin;
+  char name[8];
+  bool active;
+  bool value;
+  bool prev_value;
+  unsigned long first_press_start;
+  unsigned long press_start;
+  count_t count;
+  count_t click_count;
+  bool long_pressed;
+  bool repeated;
+} ButtonInfo_t;
+
 class Button {
  public:
-  static const unsigned long    ON                      = LOW;
-  static const unsigned long    OFF                     = HIGH;
+  static const unsigned long ON                 = LOW;
+  static const unsigned long OFF                = HIGH;
 
-  static const unsigned long	DEBOUNCE        	=   10;
-  static const unsigned long	LONG_PRESS_MSEC 	= 1000;
-  static const unsigned long	REPEAT_MSEC     	=  300;
-  static const unsigned long	CLICK_MSEC		=  800;
+  static const unsigned long DEBOUNCE        	=   10;
+  static const unsigned long LONG_PRESS_MSEC 	= 1000;
+  static const unsigned long REPEAT_MSEC     	=  300;
+  static const unsigned long CLICK_MSEC		=  800;
 
-  static const button_event_t	EVENT_NONE		= 0x00;
-  static const button_event_t	EVENT_LONG_PRESSED 	= 0x01;
-  static const button_event_t	EVENT_REPEAT		= 0x03;
-  static const button_event_t	EVENT_INTRRUPT		= 0x10;
-  static const button_event_t	EVENT_PESSED		= 0x30;
-  static const button_event_t	EVENT_RELEASED		= 0x50;
-  static const button_event_t	EVENT_CLICK		= 0x54;
+  ButtonInfo_t info;
 
   Button(uint8_t pin, String name);
 
   bool	get();
 
-  void		enable();
-  void		disable();
-  bool	is_enabled();
+  void	enable();
+  void	disable();
+  bool	is_active();
 
-  String  	get_name();
+  String get_name();
   bool 	get_value();
-  count_t    	get_count();
+  count_t	get_count();
   count_t	get_click_count();
   bool	is_long_pressed();
   bool	is_repeated();
 
-  void    	print();
-  void    	print(bool interrupt);
-
-  String	_name;
-  bool		_is_enabled = false;
-  uint8_t	_pin;
-  bool		_value;      // OFF/ON
-  bool		_prev_value; // OFF/ON
-  unsigned long	_first_press_start; // msec
-  unsigned long	_press_start;       // msec
-  count_t	_count;
-  count_t	_click_count;
-  bool		_long_pressed;
-  bool		_repeated;
+  void  print();
+  void  print(bool interrupt);
 };
 
 #endif
