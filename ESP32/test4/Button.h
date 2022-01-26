@@ -16,9 +16,8 @@
  *  }
  *  
  *  void setup() {
- *    btn.setup(pin, "button_name");
+ *    btn.setup(pin, "button_name", btn_intr_hdr);
  *    :
- *    attachInterrupt(digitalPinToInterrupt(pin), btn_intr_hdr, CHANGE);
  *  }
  *  
  *  void loop() {
@@ -37,9 +36,11 @@
 typedef uint8_t		button_event_t;
 typedef uint8_t		count_t;
 
+static const unsigned long BTN_NAME_LEN = 16;
+
 typedef struct {
   uint8_t pin;
-  char name[8];
+  char name[BTN_NAME_LEN + 1];
   bool active;
   bool value;
   bool prev_value;
@@ -63,7 +64,7 @@ class Button {
 
   ButtonInfo_t info;
 
-  Button(uint8_t pin, String name);
+  Button(uint8_t pin, String name, void (*intr_hdr)(void));
 
   bool	get();
 
@@ -73,13 +74,12 @@ class Button {
 
   String get_name();
   bool 	get_value();
-  count_t	get_count();
-  count_t	get_click_count();
-  bool	is_long_pressed();
-  bool	is_repeated();
+  count_t get_count();
+  count_t get_click_count();
+  bool is_long_pressed();
+  bool is_repeated();
 
-  void  print();
-  void  print(bool interrupt);
+  static String info2String(ButtonInfo_t info, bool interrupted=false);
 };
 
 #endif
