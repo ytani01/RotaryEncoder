@@ -1,5 +1,5 @@
 /**
- * (c) 2021 Yoichi Tanibayashi
+ * Copyright (c) 2021 Yoichi Tanibayashi
  */
 #ifndef NETMGR_H
 #define NETMGR_H

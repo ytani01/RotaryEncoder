@@ -1,5 +1,5 @@
 /**
- * (c) 2021 Yoichi Tanibayashi
+ * Copyright (c) 2021 Yoichi Tanibayashi
  */
 #include "NetMgr.h"
 
@@ -47,13 +47,13 @@ mode_t NetMgr::loop() {
     break;
     
   case MODE_START:
-    Serial.println(myname + "> MODE_START");
+    log_i("%s> MODE_START", myname.c_str());
 
     conf_data.load();
     ssid = conf_data.ssid;
     ssid_pw = conf_data.ssid_pw;
-    Serial.printf("%s> |%s|%s|\n",
-                  myname.c_str(), ssid.c_str(), ssid_pw.c_str());
+    log_i("%s> |%s|%s|",
+          myname.c_str(), ssid.c_str(), ssid_pw.c_str());
 
     WiFi.begin(ssid.c_str(), ssid_pw.c_str());
     delay(100);
@@ -63,8 +63,7 @@ mode_t NetMgr::loop() {
 
   case MODE_TRY_WIFI:
     if (WiFi.status() == WL_CONNECTED) {
-      Serial.print(myname + "> IPaddr=");
-      Serial.println(WiFi.localIP());
+      log_i("%s> IPaddr=%s", myname.c_str(), WiFi.localIP().toString().c_str());
 
       this->net_is_available = true;
       this->cur_mode = MODE_WIFI_ON;
@@ -72,14 +71,14 @@ mode_t NetMgr::loop() {
     }
 
     if (this->_loop_count > this->try_count_max) {
-      Serial.println(" WiFi faild");
+      log_w(" WiFi faild");
 
       this->cur_mode = MODE_AP_INIT;
       break;
     }
 
-    Serial.printf("%s> loop_count=%d WiFi.status=0x%X\n",
-                  myname.c_str(), this->_loop_count, WiFi.status());
+    log_i("%s> loop_count=%d WiFi.status=0x%X",
+          myname.c_str(), this->_loop_count, WiFi.status());
 
     delay(TRY_INTERVAL);
     break;
@@ -88,7 +87,7 @@ mode_t NetMgr::loop() {
     uint8_t mac_int[6];
     char    mac_str[13];
     
-    Serial.println(myname + "> MODE_AP_INIT");
+    log_i("%s> MODE_AP_INIT", myname.c_str());
 
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
@@ -98,32 +97,32 @@ mode_t NetMgr::loop() {
     sprintf(mac_str, "%02X%02X%02X%02X%02X%02X",
             mac_int[0], mac_int[1], mac_int[2],
             mac_int[3], mac_int[4], mac_int[5]);
-    Serial.printf("%s> MacAddr=%s\n", myname.c_str(), mac_str);
+    log_i("%s> MacAddr=%s", myname.c_str(), mac_str);
 
     this->ap_ssid = this->ap_ssid_hdr + "_" + String(mac_str);
-    Serial.println(myname + "> ap_ssid=" + this->ap_ssid);
+    log_i("%s> ap_ssid=%s", myname.c_str(), this->ap_ssid);
 
     WiFi.mode(WIFI_AP);
-    Serial.printf("%s> WiFi.softAP(%s) .. \n",
-                  myname.c_str(), this->ap_ssid.c_str());
+    log_i("%s> WiFi.softAP(%s) .. ",
+          myname.c_str(), this->ap_ssid.c_str());
     delay(100);
 
     if ( ! WiFi.softAP(this->ap_ssid.c_str()) ) {
-      Serial.printf("%s> .. failed\n", myname.c_str());
+      log_i("%s> .. failed", myname.c_str());
       WiFi.mode(WIFI_OFF);
 
       this->cur_mode = MODE_WIFI_OFF;
       break;
     }
 
-    Serial.printf("%s> .. start\n", myname.c_str());
+    log_i("%s> .. start", myname.c_str());
     delay(300);
 
     WiFi.softAPConfig(this->ap_ip, this->ap_ip, this->ap_netmask);
 
     this->dns_svr.setErrorReplyCode(DNSReplyCode::NoError);
     this->dns_svr.start(DNS_PORT, "*", this->ap_ip);
-    Serial.printf("%s> DNS server[%d] started\n", myname.c_str(), DNS_PORT);
+    log_i("%s> DNS server[%d] started", myname.c_str(), DNS_PORT);
 
     NetMgr::async_scan_ssid_start();
 
@@ -136,7 +135,7 @@ mode_t NetMgr::loop() {
     web_svr.on("/do_reboot", NetMgr::handle_do_reboot);
     web_svr.onNotFound(NetMgr::handle_top);
     web_svr.begin();
-    Serial.printf("%s> Web server[%d] started\n", myname.c_str(), WEBSVR_PORT);
+    log_i("%s> Web server[%d] started", myname.c_str(), WEBSVR_PORT);
 
     this->cur_mode = MODE_AP_LOOP;
 
@@ -160,7 +159,7 @@ mode_t NetMgr::loop() {
     break;
 
   default:
-    Serial.println(myname + "> unknown mode ???");
+    log_i("%s> unknown mode ???", myname.c_str());
     delay(1000);
     break;
   } // switch
@@ -241,14 +240,14 @@ String NetMgr::html_footer() {
 } // NetMgr::html_footer();
 
 void NetMgr::async_scan_ssid_start() {
-  Serial.println("NetMgr::async_scan_ssid_start> ..");
+  log_i("NetMgr::async_scan_ssid_start> ..");
   WiFi.scanNetworks(true);
 } // NetMgr::async_scan_ssid_start()
 
 unsigned int NetMgr::async_scan_ssid_wait(SSIDent ssid_ent[]) {
   int16_t ret;
 
-  Serial.print("NetMgr::async_scan_ssid_wait> ");
+  log_i("NetMgr::async_scan_ssid_wait> ");
   while ( (ret = WiFi.scanComplete()) == WIFI_SCAN_RUNNING ) {
     Serial.print(".");
     delay(200);
@@ -273,11 +272,11 @@ unsigned int NetMgr::async_scan_ssid_wait(SSIDent ssid_ent[]) {
  *
  */
 unsigned int NetMgr::scan_ssid(SSIDent ssid_ent[]) {
-  Serial.println("NetMgr::scan_ssid> scan start ..");
+  log_i("NetMgr::scan_ssid> scan start ..");
 
   int ssid_n = WiFi.scanNetworks();
 
-  Serial.printf("NetMgr::scan_ssid> %d SSIDs found\n", ssid_n);
+  log_i("NetMgr::scan_ssid> %d SSIDs found", ssid_n);
 
   if (ssid_n <= 0) {
     return 0;
@@ -306,8 +305,8 @@ void NetMgr::handle_top() {
   ssid = conf_data.ssid;
   ssid_pw = conf_data.ssid_pw;
   
-  Serial.printf("%s> ssid=%s, ssid_pw=%s\n",
-                myname.c_str(), ssid.c_str(), ssid_pw.c_str());
+  log_i("%s> ssid=%s, ssid_pw=%s",
+        myname.c_str(), ssid.c_str(), ssid_pw.c_str());
 
   String html = NetMgr::html_header("Current settings");
   html += "<span style='font-size: large;'>";
@@ -334,20 +333,18 @@ void NetMgr::handle_select_ssid() {
   ssid_pw = conf_data.ssid_pw;
   
   NetMgr::ssidN = NetMgr::async_scan_ssid_wait(NetMgr::ssidEnt);
-  Serial.println("NetMgr::ssidN=" + String(NetMgr::ssidN));
+  log_i("NetMgr::ssidN=%s", String(NetMgr::ssidN));
   if (NetMgr::ssidN == 0) {
-    Serial.println("NetMgr::handle_select_ssid> rescan SSID");
+    log_i("NetMgr::handle_select_ssid> rescan SSID");
     NetMgr::async_scan_ssid_start();
     NetMgr::ssidN = NetMgr::async_scan_ssid_wait(NetMgr::ssidEnt);
   }
 
   for (int i=0; i < NetMgr::ssidN; i++) {
-    Serial.print(NetMgr::ssidEnt[i].ssid());
-    Serial.print(" ");
-    Serial.print(String(NetMgr::ssidEnt[i].dbm()));
-    Serial.print(" ");
-    Serial.print(NetMgr::ssidEnt[i].encType());
-    Serial.println();
+    log_i("%s %s %s",
+          NetMgr::ssidEnt[i].ssid(),
+          NetMgr::ssidEnt[i].dbm(),
+          NetMgr::ssidEnt[i].encType());
   } // for(i)
 
   String html = NetMgr::html_header("Please change settings and save");
@@ -402,7 +399,7 @@ void NetMgr::handle_save_ssid(){
   String   ssid       = web_svr.arg("ssid");
   String   ssid_pw    = web_svr.arg("passwd");
   
-  Serial.printf("save_ssid> |%s|%s|\n", ssid.c_str(), ssid_pw.c_str());
+  log_i("save_ssid> |%s|%s|", ssid.c_str(), ssid_pw.c_str());
 
   conf_data.ssid = ssid;
   conf_data.ssid.trim();
@@ -453,8 +450,7 @@ void NetMgr::handle_do_reboot() {
   html += NetMgr::html_footer();
   web_svr.send(200, "text/html", html.c_str());
 
-  Serial.println("reboot esp32 ..\n");
-    
+  log_i("reboot esp32 ..");
   delay(2000);
   ESP.restart();
 } // NetMgr::handle_do_reboot()

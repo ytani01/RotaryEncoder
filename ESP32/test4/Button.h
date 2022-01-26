@@ -1,5 +1,5 @@
 /**
- * (c) 2021 Yoichi Tanibayashi
+ * Copyright (c) 2021 Yoichi Tanibayashi
  *
  *  ==========================================================================
  *  example1
@@ -7,23 +7,23 @@
  *  :
  *  #include "Button.h"
  *  :
- *  Button btn;
+ *  Button *btn;
  *  :
  *  void btn_intr_hdr() {
- *    if ( btn.get() ) {
- *      app_btn_intr_hdr(&btn);
+ *    if ( btn->get() ) {
+ *      app_btn_intr_hdr(btn);
  *    }
  *  }
  *  
  *  void setup() {
- *    btn.setup(pin, "button_name", btn_intr_hdr);
+ *    btn = new Button(pin, "button_name", btn_intr_hdr);
  *    :
  *  }
  *  
  *  void loop() {
  *    :
- *    if ( btn.get() ) {
- *      app_btn_loop_hdr(&btn);
+ *    if ( btn->get() ) {
+ *      app_btn_loop_hdr(btn);
  *    }
  *    :
  *  }

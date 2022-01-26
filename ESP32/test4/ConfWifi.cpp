@@ -1,5 +1,5 @@
 /**
- * (c) 2021 Yoichi Tanibayashi
+ * Copyright (c) 2021 Yoichi Tanibayashi
  */
 #include "ConfWifi.h"
 
@@ -30,14 +30,14 @@ int ConfWifi::load(const char* config_file) {
   //disableIntr();
 
   if(!SPIFFS.begin(true)) {
-    Serial.printf("%s> ERROR: SPIFFS mout failed: %s", myname, config_file);
+    log_e("%s> ERROR: SPIFFS mout failed: %s", myname, config_file);
     //enableIntr();
     return -1;
   }
 
   File file = SPIFFS.open(config_file, "r");
   if (!file) {
-    Serial.printf("%s> %s: open failed\n", myname, config_file);
+    log_e("%s> %s: open failed", myname, config_file);
     this->ssid = "";
     this->ssid_pw = "";
     //enableIntr();
@@ -45,10 +45,10 @@ int ConfWifi::load(const char* config_file) {
   }
 
   this->ssid = this->read_line(file);
-  Serial.printf("%s> SSID: %s\n", myname, this->ssid.c_str());
+  log_i("%s> SSID: %s", myname, this->ssid.c_str());
   
   this->ssid_pw = this->read_line(file);
-  Serial.printf("%s> SSID PW: %s\n", myname, this->ssid_pw.c_str());
+  log_i("%s> SSID PW: %s", myname, this->ssid_pw.c_str());
 
   file.close();
   //enableIntr();
@@ -64,14 +64,14 @@ int ConfWifi::save(const char* config_file) {
   this->ssid.trim();
   this->ssid_pw.trim();
 
-  Serial.printf("%s> SSID=%s\n", myname, ssid.c_str());
-  Serial.printf("%s> SSID PW=%s\n", myname, ssid_pw.c_str());
+  log_i("%s> SSID=%s", myname, ssid.c_str());
+  log_i("%s> SSID PW=%s", myname, ssid_pw.c_str());
 
   //disableIntr();
 
   File file = SPIFFS.open(config_file, "w");
   if (!file) {
-    Serial.printf("%s> ERROR open failed: %s\n", myname, config_file);
+    log_e("%s> ERROR open failed: %s", myname, config_file);
     //enableIntr();
     return -1;
   }
@@ -81,7 +81,7 @@ int ConfWifi::save(const char* config_file) {
   file.close();
   //enableIntr();
 
-  Serial.printf("%s> wrote: %s\n", myname, config_file);
+  log_i("%s> wrote: %s", myname, config_file);
   delay(100);
   return 0;
 } // ConfWifi::save()
@@ -90,6 +90,6 @@ int ConfWifi::save(const char* config_file) {
  *
  */
 void ConfWifi::print() {
-  Serial.printf("SSID: %s\n", this->ssid.c_str());
-  Serial.printf("SSID PW: %s\n", this->ssid_pw.c_str());
+  log_i("SSID: %s", this->ssid.c_str());
+  log_i("SSID PW: %s", this->ssid_pw.c_str());
 } // ConfWifi::print()

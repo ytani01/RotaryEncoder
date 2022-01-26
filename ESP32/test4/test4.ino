@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2022 Yoichi Tanibayashi
  */
-#include <sntp.h>
+#include <esp_sntp.h>
 
 #undef FASTLED_ALL_PINS_HARDWARE_SPI // for RMT (?)
 #undef FASTLED_ESP32_I2S // for RMT (?)
@@ -33,6 +33,7 @@ const uint8_t PIN_PULSE_DT = 32;
 const uint8_t PIN_PULSE_CLK = 33;
 const uint16_t PULSE_MAX = 30;
 const pcnt_unit_t PCNT_UNIT = PCNT_UNIT_0;
+Esp32PcntRotaryEncoder *re;
 
 // Queues
 #define Q_SIZE 64
@@ -52,8 +53,11 @@ mode_t netMgrMode;
 
 // NTP
 const String NTP_SVR[] = {"ntp.nict.jp", "pool.ntp.org", "time.google.com"};
-const TickType_t NTP_INTERVAL = 1 * 1000; // tick == ms (?)
-volatile static bool ntp_syncing = false;
+const unsigned long NTP_INTERVAL_NORMAL = 5 * 60 * 1000; // ms
+const unsigned long NTP_INTERVAL_PROGRESS = 5 * 1000; // ms
+
+// Timer
+const TickType_t TIMER_INTERVAL = 60 * 1000; // tick == ms (?)
 
 /**
  *
@@ -68,41 +72,75 @@ void IRAM_ATTR re_intr_hdr(void *arg) {
 /**
  *
  */
-void timer_cb_ntp(TimerHandle_t xTimer) {
-  if ( netMgrMode != NetMgr::MODE_WIFI_ON ) {
-    return;
-  }
-
-  if ( ntp_syncing ) {
-    log_w("NTP SYNCING");
-    return;
-  }
-  ntp_syncing = true;
-
+String get_time_str() {
   struct tm ti; // time info
   const String day_str[] = {"Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"};
-  
-  configTime(9 * 3600L, 0,
-             NTP_SVR[0].c_str(), NTP_SVR[0].c_str(), NTP_SVR[0].c_str());
-
-  sntp_sync_mode_t sync_mode = sntp_get_sync_mode();
-  log_i("sync_mode=%d", sync_mode);
-
-  sntp_sync_status_t sync_stat;
-  while ( (sync_stat = sntp_get_sync_status()) == SNTP_SYNC_STATUS_RESET ) {
-    log_i("sync_stat=%d", sync_stat);
-    delay(1000);
-  }
-  log_i("sync_stat=%d", sync_stat);
+  char buf[4+1+2+1+2 +1+2+1 +1 +2+1+2+1+2 +1];
 
   getLocalTime(&ti);
-  log_i("%04d/%02d/%02d(%s) %02d:%02d:%02d",
-        ti.tm_year + 1900, ti.tm_mon + 1, ti.tm_mday,
-        day_str[ti.tm_wday].c_str(),
-        ti.tm_hour, ti.tm_min, ti.tm_sec);
+  sprintf(buf, "%04d/%02d/%02d(%s) %02d:%02d:%02d",
+          ti.tm_year + 1900, ti.tm_mon + 1, ti.tm_mday,
+          day_str[ti.tm_wday].c_str(),
+          ti.tm_hour, ti.tm_min, ti.tm_sec);
+  return String(buf);
+} // get_time_str()
 
-  ntp_syncing = false;
-}
+/**
+ * 【注意・重要】
+ * コールバック実行中に、次のタイマー時間になると、
+ * 次のコールバックが待たされ、あふれるとパニックする。
+ */
+void timer_cb(TimerHandle_t xTimer) {
+  log_i("timer test");
+  delay(TIMER_INTERVAL / 2);
+  log_i("timer test: end");
+} // timer_cb()
+
+/** NTP task function
+ *
+ */
+void task_ntp(void *pvParameters) {
+  unsigned long interval;
+
+  setenv("TZ", "JST-9", 1);
+  tzset();
+  sntp_set_sync_mode(SNTP_SYNC_MODE_SMOOTH);
+
+  while (true) {
+    if ( netMgrMode != NetMgr::MODE_WIFI_ON ) {
+      delay(1000);
+      continue;
+    }
+
+    // start sync
+    configTime(9 * 3600L, 0,
+               NTP_SVR[0].c_str(), NTP_SVR[0].c_str(), NTP_SVR[0].c_str());
+
+    /*
+     * sntp_get_sync_status()
+     *   同期未完了の場合、SNTP_SYNC_STATUS_RESET
+     *   動機が完了すると「一度だけ」、SNTP_SYNC_STATUS_COMPLETE
+     *   SNTP_SYNC_MODE_SMOOTHの同期中の場合は、SNTP_SYNC_STAUS_IN_PROGRESS)
+     */
+    sntp_sync_status_t sntp_stat;
+    while ( (sntp_stat = sntp_get_sync_status()) == SNTP_SYNC_STATUS_RESET) {
+      // XXX 回数制限すべき XXX
+      Serial.print(".");
+      delay(10);
+    }
+    log_i("sntp_sync_status=%d", sntp_stat);
+    if ( sntp_stat == SNTP_SYNC_STATUS_COMPLETED ) {
+      interval = NTP_INTERVAL_NORMAL;
+    } else {
+      interval = NTP_INTERVAL_PROGRESS;
+    }
+    
+    log_i("%s", get_time_str().c_str());
+
+    log_i("interval=%.1f sec", interval / 1000.0);
+    delay(interval);
+  } // while(true)
+} // task_ntp()
 
 /** NetMgr task function
  *
@@ -110,16 +148,19 @@ void timer_cb_ntp(TimerHandle_t xTimer) {
 void task_net_mgr(void *pvParameters) {
   netMgr = new NetMgr(AP_SSID_HDR, WIFI_RETRY_COUNT);
 
-  TimerHandle_t ntp_timer = xTimerCreate("NTP", NTP_INTERVAL , pdTRUE, NULL,
-                                         timer_cb_ntp);
-  xTimerStart(ntp_timer, 0);
-  
   while (true) { // main loop
     static mode_t prev_netMgrMode = NetMgr::MODE_NULL;
 
     netMgrMode = netMgr->loop();
     if ( netMgrMode != prev_netMgrMode ) {
       log_i("netMgrMode=0x%02X", netMgrMode);
+
+      if ( netMgrMode == NetMgr::MODE_WIFI_ON ) {
+        delay(1000);
+        configTime(9 * 3600L, 0,
+                   NTP_SVR[0].c_str(), NTP_SVR[0].c_str(), NTP_SVR[0].c_str());
+      }
+      
       prev_netMgrMode = netMgrMode;
     }
 
@@ -131,8 +172,6 @@ void task_net_mgr(void *pvParameters) {
  *
  */
 void task_re_watcher(void *pvParameters) {
-  Esp32PcntRotaryEncoder *re;
-
   re = new Esp32PcntRotaryEncoder(PIN_PULSE_CLK, PIN_PULSE_DT,
                                   PCNT_UNIT, PULSE_MAX,
                                   re_intr_hdr, (void *)NULL);
@@ -156,7 +195,7 @@ void task_re_watcher(void *pvParameters) {
 
     delay(20);
   } // while(true)
-}
+} // task_re_watcher()
 
 /**
  * 
@@ -210,7 +249,7 @@ unsigned long hsv2rgb(uint8_t hue, uint8_t sat, uint8_t val) {
 
   unsigned long rgb = (r << 16) + (g << 8) + b;
   return rgb;
-}
+} // hsv2rgb()
 
 /**
  *
@@ -335,7 +374,7 @@ void task_btn_watcher(void *pvParameters) {
       if ( btn_info.pin == PIN_BTN_RE ) {
         ch_color(255, 255, 255);
       }
-    }
+    } // if(xQueueReceive(queBtn)..)
 
     delay(1);
   } // while(true)
@@ -347,8 +386,11 @@ void task_btn_watcher(void *pvParameters) {
 BaseType_t createTask(TaskFunction_t pxTaskCode,
                       const char * pcName,
                       const uint16_t usStackDepth=0x2000) {
-  return xTaskCreateUniversal(pxTaskCode, pcName, usStackDepth,
-                              NULL, 1, NULL, APP_CPU_NUM);
+  log_i("Start: %s", pcName);
+  BaseType_t ret = xTaskCreateUniversal(pxTaskCode, pcName, usStackDepth,
+                                        NULL, 1, NULL, APP_CPU_NUM);
+  delay(10);
+  return ret;
 } // createTask()
 
 /**
@@ -358,9 +400,13 @@ void setup() {
   Serial.begin(115200);
   delay(50);  // Serial Init Wait
 
+  Serial.println("=====");
+
+  // Buttons
   btnOnboard = new Button(PIN_BTN_ONBOARD, "Onboard", btn_intr_hdr);
   btnRe = new Button(PIN_BTN_RE, "RotaryEncoder", btn_intr_hdr);
   
+  // OLED
   disp = new Adafruit_SSD1306(DISP_W, DISP_H);
   if (!disp->begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     log_e("SSD1306: init failed");
@@ -375,16 +421,17 @@ void setup() {
   disp->setTextColor(WHITE);
   disp->setTextWrap(false);
 
+  // Onboard NeoPixel
   FastLED.addLeds<WS2812B, PIN_NEOPIXEL, GRB>
     (leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(LED_BRIGHTNESS);
   leds[0] = CRGB(255,255,255);
   FastLED.show();
 
+  // Queues
   queRe = xQueueCreate(Q_SIZE, sizeof(int16_t));
   if ( queRe == NULL ) {
     log_e("xQueueCreate: failed");
-
     while(true) {
       delay(1);
     }
@@ -393,16 +440,24 @@ void setup() {
   queBtn = xQueueCreate(Q_SIZE, sizeof(ButtonInfo_t));
   if ( queBtn == NULL ) {
     log_e("xQueueCreate: failed");
-
     while(true) {
       delay(1);
     }
   }
 
+  // Tasks
   createTask(task_re_watcher, "re_watcher");
   createTask(task_btn_watcher, "btn_watcher");
   createTask(task_net_mgr, "net_mgr");
+  createTask(task_ntp, "task_ntp");
   createTask(task1, "task1");
+
+  // Timer
+  TimerHandle_t timer1 = xTimerCreate("TIMER1", TIMER_INTERVAL,
+                                      pdTRUE, NULL,
+                                      timer_cb);
+  xTimerStart(timer1, 0);
+  log_i("start Timer: %.1f sec", TIMER_INTERVAL / 1000.0);
 }
 
 /**
