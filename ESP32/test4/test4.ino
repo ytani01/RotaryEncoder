@@ -1,6 +1,8 @@
 /**
  * Copyright (c) 2022 Yoichi Tanibayashi
  */
+#include <sntp.h>
+
 #undef FASTLED_ALL_PINS_HARDWARE_SPI // for RMT (?)
 #undef FASTLED_ESP32_I2S // for RMT (?)
 #include <FastLED.h>
@@ -50,8 +52,8 @@ mode_t netMgrMode;
 
 // NTP
 const String NTP_SVR[] = {"ntp.nict.jp", "pool.ntp.org", "time.google.com"};
-const TickType_t NTP_INTERVAL = 10 * 1000; // tick == ms (?)
-
+const TickType_t NTP_INTERVAL = 1 * 1000; // tick == ms (?)
+volatile static bool ntp_syncing = false;
 
 /**
  *
@@ -71,17 +73,35 @@ void timer_cb_ntp(TimerHandle_t xTimer) {
     return;
   }
 
+  if ( ntp_syncing ) {
+    log_w("NTP SYNCING");
+    return;
+  }
+  ntp_syncing = true;
+
   struct tm ti; // time info
   const String day_str[] = {"Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"};
   
   configTime(9 * 3600L, 0,
              NTP_SVR[0].c_str(), NTP_SVR[0].c_str(), NTP_SVR[0].c_str());
 
+  sntp_sync_mode_t sync_mode = sntp_get_sync_mode();
+  log_i("sync_mode=%d", sync_mode);
+
+  sntp_sync_status_t sync_stat;
+  while ( (sync_stat = sntp_get_sync_status()) == SNTP_SYNC_STATUS_RESET ) {
+    log_i("sync_stat=%d", sync_stat);
+    delay(1000);
+  }
+  log_i("sync_stat=%d", sync_stat);
+
   getLocalTime(&ti);
   log_i("%04d/%02d/%02d(%s) %02d:%02d:%02d",
         ti.tm_year + 1900, ti.tm_mon + 1, ti.tm_mday,
         day_str[ti.tm_wday].c_str(),
         ti.tm_hour, ti.tm_min, ti.tm_sec);
+
+  ntp_syncing = false;
 }
 
 /** NetMgr task function
@@ -90,7 +110,7 @@ void timer_cb_ntp(TimerHandle_t xTimer) {
 void task_net_mgr(void *pvParameters) {
   netMgr = new NetMgr(AP_SSID_HDR, WIFI_RETRY_COUNT);
 
-  TimerHandle_t ntp_timer = xTimerCreate("NTP", 10000, pdTRUE, NULL,
+  TimerHandle_t ntp_timer = xTimerCreate("NTP", NTP_INTERVAL , pdTRUE, NULL,
                                          timer_cb_ntp);
   xTimerStart(ntp_timer, 0);
   
