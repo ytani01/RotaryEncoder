@@ -6,10 +6,14 @@
 /**
  *
  */
-Button::Button(uint8_t pin, String name)
+Button::Button(uint8_t pin, String name, void (*intr_hdr)(void))
 {
   this->info.pin = pin;
-  strcpy(this->info.name, name.c_str()); // XXX 文字数チェックをするべき
+  if ( name.length() > BTN_NAME_LEN ) {
+    strcpy(this->info.name, name.substring(0, BTN_NAME_LEN).c_str());
+  } else {
+    strcpy(this->info.name, name.c_str());
+  }
   this->info.value = Button::OFF;
   this->info.prev_value = Button::OFF;
   this->info.press_start = 0;
@@ -22,6 +26,11 @@ Button::Button(uint8_t pin, String name)
   this->info.active = true;
 
   pinMode(this->info.pin, INPUT_PULLUP);
+
+  if ( intr_hdr != NULL ) {
+    uint8_t intrPin = digitalPinToInterrupt(this->info.pin);
+    attachInterrupt(intrPin, intr_hdr, CHANGE);
+  }
 } // Button::Button()
 
 /**
@@ -48,6 +57,7 @@ boolean Button::get()
       // click count is detected
       this->info.click_count = this->info.count;
       this->info.count = 0;
+      // log_i("[%s] click_count=%d", this->info.name, this->info.click_count);
       ret = true;
     }
   }
@@ -60,8 +70,10 @@ boolean Button::get()
 
     if ( this->info.prev_value == Button::ON) {
       // Released now !
+      // log_i("[%s] released", this->info.name);
       return true;
     }
+    // if ( ret ) log_i("[%s] ret=%d", this->info.name, ret);
     return ret;
   }
 
@@ -73,6 +85,7 @@ boolean Button::get()
     if ( this->info.count == 1 ) {
       this->info.first_press_start = cur_msec;
     }
+    // log_i("[%s] pushed", this->info.name);
     return true;
   }
 
@@ -81,8 +94,10 @@ boolean Button::get()
     if ( cur_msec - this->info.press_start > LONG_PRESS_MSEC ) {
       this->info.long_pressed = true;
       this->info.press_start = cur_msec;
+      // log_i("[%s] long", this->info.name);
       return true;
     } else {
+      // if ( ret ) log_i("[%s] ret=%d", this->info.name, ret);
       return ret;
     }
   }
@@ -91,9 +106,11 @@ boolean Button::get()
   if ( cur_msec - this->info.press_start > REPEAT_MSEC ) {
     this->info.repeated = true;
     this->info.press_start = cur_msec;
+    // log_i("[%s] repeat", this->info.name);
     return true;
   }
 
+  // if ( ret ) log_i("[%s] ret=%d", this->info.name, ret);
   return ret;
 } // Button::get()
 
@@ -138,23 +155,18 @@ boolean Button::is_repeated()
 /**
  *
  */
-void Button::print() {
-  print(false);
-}
-
-/**
- *
- */
-void Button::print(boolean interrupt)
-{
-  String str = interrupt ? "!" : " ";
+String Button::info2String(ButtonInfo_t info, bool interrupted) {
+  char buf[255];
+  String intrString = interrupted ? "!" : " ";
+  String valueString = info.value ? "H(OFF)" : "L(ON )";
+  String longPressedString = info.long_pressed ? "Long" : "----";
+  String repeatedString = info.repeated ? "Repeat" : "------";
   
-  str += "Btn[" + String(this->info.name) + "] ";
-  str += this->info.value ? "OFF "  : "ON  ";
-  str += String(this->info.count) + " ";
-  str += String(this->info.click_count) + " ";
-  str += this->info.long_pressed ? "Long " : "---- ";
-  str += this->info.repeated ? "Repeat "  : "------ ";
+  sprintf(buf, "%sBTN[%s:%d] %s %d %d %s %s",
+          intrString.c_str(),
+          info.name, info.pin, valueString.c_str(),
+          info.count, info.click_count,
+          longPressedString.c_str(), repeatedString.c_str());
 
-  Serial.println(str);
+  return String(buf);
 }

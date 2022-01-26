@@ -236,36 +236,36 @@ void task1(void *pvParameters) {
  *
  */
 void IRAM_ATTR btn_intr_hdr() {
+  Button *btn;
+
   static unsigned long prev_ms = 0;
   unsigned long cur_ms = millis();
 
-  if ( cur_ms - prev_ms < 100 ) {
+  if ( cur_ms - prev_ms < 50 ) {
     return;
   }
   prev_ms = cur_ms;
 
-  portBASE_TYPE ret;
-  ButtonInfo_t btn_info;
-
+  btn = NULL;
   if ( btnOnboard->get() ) {
-    btn_info = btnOnboard->info;
-    log_d("btn_info.pin=%d, sizeof(btn_info)=%d", btn_info.pin, sizeof(btn_info));
-    while ( (ret = xQueueSend(queBtn, (void *)&btn_info, 10)) != pdPASS ) {
-      log_w("put queue failed");
-      delay(1);
-    }
+    // log_i("onboard");
+    btn = btnOnboard;
   }
-
   if ( btnRe->get() ) {
-    btn_info = btnRe->info;
-    log_d("btn_info.pin=%d, sizeof(btn_info)=%d", btn_info.pin, sizeof(btn_info));
-    while ( (ret = xQueueSend(queBtn, (void *)&btn_info, 10)) != pdPASS ) {
-      log_w("put queue failed");
-      delay(1);
-    }
+    // log_i("rotary encoder");
+    btn = btnRe;
   }
 
-  log_d("AAA");
+  if ( btn != NULL ) {
+    portBASE_TYPE ret;
+    ButtonInfo_t btn_info = btn->info;
+    
+    while ( (ret=xQueueSend(queBtn, (void *)&(btn_info), 10)) != pdPASS ) {
+      log_w("put queue failed:ret=%d", ret);
+      delay(1);
+    }
+    log_i("%s", Button::info2String(btn->info, true).c_str());
+  }
 } // btn_intr_hdr()
 
 /**
@@ -274,39 +274,44 @@ void IRAM_ATTR btn_intr_hdr() {
 void task_btn_watcher(void *pvParameters) {
 
   while (true) { // main loop
-    portBASE_TYPE ret;
     ButtonInfo_t btn_info;
+    portBASE_TYPE ret;
+    Button *btn;
 
+    btn = NULL;
     if ( btnOnboard->get() ) {
-      btn_info = btnOnboard->info;
-      while ( (ret = xQueueSend(queBtn, (void *)&btn_info, 10)) != pdPASS ) {
-        log_w("put queue failed");
-        delay(1);
-      }
+      btn = btnOnboard;
     }
-
     if ( btnRe->get() ) {
-      btn_info = btnRe->info;
+      btn = btnRe;
+    }
+    if ( btn != NULL ) {
+      btn_info = btn->info;
+
       while ( (ret = xQueueSend(queBtn, (void *)&btn_info, 10)) != pdPASS ) {
         log_w("put queue failed");
         delay(1);
       }
+      log_i("send que: %s", Button::info2String(btn->info).c_str());
+      delay(1);
+      continue;
     }
 
     if ( (ret = xQueueReceive(queBtn, (void *)&btn_info, 0)) == pdPASS ) {
-      log_d("pin=%d,value=%d,count=%d,click_count=%d,long_pressed=%d,repeated=%d",
-            btn_info.pin, btn_info.value,
-            btn_info.count, btn_info.click_count,
-            btn_info.long_pressed, btn_info.repeated);
+      log_i("recv que: %s", Button::info2String(btn_info).c_str());
 
       if ( btn_info.pin == PIN_BTN_ONBOARD ) {
-        log_w("restart..");
-        delay(2000);
-        //ESP.restart();
-        ESP.deepSleep(3000);
-        delay(2000);
-        return;
+        if ( btn_info.long_pressed ) {
+          log_w("restart..");
+          delay(2000);
+          //ESP.restart();
+          ESP.deepSleep(3000);
+          delay(2000);
+        }
+        delay(10);
+        continue;
       }
+
       if ( btn_info.pin == PIN_BTN_RE ) {
         ch_color(255, 255, 255);
       }
@@ -316,12 +321,15 @@ void task_btn_watcher(void *pvParameters) {
   } // while(true)
 } // task_btn_watcher()
 
-BaseType_t taskCreate(TaskFunction_t pxTaskCode,
+/**
+ *
+ */
+BaseType_t createTask(TaskFunction_t pxTaskCode,
                       const char * pcName,
                       const uint16_t usStackDepth=0x2000) {
   return xTaskCreateUniversal(pxTaskCode, pcName, usStackDepth,
                               NULL, 1, NULL, APP_CPU_NUM);
-} // taskCreate()
+} // createTask()
 
 /**
  *
@@ -330,15 +338,8 @@ void setup() {
   Serial.begin(115200);
   delay(50);  // Serial Init Wait
 
-  btnOnboard = new Button(PIN_BTN_ONBOARD, "BTN_OB");
-  btnRe = new Button(PIN_BTN_RE, "BTN_RE");
-
-  uint8_t intrPinOnboard = digitalPinToInterrupt(PIN_BTN_ONBOARD);
-  uint8_t intrPinRe = digitalPinToInterrupt(PIN_BTN_RE);
-  log_d("intrPinOnboard=%d, intrPinRe=%d", intrPinOnboard, intrPinRe);
-
-  attachInterrupt(digitalPinToInterrupt(PIN_BTN_ONBOARD), btn_intr_hdr, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(PIN_BTN_RE), btn_intr_hdr, CHANGE);
+  btnOnboard = new Button(PIN_BTN_ONBOARD, "Onboard", btn_intr_hdr);
+  btnRe = new Button(PIN_BTN_RE, "RotaryEncoder", btn_intr_hdr);
   
   disp = new Adafruit_SSD1306(DISP_W, DISP_H);
   if (!disp->begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
@@ -378,10 +379,10 @@ void setup() {
     }
   }
 
-  taskCreate(task_re_watcher, "re_watcher");
-  taskCreate(task_btn_watcher, "btn_watcher");
-  taskCreate(task_net_mgr, "net_mgr");
-  taskCreate(task1, "task1");
+  createTask(task_re_watcher, "re_watcher");
+  createTask(task_btn_watcher, "btn_watcher");
+  createTask(task_net_mgr, "net_mgr");
+  createTask(task1, "task1");
 }
 
 /**
