@@ -1,5 +1,8 @@
 /**
  * Copyright (c) 2022 Yoichi Tanibayashi
+ *
+ * XXX ToDo XXX
+ * define info_t angle, d_angle, count_max
  */
 #ifndef _ESP32_PCNT_ROTARY_ENCODER_H_
 #define _ESP32_PCNT_ROTARY_ENCODER_H_
