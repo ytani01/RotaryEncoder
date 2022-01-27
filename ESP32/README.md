@@ -10,6 +10,7 @@ ESP32のパルスカウンター(PCNT)を使用した、
 
 * Esp32PcntRotaryEncoder
 
+
 ## Hardware
 
 ### OLED: SSD1306
@@ -33,6 +34,16 @@ void task(..) {
   
 }
 ```
+
+## 注意
+
+### タイマーは、Tickerを使う
+
+xTimer..のタイマーは、なぜかコールバック実行中に、
+OLEDの display() が、以上に遅くなる(460ms程度)。
+
+Tickerの場合、問題は起きない。
+
 
 ## Reference
 
