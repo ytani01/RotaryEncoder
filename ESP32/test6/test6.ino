@@ -2,6 +2,7 @@
  * Copyright (c) 2022 Yoichi Tanibayashi
  */
 #include <esp_sntp.h>
+#include <Ticker.h>
 
 #undef FASTLED_ALL_PINS_HARDWARE_SPI // for RMT (?)
 #undef FASTLED_ESP32_I2S // for RMT (?)
@@ -9,8 +10,6 @@
 
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
-
-#include <Ticker.h>
 
 #include "Esp32PcntRotaryEncoder.h"
 #include "NetMgr.h"
@@ -37,7 +36,7 @@ const uint16_t DISP_W = 128;
 const uint16_t DISP_H = 64;
 const uint16_t CH_W = 6;
 const uint16_t CH_H = 8;
-const uint16_t LINE_W = 3;
+const uint16_t FRAME_W = 3;
 Adafruit_SSD1306 *disp;
 
 // Buttons
@@ -73,7 +72,7 @@ const uint8_t LED_BRIGHTNESS_EXT1 = 30;
 CRGB leds_ext1[LEDS_N_EXT1];
 
 // WiFi
-const String AP_SSID_HDR = "test3";
+const String AP_SSID_HDR = "test";
 const unsigned int WIFI_RETRY_COUNT = 10;
 NetMgr *netMgr;
 mode_t netMgrMode;
@@ -85,6 +84,7 @@ const unsigned long NTP_INTERVAL_PROGRESS = 5 * 1000; // ms
 
 // Timer
 const TickType_t TIMER_INTERVAL = 10 * 1000; // tick == ms (?)
+Ticker timer1;
 
 /**
  *
@@ -129,7 +129,9 @@ void timer_cb(TimerHandle_t xTimer) {
   log_i("timer test: end");
 } // timer_cb()
 
-Ticker timer1;
+/**
+ *
+ */
 void timer1_cb() {
   TickType_t tick = xTaskGetTickCount();
   log_i("timer test: priority=%d, tick=%d", uxTaskPriorityGet(NULL), tick);
@@ -150,7 +152,9 @@ void task_ntp(void *pvParameters) {
   tzset();
   sntp_set_sync_mode(SNTP_SYNC_MODE_SMOOTH);
 
-  while (true) {
+  while (true) { // main loop
+    disp->setCursor(10, 20);
+
     if ( netMgrMode != NetMgr::MODE_WIFI_ON ) {
       delay(1000);
       continue;
@@ -442,31 +446,43 @@ void task_oled(void *pvParameters) {
 
   disp->begin(SSD1306_SWITCHCAPVCC, 0x3C);
   disp->display(); // display Adafruit Logo
-  delay(2000);
+  delay(1000);
   disp->clearDisplay();
   disp->setTextColor(WHITE);
   disp->setTextWrap(false);
+  disp->cp437(true);
 
   while (true) { // main loop
     disp->clearDisplay();
 
     disp->fillRect(0,0, DISP_W, DISP_H, WHITE);
-    disp->fillRect(LINE_W, LINE_W,
-                   DISP_W - LINE_W * 2, DISP_H - LINE_W * 2,
+    disp->fillRect(FRAME_W, FRAME_W,
+                   DISP_W - FRAME_W * 2, DISP_H - FRAME_W * 2,
                    BLACK);
-    delay(10);
-    disp->drawRect(10,10,10,10,WHITE);
+
     disp->drawRect(100,30,20,20,WHITE);
     if ( re != NULL ) {
       int x = DISP_W / 2 + re->info.angle * 2 - re->info.angle_max * 2 / 2;
-      disp->fillCircle(x, 32, 20, WHITE);
+      disp->fillCircle(x, 32, 15, WHITE);
     }
-    delay(10);
+
+    disp->setTextSize(1);
+    disp->setCursor(10, 10);
+    disp->write("SSID:");
+    if ( netMgr->cur_ssid == "" ) {
+      disp->write("[No WiFi]");
+    } else {
+      disp->write(netMgr->cur_ssid.c_str());
+    }
+
+    disp->setTextSize(1);
+    disp->setCursor(10, 50);
+    disp->write(netMgr->get_mac_addr_String().c_str());
 
     unsigned long ms0 = millis();
     disp->display();
     unsigned long ms = millis() - ms0;
-    if ( ms > 100 ) {
+    if ( ms > 50 ) {
       log_w("display(): ms=%d", ms);
     }
 
@@ -480,7 +496,7 @@ void task_oled(void *pvParameters) {
  */
 BaseType_t createTask(TaskFunction_t pxTaskCode,
                       const char * pcName,
-                      const uint16_t usStackDepth=8192,
+                      const uint16_t usStackDepth=1024*8,
                       UBaseType_t uxPriority=1,
                       BaseType_t xCoreID=APP_CPU_NUM
                       // PRO_CPU_NUM:0, APP_CPU_NUM:1
@@ -553,8 +569,8 @@ void setup() {
   // Tasks
   createTask(task_oled, "oled");
   createTask(task_re_watcher, "re_watcher");
-  createTask(task_btn_watcher, "btn_watcher");
-  createTask(task_net_mgr, "net_mgr");
+  createTask(task_btn_watcher, "btn_watcher", 1024 * 8);
+  createTask(task_net_mgr, "net_mgr", 1024 * 16);
   createTask(task_ntp, "task_ntp");
   createTask(task1, "task1");
 

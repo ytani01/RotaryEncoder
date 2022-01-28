@@ -467,3 +467,10 @@ String NetMgr::get_mac_addr_String() {
 
   return String(buf);
 } // NetMgr::get_mac_addr_String()
+
+/**
+ *
+ */
+NetMgr::set_ssid(String ssid) {
+  
+} // NetMgr::set_ssid()

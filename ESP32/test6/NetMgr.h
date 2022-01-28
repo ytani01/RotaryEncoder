@@ -21,7 +21,7 @@ class NetMgr {
   static const unsigned int DEF_TRY_COUNT_MAX = 15;
   unsigned int try_count_max = DEF_TRY_COUNT_MAX;
 
-  static const unsigned int SSID_N_MAX = 30;
+  static const unsigned int SSID_N_MAX = 50;
 
   static const int DNS_PORT    = 53;
   static const int WEBSVR_PORT = 80;
@@ -38,6 +38,9 @@ class NetMgr {
   static String myName;
   static unsigned int ssidN;
   static SSIDent ssidEnt[SSID_N_MAX];
+
+  uint8_t mac_addr[6];
+  String cur_ssid = "";
 
   boolean net_is_available = false;;
   mode_t cur_mode   = MODE_START;
@@ -56,6 +59,10 @@ class NetMgr {
   NetMgr(String ap_ssid_hdr, unsigned int try_count_max=DEF_TRY_COUNT_MAX);
   mode_t loop();
 
+  String get_mac_addr_String();
+
+  void set_ssid(String ssid="");
+  
 protected:
   unsigned int _loop_count = 0;
 
