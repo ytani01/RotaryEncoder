@@ -6,7 +6,7 @@
 /**
  *
  */
-Button::Button(String name, uint8_t pin, void (*intr_hdr)(void)) {
+Button::Button(String name, uint8_t pin, void (*intr_hdr)(void *btn)) {
   if ( name.length() > BUTTON_NAME_SIZE ) {
     strcpy(this->info.name, name.substring(0, BUTTON_NAME_SIZE).c_str());
   } else {
@@ -28,7 +28,8 @@ Button::Button(String name, uint8_t pin, void (*intr_hdr)(void)) {
 
   if ( intr_hdr != NULL ) {
     uint8_t intrPin = digitalPinToInterrupt(this->info.pin);
-    attachInterrupt(intrPin, intr_hdr, CHANGE);
+    log_i("%s: intrPin=%d", this->info.name, intrPin);
+    attachInterruptArg(intrPin, intr_hdr, this, CHANGE);
   }
 } // Button::Button()
 
@@ -182,9 +183,9 @@ String Button::info2String(ButtonInfo_t info, bool interrupted) {
   char buf[128];
   String intrString = interrupted ? "!" : " ";
   String valueString = info.value ? "H(OFF)" : "L(ON )";
-  String longPressedString = info.long_pressed ? "Long" : "----";
+  String longPressedString = info.long_pressed ? "L" : "-";
   
-  sprintf(buf, "%sBTN[%s:%d] %s %d %d %s %d",
+  sprintf(buf, "%sBTN[%s:%d] %s P:%d C:%d %s R:%d",
           intrString.c_str(),
           info.name, info.pin, valueString.c_str(),
           info.push_count, info.click_count,
@@ -192,3 +193,10 @@ String Button::info2String(ButtonInfo_t info, bool interrupted) {
 
   return String(buf);
 } // Button::info2String()
+
+/**
+ *
+ */
+String Button::toString(bool interrupted) {
+  return Button::info2String(this->info, interrupted);
+} // Button::toString()

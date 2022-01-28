@@ -2,6 +2,7 @@
  * Copyright (c) 2022 Yoichi Tanibayashi
  */
 #include <esp_sntp.h>
+#include <esp_task_wdt.h>
 #include <Ticker.h>
 
 #undef FASTLED_ALL_PINS_HARDWARE_SPI // for RMT (?)
@@ -44,7 +45,6 @@ const uint8_t PIN_BTN_ONBOARD = 39;
 const uint8_t PIN_BTN_RE = 26;
 const String BTN_NAME_ONBOARD = "OnBoard";
 const String BTN_NAME_RE = "RotaryEncoder1";
-const unsigned long DEBOUNCE = 50; // msec
 Button *btnOnboard = NULL;
 Button *btnRe = NULL;
 
@@ -83,7 +83,7 @@ const unsigned long NTP_INTERVAL_NORMAL = 5 * 60 * 1000; // ms
 const unsigned long NTP_INTERVAL_PROGRESS = 5 * 1000; // ms
 
 // Timer
-const TickType_t TIMER_INTERVAL = 10 * 1000; // tick == ms (?)
+const TickType_t TIMER_INTERVAL = 20 * 1000; // tick == ms (?)
 Ticker timer1;
 
 /**
@@ -133,13 +133,14 @@ void timer_cb(TimerHandle_t xTimer) {
  *
  */
 void timer1_cb() {
-  TickType_t tick = xTaskGetTickCount();
-  log_i("timer test: priority=%d, tick=%d", uxTaskPriorityGet(NULL), tick);
+  TickType_t tick1 = xTaskGetTickCount();
+  log_i("[%7d] timer test: start(priority=%d)", tick1, uxTaskPriorityGet(NULL));
 
   delay(TIMER_INTERVAL / 2);
 
-  TickType_t d_tick = xTaskGetTickCount() - tick;
-  log_i("timer test: end: d_tick=%d", d_tick);
+  TickType_t tick2 = xTaskGetTickCount();
+  TickType_t d_tick = tick2 - tick1;
+  log_i("[%7d] timer test: end(d_tick=%d)", tick2, d_tick);
 }
 
 /** NTP task function
@@ -187,8 +188,7 @@ void task_ntp(void *pvParameters) {
 
     log_i("interval=%.1f sec", interval / 1000.0);
     delay(interval);
-  } // while(true)
-
+  } // main loop
   vTaskDelete(NULL);
 } // task_ntp()
 
@@ -196,6 +196,10 @@ void task_ntp(void *pvParameters) {
  *
  */
 void task_net_mgr(void *pvParameters) {
+  // Watchdog Timer の初期化
+  ESP_ERROR_CHECK(esp_task_wdt_init(60, true));
+  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
+
   netMgr = new NetMgr(AP_SSID_HDR, WIFI_RETRY_COUNT);
 
   while (true) { // main loop
@@ -214,8 +218,9 @@ void task_net_mgr(void *pvParameters) {
       prev_netMgrMode = netMgrMode;
     }
 
+    ESP_ERROR_CHECK(esp_task_wdt_reset());
     delay(1);
-  } // while(true)
+  } // main loop
   vTaskDelete(NULL);
 } // task_net_mgr()
 
@@ -228,7 +233,7 @@ void task_re_watcher(void *pvParameters) {
                                   PCNT_UNIT,
                                   re_intr_hdr, (void *)NULL);
 
-  while (true) {
+  while (true) { // main loop
     RotaryEncoderAngle_t d_angle = re->get();
 
     if ( d_angle == 0 ) {
@@ -243,7 +248,7 @@ void task_re_watcher(void *pvParameters) {
       log_e("put queue failed, ret=%d", ret);
     }
     delay(10);
-  } // while(true)
+  } // main loop
   vTaskDelete(NULL);
 } // task_re_watcher()
 
@@ -304,7 +309,7 @@ unsigned long hsv2rgb(uint8_t hue, uint8_t sat, uint8_t val) {
 /**
  *
  */
-void ch_color(uint8_t hue, uint8_t sat, uint8_t val) {
+void ch_hsv(uint8_t hue, uint8_t sat, uint8_t val) {
   leds_onboard[0] = CHSV(hue, sat, val);
 
   for (int i=0; i < LEDS_N_EXT1; i++) {
@@ -313,7 +318,7 @@ void ch_color(uint8_t hue, uint8_t sat, uint8_t val) {
   }
   
   FastLED.show();
-} // ch_color();
+} // ch_hsv();
 
 /**
  *
@@ -322,57 +327,55 @@ void task1(void *pvParameters) {
   RotaryEncoderInfo_t re_info;
   portBASE_TYPE ret;
   
-  while (true) {
+  while (true) { // main loop
     // get queue
-    while ( (ret = xQueueReceive(queRe, (void *)&re_info, 0)) != pdPASS ) {
-      delay(1);
+    if ( (ret = xQueueReceive(queRe, (void *)&re_info, 0)) == pdPASS ) {
+      // calc color
+      uint16_t hue = int(round((float)re_info.angle * 255.0 / (float)PULSE_MAX));
+      ch_hsv(hue, 255, 255);
+      log_i("que > %s  hue=0x%02X(%.1f deg)",
+            Esp32PcntRotaryEncoder::info2String(re_info).c_str(), hue,
+            (float)hue * 360.0 / 256.0);
+    } else if ( ret != errQUEUE_EMPTY ) {
+      log_e("%d", ret);
     }
-    // calc color
-    uint16_t hue = int(round((float)re_info.angle * 255.0 / (float)PULSE_MAX));
-    ch_color(hue, 255, 255);
-    log_i("que > %s  hue=0x%02X",
-          Esp32PcntRotaryEncoder::info2String(re_info).c_str(), hue);
 
     delay(1);
-  } // while(true)
+  } // main loop
   vTaskDelete(NULL);
 } // task1()
 
 /**
- *
+ * @param [in] arg_btn    Button *btn
  */
-void IRAM_ATTR btn_intr_hdr() {
+void IRAM_ATTR btn_intr_hdr(void *arg_btn) {
+  Button *btn = static_cast<Button *>(arg_btn);
+  static unsigned long __prev_ms = 0;
+  unsigned long __cur_ms = millis();
+  if ( __cur_ms - __prev_ms < Button::DEBOUNCE ) {
+    return;
+  }
+  __prev_ms = __cur_ms;
+  if ( ! btn->get() ) {
+    return;
+  }
+  //log_i("btn->info.name=%s", btn->info.name); // panicすることがある!?
+  // *** ここまで定形 *** //
+
   static BaseType_t xHigherPriorityTaskWoken;
   xHigherPriorityTaskWoken = pdFALSE;
 
-  static unsigned long prev_ms = 0;
-  unsigned long cur_ms = millis();
+  portBASE_TYPE ret;
+  String btn_str = btn->toString(true);
 
-  if ( cur_ms - prev_ms < DEBOUNCE ) {
-    return;
+  if ( (ret = xQueueSendFromISR(queBtn, (void *)&(btn->info),
+                                &xHigherPriorityTaskWoken))
+       == pdPASS) {
+    log_d("que < %s", btn_str);
+  } else {
+    log_e("send que failed: %s: ret=%d", btn_str, ret);
   }
-  prev_ms = cur_ms;
-
-  // log_d(""); // XXX なぜか、ボタン以外の割込が入る?? XXX
-
-  Button *btn = NULL;
-  if ( btnOnboard->get() ) {
-    btn = btnOnboard;
-  }
-  if ( btnRe->get() ) {
-    btn = btnRe;
-  }
-  if ( btn != NULL ) {
-    portBASE_TYPE ret;
-    if ( (ret = xQueueSendFromISR(queBtn, (void *)&(btn->info),
-                                  &xHigherPriorityTaskWoken)) == pdPASS) {
-      log_d("que < %s", Button::info2String(btn->info, true).c_str());
-    } else {
-      log_e("send que failed: %s: ret=%d",
-            Button::info2String(btn->info, true).c_str(), ret);
-    }
-  }
-
+  
   if ( xHigherPriorityTaskWoken ) {
     portYIELD_FROM_ISR();
   }
@@ -382,8 +385,10 @@ void IRAM_ATTR btn_intr_hdr() {
  *
  */
 void task_btn_watcher(void *pvParameters) {
+  noInterrupts();
   btnOnboard = new Button(BTN_NAME_ONBOARD, PIN_BTN_ONBOARD, btn_intr_hdr);
   btnRe = new Button(BTN_NAME_RE, PIN_BTN_RE, btn_intr_hdr);
+  interrupts();
   
   while (true) { // main loop
     ButtonInfo_t btn_info;
@@ -429,13 +434,13 @@ void task_btn_watcher(void *pvParameters) {
 
       if ( String(btn_info.name) == BTN_NAME_RE ) {
         if ( btn_info.push_count > 0 ) {
-          ch_color(255, 255, 255);
+          ch_hsv(255, 0, 255);
         }
       }
     } // if(xQueueReceive(queBtn)..)
 
     delay(1);
-  } // while(true)
+  } // main loop
   vTaskDelete(NULL);
 } // task_btn_watcher()
 
@@ -505,11 +510,12 @@ BaseType_t createTask(TaskFunction_t pxTaskCode,
                                         NULL, uxPriority, NULL, xCoreID);
   log_i("Start: %s: ret=%d", pcName, ret);
   if ( ret != pdPASS ) {
-    while(true) {
+    log_e("ret=%d .. HALT", ret);
+    while (true) { // !!! halt !!!
       delay(1);
     }
   }
-  delay(10);
+  delay(100);
   return ret;
 } // createTask()
 
@@ -552,25 +558,25 @@ void setup() {
   // Queues
   queRe = xQueueCreate(Q_SIZE, sizeof(RotaryEncoderInfo_t));
   if ( queRe == NULL ) {
-    log_e("xQueueCreate(queRe): failed");
-    while(true) {
+    log_e("xQueueCreate(queRe): failed .. HALT");
+    while (true) { // HALT
       delay(1);
     }
   }
 
   queBtn = xQueueCreate(Q_SIZE, sizeof(ButtonInfo_t));
   if ( queBtn == NULL ) {
-    log_e("xQueueCreate(queBtn): failed");
-    while(true) {
+    log_e("xQueueCreate(queBtn): failed .. HALT");
+    while (true) { // HALT
       delay(1);
     }
   }
 
   // Tasks
-  createTask(task_oled, "oled");
+  createTask(task_oled, "oled", 4 * 1024);
   createTask(task_re_watcher, "re_watcher");
-  createTask(task_btn_watcher, "btn_watcher", 1024 * 8);
-  createTask(task_net_mgr, "net_mgr", 1024 * 16);
+  createTask(task_btn_watcher, "btn_watcher");
+  createTask(task_net_mgr, "net_mgr", 4 * 1024); //?
   createTask(task_ntp, "task_ntp");
   createTask(task1, "task1");
 

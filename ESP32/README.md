@@ -44,6 +44,22 @@ OLEDの display() が、以上に遅くなる(460ms程度)。
 
 Tickerの場合、問題は起きない。
 
+### WiFi関係のタスクは、TWDT(Task WatchDoc Timer)を適切に設定する
+
+```
+#include <esp_task_wdt.h>
+:
+void task_net_mgr() {
+  ESP_ERROR_CHECK(esp_task_wdt_init(60, true)); // *** 60sec
+  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));      // *** 必要(?)
+  :
+  while (true) { // main loop
+    :
+    ESP_ERROR_CHECK(esp_task_wdt_reset());      // *** 必要(?)
+    delay(1)                // *** コンテキスト・スイッチのために必要(?)
+  } // main loop
+} // task_net_mgr()
+```
 
 ## Reference
 

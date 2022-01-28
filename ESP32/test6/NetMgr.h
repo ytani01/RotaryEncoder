@@ -1,5 +1,20 @@
 /**
  * Copyright (c) 2021 Yoichi Tanibayashi
+ *
+ * FreeRTOSのマルチタスクで使う場合、WDT(WatchDoc Timer)を伸ばしたほうがいい(??)
+ * ```
+ * #include <esp_task_wdt.h>
+ *   :
+ * void task_net_mgr() {
+ *   ESP_ERROR_CHECK(esp_task_wdt_init(60, true)); // *** 60sec
+ *   ESP_ERROR_CHECK(esp_task_wdt_add(NULL));      // *** 必要!?
+ *   :
+ *   while (true) { // main loop
+ *     :
+ *     ESP_ERROR_CHECK(esp_task_wdt_reset());      // *** 必要1?
+ *   } // main loop
+ * } // task_net_mgr()
+ * ```
  */
 #ifndef NETMGR_H
 #define NETMGR_H

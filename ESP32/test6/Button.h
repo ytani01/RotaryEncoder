@@ -9,23 +9,28 @@
  *  :
  *  Button *btn;
  *  :
- *  void IRAM_ATTR btn_intr_hdr() {
- *    static BaseType_t xHigherPriorityTaskWoken;
- *    xHigherPriorityTaskWoken = pdFALSE;
- *
- *    if ( btn->get() ) {
- *      app_btn_intr_hdr(btn);
+ *  void IRAM_ATTR btn_intr_hdr(void *arg_btn) {
+ *    Button *btn = static_cast<Button *>(arg_btn);
+ *    static unsigned long __prev_ms = 0;
+ *    unsigned long __cur_ms = millis();
+ *    if ( __cur_ms - __prev_ms < Button::DEBOUNCE ) {
+ *      return;
  *    }
- *
- *    if ( xHigherPriorityTaskWoken ) {
- *      portYIELD_FROM_ISR();
+ *    __prev_ms = __cur_ms;
+ *    if ( ! btn->get() ) {
+ *      return;
  *    }
- *  }
+ *    log_d("btn->info.name=%s", btn->info.name);
+ *    // ここまで定形
+ *
+ *    app_btn_intr_hdr();
+ *
+ *  } // btn_intr_hdr()
  *  
  *  void setup() {
  *    btn = new Button("button_name", pin, btn_intr_hdr);
  *    :
- *  }
+ *  } // setup()
  *  
  *  void loop() {
  *    :
@@ -33,11 +38,11 @@
  *      app_btn_loop_hdr(btn);
  *    }
  *    :
- *  }
+ *  } // loop()
  *  ==========================================================================
  */
-#ifndef BUTTON_H
-#define BUTTON_H
+#ifndef _BUTTON_H
+#define _BUTTON_H
 #include <Arduino.h>
 
 
@@ -45,6 +50,9 @@ static const unsigned long BUTTON_NAME_SIZE = 16;
 
 typedef uint8_t	ButtonCount_t;
 
+/**
+ *
+ */
 typedef struct {
   char name[BUTTON_NAME_SIZE + 1];
   uint8_t pin;
@@ -59,19 +67,22 @@ typedef struct {
   ButtonCount_t repeat_count;;
 } ButtonInfo_t;
 
+/**
+ *
+ */
 class Button {
  public:
   static const unsigned long ON                 = LOW;
   static const unsigned long OFF                = HIGH;
 
-  static const unsigned long DEBOUNCE        	=   10;
+  static const unsigned long DEBOUNCE        	=   50;
   static const unsigned long LONG_PRESS_MSEC 	= 1000;
   static const unsigned long REPEAT_MSEC     	=  300;
   static const unsigned long CLICK_MSEC		=  800;
 
   ButtonInfo_t info;
 
-  Button(String name, uint8_t pin, void (*intr_hdr)(void));
+  Button(String name, uint8_t pin, void (*intr_hdr)(void *btn));
 
   bool get();
 
@@ -87,6 +98,7 @@ class Button {
   ButtonCount_t get_repeat_count();
 
   static String info2String(ButtonInfo_t info, bool interrupted=false);
-};
 
-#endif
+  String toString(bool interrupted=false);
+};
+#endif // _BUTTON_H
