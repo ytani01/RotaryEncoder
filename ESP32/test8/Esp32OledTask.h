@@ -2,7 +2,7 @@
  * Copyright (c) Yoichi Tanibayashi
  */
 #include "Esp32Task.h"
-#include "Esp32PcntRotaryEncoder.h"
+#include "Esp32RotaryEncoderTask.h"
 #include "NetMgr.h"
 
 static QueueHandle_t Esp32OledTask_cmdQue; // XXX
@@ -23,10 +23,10 @@ class Esp32OledTask: public Esp32Task {
 
   Adafruit_SSD1306 *disp;
 
-  Esp32PcntRotaryEncoder **re;
+  Esp32RotaryEncoderTask **pReTask;
   NetMgr **netMgr;
 
-  Esp32OledTask(Esp32PcntRotaryEncoder **re, NetMgr **net_mgr,
+  Esp32OledTask(Esp32RotaryEncoderTask **pReTask, NetMgr **net_mgr,
                 QueueHandle_t in_que);
 
   virtual void setup();
@@ -40,11 +40,11 @@ class Esp32OledTask: public Esp32Task {
 /**
  *
  */
-Esp32OledTask::Esp32OledTask(Esp32PcntRotaryEncoder **re,
+Esp32OledTask::Esp32OledTask(Esp32RotaryEncoderTask **pReTask,
                              NetMgr **net_mgr,
                              QueueHandle_t in_que)
 : Esp32Task("OLED(SSD1306)", 4*1024, 5) {
-  this->re = re;
+  this->pReTask = pReTask;
   this->netMgr = net_mgr;
   Esp32OledTask_cmdQue = in_que;
   
@@ -96,10 +96,12 @@ void Esp32OledTask::loop() {
                  BLACK);
 
   this->disp->drawRect(100,30,20,20,WHITE);
-  if ( *(this->re) != NULL ) {
+  
+  Esp32RotaryEncoderTask* reTask = *(this->pReTask);
+  if ( reTask != NULL && reTask->is_active() ) {
     int x = DISP_W / 2
-      + (*(this->re))->info.angle * 2
-      - (*(this->re))->info.angle_max * 2 / 2;
+      + reTask->re->info.angle * 2
+      - reTask->re->info.angle_max * 2 / 2;
     this->disp->fillCircle(x, 32, 15, WHITE);
   }
 

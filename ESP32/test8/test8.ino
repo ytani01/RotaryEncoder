@@ -12,30 +12,37 @@
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
 
-#include "Esp32PcntRotaryEncoder.h"
 #include "NetMgr.h"
 
 #include "Esp32Task.h"
 #include "Esp32OledTask.h"
 #include "Esp32ButtonTask.h"
+#include "Esp32RotaryEncoderTask.h"
 
 #include "task_test1.h"
 
-typedef enum {
-              BUTTON,
-              ROTARY_ENCODER
-} InputType_t;
-
+/**
+ * 表示データ
+ */
+struct {
+  String ssid;
+  RotaryEncoderInfo_t reInfo;
+  Esp32ButtonInfo_t btnReInfo;
+} OutputDate_t;
+  
 /**
  * 入力データ用キューエントリ
  */
 typedef struct {
-  InputType_t type;
+  enum {
+        BUTTON,
+        ROTARY_ENCODER
+  } type;
   union {
     Esp32ButtonInfo_t bi;
     RotaryEncoderInfo_t ri;
   };
-} QueueData_t;
+} InputData_t;
 
 // OLED
 const uint16_t DISP_W = 128;
@@ -54,11 +61,10 @@ const String BTN_NAME_RE = "RotaryEncoder";
 
 // Rotary Encoder
 const String RE_NAME = "RotaryEncoder1";
-const uint8_t PIN_PULSE_DT = 32;
-const uint8_t PIN_PULSE_CLK = 33;
+const uint8_t PIN_PULSE_DT = 33;
+const uint8_t PIN_PULSE_CLK = 32;
 const int16_t PULSE_MAX = 30;
 const pcnt_unit_t PCNT_UNIT = PCNT_UNIT_0;
-Esp32PcntRotaryEncoder *re = NULL;
 
 // Queues
 #define Q_SIZE 32
@@ -90,31 +96,24 @@ const unsigned long NTP_INTERVAL_PROGRESS = 5 * 1000; // ms
 const TickType_t TIMER_INTERVAL = 20 * 1000; // tick == ms (?)
 Ticker timer1;
 
-/**
- *
- */
-void IRAM_ATTR re_intr_hdr(void *arg) {
-  log_w("int_str=0x%04X, status=0x%04X",
-        PCNT.int_st.val, PCNT.status_unit[0].val);
-
-  PCNT.int_clr.val = PCNT.int_st.val;
-}
+// Tasks
+Esp32OledTask *taskOled = NULL;
+Esp32RotaryEncoderTask *taskRe = NULL;
+Esp32ButtonTask *taskBtnOnboard = NULL;
+Esp32ButtonTask *taskBtnRe = NULL;
 
 /**
  *
  */
-String get_time_str() {
+String get_time_String() {
   struct tm ti; // time info
   const String day_str[] = {"Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"};
-  char buf[4+1+2+1+2 +1+2+1 +1 +2+1+2+1+2 +1];
+  char buf[4+1+2+1+2 +1+3+1 +1 +2+1+2+1+2 +1];
 
   getLocalTime(&ti);
-  sprintf(buf, "%04d/%02d/%02d(%s) %02d:%02d:%02d",
-          ti.tm_year + 1900, ti.tm_mon + 1, ti.tm_mday,
-          day_str[ti.tm_wday].c_str(),
-          ti.tm_hour, ti.tm_min, ti.tm_sec);
+  strftime(buf, sizeof(buf), "%Y-%m-%d(%a) %H:%M:%S", &ti);
   return String(buf);
-} // get_time_str()
+} // get_time_String()
 
 /**
  * 【注意・重要】
@@ -136,13 +135,15 @@ void timer_cb(TimerHandle_t xTimer) {
  */
 void timer1_cb() {
   TickType_t tick1 = xTaskGetTickCount();
-  log_i("[%7d] timer test: start(priority=%d)", tick1, uxTaskPriorityGet(NULL));
+  log_i("[%s] timer test: start(priority=%d)",
+        get_time_String().c_str(), tick1, uxTaskPriorityGet(NULL));
 
   delay(TIMER_INTERVAL / 2);
 
   TickType_t tick2 = xTaskGetTickCount();
   TickType_t d_tick = tick2 - tick1;
-  log_i("[%7d] timer test: end(d_tick=%d)", tick2, d_tick);
+  log_i("[%s] timer test: end(d_tick=%d)",
+        get_time_String().c_str(), tick2, d_tick);
 }
 
 /** NTP task function
@@ -181,15 +182,15 @@ void task_ntp(void *pvParameters) {
     if ( sntp_stat == SNTP_SYNC_STATUS_COMPLETED ) {
       interval = NTP_INTERVAL_NORMAL;
       log_i("%s: NTP sync done: sntp_stat=%d, interval=%d",
-            get_time_str().c_str(), sntp_stat, interval);
+            get_time_String().c_str(), sntp_stat, interval);
     } else if ( sntp_stat == SNTP_SYNC_STATUS_IN_PROGRESS ) {
       interval = NTP_INTERVAL_PROGRESS;
       log_i("%s: NTP sync progress: sntp_stat=%d, interval=%d",
-            get_time_str().c_str(), sntp_stat, interval);
+            get_time_String().c_str(), sntp_stat, interval);
     } else {
       interval = NTP_INTERVAL_PROGRESS;
       log_i("%s: NTP sync failed(?): sntp_stat=%d, interval=%d",
-            get_time_str().c_str(), sntp_stat, interval);
+            get_time_String().c_str(), sntp_stat, interval);
     }
 
     delay(interval);
@@ -230,34 +231,6 @@ void task_net_mgr(void *pvParameters) {
   vTaskDelete(NULL);
 } // task_net_mgr()
 
-/** Rotary Encoder watcher task function
- *
- */
-void task_re_watcher(void *pvParameters) {
-  re = new Esp32PcntRotaryEncoder(RE_NAME,
-                                  PIN_PULSE_CLK, PIN_PULSE_DT, PULSE_MAX,
-                                  PCNT_UNIT,
-                                  re_intr_hdr, (void *)NULL);
-
-  while (true) { // main loop
-    RotaryEncoderAngle_t d_angle = re->get();
-
-    if ( d_angle == 0 ) {
-      delay(1);
-      continue;
-    }
-    
-    portBASE_TYPE ret;
-    if ( (ret = xQueueSend(queRe, (void *)&(re->info), 10)) == pdPASS ) {
-      log_d("que < %s", Esp32PcntRotaryEncoder::info2String(re->info).c_str());
-    } else {
-      log_e("put queue failed, ret=%d", ret);
-    }
-    delay(10);
-  } // main loop
-  vTaskDelete(NULL);
-} // task_re_watcher()
-
 /**
  *
  */
@@ -266,14 +239,14 @@ void ch_hsv(uint8_t hue, uint8_t sat, uint8_t val) {
 
   for (int i=0; i < LEDS_N_EXT1; i++) {
     leds_ext1[i] = CHSV(hue, sat, val);
-    hue = (hue + 32) % 255;
+    hue = (hue - 32) % 255;
   }
   
   FastLED.show();
 } // ch_hsv();
 
 /**
- *
+ * XXX Esp32Task をつかって書き換え
  */
 void task1(void *pvParameters) {
   RotaryEncoderInfo_t re_info;
@@ -286,7 +259,7 @@ void task1(void *pvParameters) {
       uint16_t hue = int(round((float)re_info.angle * 255.0 / (float)PULSE_MAX));
       ch_hsv(hue, 255, 255);
       log_i("que > %s  hue=0x%02X(%5.1f deg)",
-            Esp32PcntRotaryEncoder::info2String(re_info).c_str(), hue,
+            Esp32RotaryEncoder::info2String(re_info).c_str(), hue,
             (float)hue * 360.0 / 256.0);
     } else if ( ret != errQUEUE_EMPTY ) {
       log_e("%d", ret);
@@ -350,58 +323,6 @@ void task_btn_watcher(void *pvParameters) {
   vTaskDelete(NULL);
 } // task_btn_watcher()
 
-void task_oled(void *pvParameters) {
-  log_i("priority=%d", uxTaskPriorityGet(NULL));
-
-  disp = new Adafruit_SSD1306(DISP_W, DISP_H);
-
-  disp->begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  disp->display(); // display Adafruit Logo
-  delay(1000);
-  disp->clearDisplay();
-  disp->setTextColor(WHITE);
-  disp->setTextWrap(false);
-  disp->cp437(true);
-
-  while (true) { // main loop
-    disp->clearDisplay();
-
-    disp->fillRect(0,0, DISP_W, DISP_H, WHITE);
-    disp->fillRect(FRAME_W, FRAME_W,
-                   DISP_W - FRAME_W * 2, DISP_H - FRAME_W * 2,
-                   BLACK);
-
-    disp->drawRect(100,30,20,20,WHITE);
-    if ( re != NULL ) {
-      int x = DISP_W / 2 + re->info.angle * 2 - re->info.angle_max * 2 / 2;
-      disp->fillCircle(x, 32, 15, WHITE);
-    }
-
-    disp->setTextSize(1);
-    disp->setCursor(10, 10);
-    disp->write("SSID:");
-    if ( netMgr->cur_ssid == "" ) {
-      disp->write("[No WiFi]");
-    } else {
-      disp->write(netMgr->cur_ssid.c_str());
-    }
-
-    disp->setTextSize(1);
-    disp->setCursor(10, 50);
-    disp->write(netMgr->get_mac_addr_String().c_str());
-
-    unsigned long ms0 = millis();
-    disp->display();
-    unsigned long ms = millis() - ms0;
-    if ( ms > 30 ) {
-      log_w("display(): ms=%d", ms);
-    }
-
-    delay(10);
-  } // main loop
-  vTaskDelete(NULL);
-} // task_oled()
-
 /**
  *
  */
@@ -441,9 +362,12 @@ void setup() {
   Esp32ButtonInfo_t bi1;
   RotaryEncoderInfo_t ri1;
 
-  QueueData_t qd;
-  qd.type = BUTTON;
-  qd.bi = bi1;
+  InputData_t inData;
+  inData.type = BUTTON;
+  inData.bi = bi1;
+  inData.ri = ri1;
+
+  OutputDate_t outData;
 
   Serial.println("=====");
 
@@ -486,35 +410,39 @@ void setup() {
     }
   }
 
-  // Tasks
-  //createTask(task_oled, "oled", 4 * 1024);
-  Esp32OledTask *th_oled = new Esp32OledTask(&re, &netMgr, queDispCmd);
-  th_oled->start();
+  /*
+   * Tasks
+   */
+  log_i("OledTask");
+  taskOled = new Esp32OledTask(&taskRe, &netMgr, queDispCmd);
+  taskOled->start();
   delay(500);
 
   createTask(task_net_mgr, "net_mgr", 4 * 1024); //?
   delay(500);
   createTask(task_ntp, "task_ntp");
   delay(500);
-  createTask(task_re_watcher, "re_watcher");
-  delay(500);
+
   createTask(task_btn_watcher, "btn_watcher");
   delay(500);
   createTask(task1, "task1");
   delay(500);
 
-  log_i("%s", BTN_NAME_ONBOARD.c_str());
-  Esp32ButtonTask *t2ob = new Esp32ButtonTask(BTN_NAME_ONBOARD,
-                                              PIN_BTN_ONBOARD,
-                                              queBtn);
-  t2ob->start();
+  log_i("%s", BTN_NAME_RE.c_str());
+  taskBtnRe = new Esp32ButtonTask(BTN_NAME_RE, PIN_BTN_RE, queBtn);
+  taskBtnRe->start();
   delay(500);
 
-  log_i("%s", BTN_NAME_RE.c_str());
-  Esp32ButtonTask *t2re = new Esp32ButtonTask(BTN_NAME_RE,
-                                              PIN_BTN_RE,
-                                              queBtn);
-  t2re->start();
+  log_i("%s", BTN_NAME_ONBOARD.c_str());
+  taskBtnOnboard = new Esp32ButtonTask
+    (BTN_NAME_ONBOARD, PIN_BTN_ONBOARD, queBtn);
+  taskBtnOnboard->start();
+  delay(500);
+
+  log_i("%s", RE_NAME.c_str());
+  taskRe = new Esp32RotaryEncoderTask
+    (RE_NAME, PIN_PULSE_DT, PIN_PULSE_CLK, PULSE_MAX, queRe);
+  taskRe->start();
   delay(500);
 
   log_i("testTask1");

@@ -29,7 +29,7 @@ typedef struct {
   UBaseType_t priority;
   uint32_t wdt_sec;
   UBaseType_t core;
-} Esp32TaskInfo_t;
+} Esp32TaskConf_t;
 
 /**
  *
@@ -39,7 +39,7 @@ class Esp32Task {
   static const uint32_t STACK_SIZE_DEF = 8 * 1024; // bytes
   static const uint32_t WDT_SEC_DEF = 60; // sec
 
-  Esp32TaskInfo_t info;
+  Esp32TaskConf_t conf;
 
   Esp32Task(String name="[NO_NAME_TASK]",
             uint32_t stack_size=STACK_SIZE_DEF,
@@ -47,10 +47,13 @@ class Esp32Task {
             uint32_t wdt_sec=WDT_SEC_DEF,
             UBaseType_t core=APP_CPU_NUM);
   void start();
+  bool is_active();
 
   void __task_main();
 
  protected:
+  bool _active;
+
   virtual void setup();
   virtual void loop();
 

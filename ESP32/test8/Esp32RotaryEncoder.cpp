@@ -1,17 +1,17 @@
 /**
  * Copyright (c) 2022 Yoichi Tanibayashi
  */
-#include "Esp32PcntRotaryEncoder.h"
+#include "Esp32RotaryEncoder.h"
 
 /**
  *
  */
-Esp32PcntRotaryEncoder::Esp32PcntRotaryEncoder(String name,
-                                               uint8_t pin_dt, uint8_t pin_clk,
-                                               RotaryEncoderAngle_t angle_max,
-                                               pcnt_unit_t pcnt_unit,
-                                               void (*intr_hdr)(void *),
-                                               void *intr_arg) {
+Esp32RotaryEncoder::Esp32RotaryEncoder(String name,
+                                       uint8_t pin_dt, uint8_t pin_clk,
+                                       RotaryEncoderAngle_t angle_max,
+                                       pcnt_unit_t pcnt_unit,
+                                       void (*intr_hdr)(void *),
+                                       void *intr_arg) {
   if ( name.length() > ROTARY_ENCODER_NAME_SIZE ) {
     strcpy(this->info.name, name.substring(0, ROTARY_ENCODER_NAME_SIZE).c_str());
   } else {
@@ -51,12 +51,12 @@ Esp32PcntRotaryEncoder::Esp32PcntRotaryEncoder(String name,
   pcnt_isr_register(this->intr_hdr, this->intr_arg,
                     (int)0, &(this->isr_handle));
   pcnt_intr_enable(this->pcnt_unit);
-} // Esp32PcntRotaryEncoder::Esp32PcntRotaryEncoder()
+} // Esp32RotaryEncoder::Esp32RotaryEncoder()
 
 /**
  *
  */
-RotaryEncoderAngle_t Esp32PcntRotaryEncoder::get() {
+RotaryEncoderAngle_t Esp32RotaryEncoder::get() {
   RotaryEncoderAngle_t prev_angle = this->info.angle;
   
   pcnt_get_counter_value(this->pcnt_unit, &(this->info.angle));
@@ -76,19 +76,19 @@ RotaryEncoderAngle_t Esp32PcntRotaryEncoder::get() {
     (this->info.angle + this->info.angle_max) % this->info.angle_max;
 
   return this->info.d_angle;
-} // Esp32PcntRotaryEncoder::get()
+} // Esp32RotaryEncoder::get()
 
 /**
  *
  */
-String Esp32PcntRotaryEncoder::get_name() {
+String Esp32RotaryEncoder::get_name() {
   return String(this->info.name);
-} // Esp32PcntRotaryEncoder::get_name()
+} // Esp32RotaryEncoder::get_name()
 
 /**
  *
  */
-void Esp32PcntRotaryEncoder::clear() {
+void Esp32RotaryEncoder::clear() {
   pcnt_counter_clear(this->pcnt_unit);
   this->info.angle = 0;
   this->info.d_angle = 0;
@@ -97,21 +97,21 @@ void Esp32PcntRotaryEncoder::clear() {
 /**
  *
  */
-void Esp32PcntRotaryEncoder::pause() {
+void Esp32RotaryEncoder::pause() {
   pcnt_counter_pause(this->pcnt_unit);
 }
 
 /**
  *
  */
-void Esp32PcntRotaryEncoder::resume() {
+void Esp32RotaryEncoder::resume() {
   pcnt_counter_resume(this->pcnt_unit);
-} // Esp32PcntRotaryEncoder::resume()
+} // Esp32RotaryEncoder::resume()
 
 /**
  *
  */
-String Esp32PcntRotaryEncoder::info2String(RotaryEncoderInfo_t info) {
+String Esp32RotaryEncoder::info2String(RotaryEncoderInfo_t info) {
   char buf[128];
 
   sprintf(buf, "RotaryEncoder[%s:%d,%d] %3d %3d/%-3d",
@@ -119,4 +119,11 @@ String Esp32PcntRotaryEncoder::info2String(RotaryEncoderInfo_t info) {
           info.d_angle, info.angle, info.angle_max);
 
   return String(buf);
-} // Esp32PcntRotaryEncoder::info2String()
+} // Esp32RotaryEncoder::info2String()
+
+/**
+ *
+ */
+String Esp32RotaryEncoder::toString() {
+  return Esp32RotaryEncoder::info2String(this->info);
+} // Esp32RotaryEncoder::toString()

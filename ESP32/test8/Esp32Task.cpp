@@ -16,14 +16,16 @@ Esp32Task::Esp32Task(String name,
   }
   log_d("name2=%s", name2.c_str());
 
-  strcpy(this->info.name, name2.c_str());
-  log_i("info.name=%s", info.name);
-  this->info.handle = NULL;
-  this->info.stack_size = stack_size;
-  this->info.priority = priority;
-  this->info.wdt_sec = wdt_sec;
-  this->info.core = core;
+  strcpy(this->conf.name, name2.c_str());
+  log_i("conf.name=%s", conf.name);
+  this->conf.handle = NULL;
+  this->conf.stack_size = stack_size;
+  this->conf.priority = priority;
+  this->conf.wdt_sec = wdt_sec;
+  this->conf.core = core;
 
+  this->_active = false;
+  
   delay(100); // XXX これがないと、危ない(!?)
 } // Esp32Task::Esp32Task()
 
@@ -32,13 +34,13 @@ Esp32Task::Esp32Task(String name,
  */
 void Esp32Task::start() {
   BaseType_t ret = xTaskCreateUniversal(Esp32Task::call_task_main,
-                                        this->info.name,
-                                        this->info.stack_size,
+                                        this->conf.name,
+                                        this->conf.stack_size,
                                         this,
-                                        this->info.priority,
-                                        &(this->info.handle),
-                                        this->info.core);
-  log_i("Start: %s: ret=%d", this->info.name, ret);
+                                        this->conf.priority,
+                                        &(this->conf.handle),
+                                        this->conf.core);
+  log_i("Start: %s: ret=%d", this->conf.name, ret);
   if ( ret != pdPASS ) {
     log_e("ret=%d .. HALT", ret);
     while (true) { // !!! halt !!!
@@ -47,6 +49,13 @@ void Esp32Task::start() {
   }
   delay(100);
   return;
+} // Esp32Task::start()
+
+/**
+ *
+ */
+bool Esp32Task::is_active() {
+  return this->_active;
 }
 
 /**
@@ -54,12 +63,15 @@ void Esp32Task::start() {
  */
 void Esp32Task::__task_main() {
   // Watchdog Timer の初期化
-  ESP_ERROR_CHECK(esp_task_wdt_init(this->info.wdt_sec, true));
+  ESP_ERROR_CHECK(esp_task_wdt_init(this->conf.wdt_sec, true));
   ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
 
-  this->setup();
+  this->_active = false;
 
+  this->setup();
   delay(1);
+
+  this->_active = true;
 
   while (true) { // main loop
     ESP_ERROR_CHECK(esp_task_wdt_reset());
@@ -68,6 +80,8 @@ void Esp32Task::__task_main() {
 
     delay(1);
   } // main loop
+
+  this->_active = false;
   vTaskDelete(NULL);
 } // Esp32Task::task_main()
 

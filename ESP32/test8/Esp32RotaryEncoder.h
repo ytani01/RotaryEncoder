@@ -1,8 +1,8 @@
 /**
  * Copyright (c) 2022 Yoichi Tanibayashi
  */
-#ifndef _ESP32_PCNT_ROTARY_ENCODER_H_
-#define _ESP32_PCNT_ROTARY_ENCODER_H_
+#ifndef _ESP32_ROTARY_ENCODER_H_
+#define _ESP32_ROTARY_ENCODER_H_
 
 #include <Arduino.h>
 #include <esp32-hal-log.h>
@@ -22,7 +22,7 @@ typedef struct {
   RotaryEncoderAngle_t d_angle;
 } RotaryEncoderInfo_t;
 
-class Esp32PcntRotaryEncoder {
+class Esp32RotaryEncoder {
  public:
   RotaryEncoderInfo_t info;
   pcnt_unit_t pcnt_unit;
@@ -30,7 +30,7 @@ class Esp32PcntRotaryEncoder {
   void *intr_arg = NULL;
   pcnt_isr_handle_t isr_handle;
 
-  Esp32PcntRotaryEncoder(String name,
+  Esp32RotaryEncoder(String name,
                          uint8_t pin_dt, uint8_t pin_clk,
                          RotaryEncoderAngle_t angle_max,
                          pcnt_unit_t pcnt_unit=PCNT_UNIT_0,
@@ -43,5 +43,6 @@ class Esp32PcntRotaryEncoder {
   void resume();
 
   static String info2String(RotaryEncoderInfo_t info);
+  String toString();
 };
-#endif // _ESP32_PCNT_ROTARY_ENCODER_H_
+#endif // _ESP32_ROTARY_ENCODER_H_
