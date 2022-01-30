@@ -48,9 +48,11 @@ Esp32RotaryEncoder::Esp32RotaryEncoder(String name,
   // pcnt_event_enable(this->pcnt_unit, PCNT_EVT_H_LIM);
   // pcnt_event_enable(this->pcnt_unit, PCNT_EVT_L_LIM);
   
-  pcnt_isr_register(this->intr_hdr, this->intr_arg,
-                    (int)0, &(this->isr_handle));
-  pcnt_intr_enable(this->pcnt_unit);
+  if ( this->intr_hdr != NULL ) {
+    pcnt_isr_register(this->intr_hdr, this->intr_arg,
+                      (int)0, &(this->isr_handle));
+    pcnt_intr_enable(this->pcnt_unit);
+  }
 } // Esp32RotaryEncoder::Esp32RotaryEncoder()
 
 /**

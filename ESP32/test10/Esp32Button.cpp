@@ -49,19 +49,19 @@ boolean Esp32Button::get() {
   // Active
   this->info.prev_value = this->info.value;
   this->info.value = digitalRead(this->info.pin);
-
   this->info.click_count = 0;
-  if ( this->info.push_count > 0 ){
-    if ( cur_msec - this->info.first_press_start > CLICK_MSEC ) {
-      // click count is detected
-      this->info.click_count = this->info.push_count;
-      this->info.push_count = 0;
-      // log_i("[%s] click_count=%d", this->info.name, this->info.click_count);
-      ret = true;
-    }
-  }
 
   if ( this->info.value == Esp32Button::OFF ) {
+    if ( this->info.push_count > 0 ){
+      if ( cur_msec - this->info.first_press_start > CLICK_MSEC ) {
+        // click count is detected
+        this->info.click_count = this->info.push_count;
+        this->info.push_count = 0;
+        // log_i("[%s] click_count=%d", this->info.name, this->info.click_count);
+        ret = true;
+      }
+    }
+
     // Released button then refresh some flags and do nothing any more
     this->info.press_start = 0;
     this->info.long_pressed = false;

@@ -26,7 +26,7 @@ class Esp32RotaryEncoder {
  public:
   RotaryEncoderInfo_t info;
   pcnt_unit_t pcnt_unit;
-  void (*intr_hdr) (void *arg);
+  void (*intr_hdr) (void *arg) = NULL;
   void *intr_arg = NULL;
   pcnt_isr_handle_t isr_handle;
 

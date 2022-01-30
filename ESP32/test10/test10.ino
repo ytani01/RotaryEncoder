@@ -212,7 +212,7 @@ void task_btn_watcher(void *pvParameters) {
  */
 BaseType_t createTask(TaskFunction_t pxTaskCode,
                       const char * pcName,
-                      const uint32_t usStackDepth=1024*8,
+                      const uint32_t usStackDepth=1024*4,
                       UBaseType_t uxPriority=1,
                       BaseType_t xCoreID=APP_CPU_NUM
                       // PRO_CPU_NUM:0, APP_CPU_NUM:1
@@ -272,6 +272,8 @@ void setup() {
   FastLED.show();
 
   // Queues
+  // XXX Esp32RotaryEncoderTask classに入れる
+  // XXX Queueにせずに、コールバックを呼び出すほうがいいかも?
   queRe = xQueueCreate(Q_SIZE, sizeof(RotaryEncoderInfo_t));
   if ( queRe == NULL ) {
     log_e("xQueueCreate(queRe): failed .. HALT");
@@ -280,6 +282,7 @@ void setup() {
     }
   }
 
+  // XXX Esp32ButtonTask classに入れる
   queBtn = xQueueCreate(Q_SIZE, sizeof(Esp32ButtonInfo_t));
   if ( queBtn == NULL ) {
     log_e("xQueueCreate(queBtn): failed .. HALT");
@@ -318,7 +321,7 @@ void setup() {
 
   delay(500);
 
-  createTask(task1, "task1");
+  createTask(task1, "task1", 2*1024, 0); // XXX
 
   delay(500);
 

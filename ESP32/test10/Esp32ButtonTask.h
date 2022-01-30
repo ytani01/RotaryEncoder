@@ -11,14 +11,15 @@
  *
  */
 class Esp32ButtonTask: public Esp32Task {
- public:
+public:
   String name = "[NO_NAME]";
   uint8_t pin;
   Esp32Button *btn = NULL;
+  QueueHandle_t out_que;
 
   Esp32ButtonTask(String name, uint8_t pin, QueueHandle_t out_que);
 
- protected:
+protected:
   virtual void setup();
   virtual void loop();
 

@@ -36,7 +36,7 @@ typedef struct {
  */
 class Esp32Task {
  public:
-  static const uint32_t STACK_SIZE_DEF = 8 * 1024; // bytes
+  static const uint32_t STACK_SIZE_DEF = 4 * 1024; // bytes
   static const UBaseType_t PRIORITY_DEF = 1;
   static const uint32_t WDT_SEC_DEF = 30; // sec
 

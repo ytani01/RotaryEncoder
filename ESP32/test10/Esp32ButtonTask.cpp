@@ -3,7 +3,7 @@
  */
 #include "Esp32ButtonTask.h"
 
-static QueueHandle_t Esp32ButtonTask_queBtn; // XXX
+static QueueHandle_t Esp32ButtonTask_outQue; // static functionのために必要
 
 /**
  *
@@ -16,7 +16,10 @@ Esp32ButtonTask::Esp32ButtonTask(String name, uint8_t pin,
   this->pin = pin;
   this->btn = new Esp32Button(this->name, this->pin,
                               this->task2_btn_intr_hdr);
-  Esp32ButtonTask_queBtn = out_que;
+  this->out_que = out_que;
+  Esp32ButtonTask_outQue = out_que;
+
+  // XXX ここでQueueを作成
 } // Esp32ButtonTask::Esp32ButtonTask
 
 /**
@@ -31,7 +34,7 @@ void Esp32ButtonTask::setup() {
  */
 void Esp32ButtonTask::loop() {
   if ( this->btn->get() ) {
-    portBASE_TYPE ret = xQueueSend(Esp32ButtonTask_queBtn,
+    portBASE_TYPE ret = xQueueSend(this->out_que,
                                    (void *)&(this->btn->info), 10);
     if ( ret == pdPASS ) {
       log_d("que < %s", this->btn->toString().c_str());
@@ -39,6 +42,7 @@ void Esp32ButtonTask::loop() {
       log_w("que X< %s: ret=%d", this->btn->toString().c_str(), ret);
     }
   }
+  delay(10);
 } // Esp32ButtonTask::loop()
 
 /** [static]
@@ -63,7 +67,7 @@ void IRAM_ATTR Esp32ButtonTask::task2_btn_intr_hdr(void *btn_obj) {
   // send to queue
   static BaseType_t xHigherPriorityTaskWoken;
   xHigherPriorityTaskWoken = pdFALSE;
-  portBASE_TYPE ret = xQueueSendFromISR(Esp32ButtonTask_queBtn,
+  portBASE_TYPE ret = xQueueSendFromISR(Esp32ButtonTask_outQue,
                                         (void *)&(btn->info),
                                         &xHigherPriorityTaskWoken);
   if ( ret == pdPASS) {
