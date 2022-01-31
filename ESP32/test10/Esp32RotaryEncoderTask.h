@@ -53,7 +53,7 @@ public:
   Esp32RotaryEncoderWatcher(String re_name,
                             uint8_t pin_dt, uint8_t pin_clk,
                             Esp32RotaryEncoderAngle_t angle_max,
-                            void (*cb)(Esp32RotaryEncoderInfo_t *btn_info)=NULL,
+                            void (*cb)(Esp32RotaryEncoderInfo_t *re_info)=NULL,
                             uint32_t stack_size=STACK_SIZE_DEF,
                             UBaseType_t priority=PRIORITY_DEF,
                             UBaseType_t core=CORE_DEF);

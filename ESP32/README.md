@@ -3,13 +3,33 @@ ESP32用ロータリー・エンコーダー・ライブラリ
 
 ## Description
 
-ESP32のパルスカウンター(PCNT)を使用した、
-ロータリー・エンコーダー・ライブラリ
+* ESP32のパルスカウンター(PCNT)を利用
+* マルチタスクで実装しているが、簡単に利用できる
+* Queueを利用しているため、タイミングの制御が不要
 
-## Class
+## Sample
 
-* Esp32PcntRotaryEncoder
+```
+#include "Esp32RotaryEncoderWatcher.h"
 
+Esp32RotaryEncoderWatcher *reWatcher = NULL;
+
+void callback_fn(Esp32RotaryEncoderInfo_t *re_info) {
+  log_i("%s", Esp32RotaryEncoder::info2String(re_info).c_str());
+}
+
+void setup() {
+  reWatcher = Esp32RotaryEncoderWatcher("Name",
+                                        pin_dt, pin_dk,
+                                        angle_max,
+                                        callback_fn);
+  reWatcher->start();
+}
+
+void loop() {
+  // do nothing
+}
+```
 
 ## Hardware
 
@@ -35,16 +55,24 @@ void task(..) {
 }
 ```
 
-## 注意
+## 注意事項
 
 ### タイマーは、Tickerを使う
 
 xTimer..のタイマーは、なぜかコールバック実行中に、
-OLEDの display() が、以上に遅くなる(460ms程度)。
+OLEDの``display()``が、異様に遅くなる(460ms程度 .. 通常は50ms以下)。
 
 Tickerの場合、問題は起きない。
 
-### WiFi関係のタスクは、TWDT(Task WatchDoc Timer)を適切に設定する
+
+## 要検討
+
+### 戻り値が、``pdPASS``だったり、``pdTRUE``だったり..
+
+
+### TWDT(Task WatchDoc Timer)
+
+タスク毎に時間を調整しようとしたが、今回は見送り
 
 ```
 #include <esp_task_wdt.h>
