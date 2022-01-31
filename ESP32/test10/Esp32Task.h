@@ -2,9 +2,9 @@
  * Copyright (c) 2022 Yoichi Tanibayashi
  */
 /**
-EXAMPLE
 ```
-#include <esp32-hal-log.h>
+// Example
+
 #include "Esp32Task.h"
 
 class task1: public Esp32Task {
@@ -15,7 +15,7 @@ class task1: public Esp32Task {
 #define _ESP32_TASK_H_
 
 #include <Arduino.h>
-#include <esp_task_wdt.h>
+#include <esp32-hal-log.h>
 
 static const unsigned long ESP32_TASK_NAME_SIZE = 64;
 
@@ -27,7 +27,6 @@ typedef struct {
   TaskHandle_t handle;
   uint32_t stack_size;
   UBaseType_t priority;
-  uint32_t wdt_sec;
   UBaseType_t core;
 } Esp32TaskConf_t;
 
@@ -37,16 +36,15 @@ typedef struct {
 class Esp32Task {
  public:
   static const uint32_t STACK_SIZE_DEF = 4 * 1024; // bytes
-  static const UBaseType_t PRIORITY_DEF = 1;
-  static const uint32_t WDT_SEC_DEF = 30; // sec
+  static const UBaseType_t PRIORITY_DEF = 2;
+  static const UBaseType_t CORE_DEF = APP_CPU_NUM; // PRO_CPU_NUM|APP_CPU_NUM
 
   Esp32TaskConf_t conf;
 
   Esp32Task(String name="[NO_NAME_TASK]",
             uint32_t stack_size=STACK_SIZE_DEF,
             UBaseType_t priority=PRIORITY_DEF,
-            uint32_t wdt_sec=WDT_SEC_DEF,
-            UBaseType_t core=APP_CPU_NUM);
+            UBaseType_t core=CORE_DEF);
   void start();
   bool is_active();
 

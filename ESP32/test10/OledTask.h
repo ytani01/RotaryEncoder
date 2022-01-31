@@ -8,7 +8,8 @@
 #include <Adafruit_GFX.h>
 
 #include "Esp32Task.h"
-#include "Esp32RotaryEncoderTask.h"
+#include "Esp32RotaryEncoder.h"
+#include "Esp32Button.h"
 #include "Esp32NetMgrTask.h"
 
 /**
@@ -27,16 +28,22 @@ class OledTask: public Esp32Task {
 
   Adafruit_SSD1306 *disp;
 
-  Esp32RotaryEncoderTask **pReTask;
   Esp32NetMgrTask **pNetMgrTask;
 
-  OledTask(Esp32RotaryEncoderTask **pReTask, Esp32NetMgrTask **pNetMgrTask,
+  OledTask(Esp32ButtonInfo_t *re_btn_info,
+           Esp32ButtonInfo_t *ob_btn_info,
+           Esp32RotaryEncoderInfo_t *re_info,
+           Esp32NetMgrTask **pNetMgrTask,
            QueueHandle_t in_que);
 
   virtual void setup();
   virtual void loop();
 
  private:
+  Esp32ButtonInfo_t *re_btn_info;
+  Esp32ButtonInfo_t *ob_btn_info;
+  Esp32RotaryEncoderInfo_t *re_info;
+  
   char _buf[CMD_BUF_SIZE];
   char _cmd[CMD_NAME_SIZE];
 }; // class OledTask

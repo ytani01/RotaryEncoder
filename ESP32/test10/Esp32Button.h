@@ -41,10 +41,10 @@
  *  } // loop()
  *  ==========================================================================
  */
-#ifndef _ESP32_BUTTON_H
-#define _ESP32_BUTTON_H
+#ifndef _ESP32_BUTTON_H_
+#define _ESP32_BUTTON_H_
 #include <Arduino.h>
-
+#include <esp32-hal-log.h>
 
 static const unsigned long ESP32_BUTTON_NAME_SIZE = 16;
 
@@ -97,7 +97,7 @@ class Esp32Button {
   bool is_long_pressed();
   Esp32ButtonCount_t get_repeat_count();
 
-  static String info2String(Esp32ButtonInfo_t info, bool interrupted=false);
+  static String info2String(Esp32ButtonInfo_t *info, bool interrupted=false);
   String toString(bool interrupted=false);
 };
-#endif // _ESP32_BUTTON_H
+#endif // _ESP32_BUTTON_H_

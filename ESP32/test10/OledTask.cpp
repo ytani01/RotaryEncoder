@@ -8,11 +8,16 @@ static QueueHandle_t OledTask_cmdQue; // XXX
 /**
  *
  */
-OledTask::OledTask(Esp32RotaryEncoderTask **pReTask,
+OledTask::OledTask(Esp32ButtonInfo_t *re_btn_info,
+                   Esp32ButtonInfo_t *ob_btn_info,
+                   Esp32RotaryEncoderInfo_t *re_info,
                    Esp32NetMgrTask **pNetMgrTask,
-                   QueueHandle_t in_que)
-: Esp32Task("OLED(SSD1306)", 4*1024, 5) {
-  this->pReTask = pReTask;
+                   QueueHandle_t in_que):
+  Esp32Task("OLED(SSD1306)", 4*1024, 1) {
+
+  this->re_btn_info = re_btn_info;
+  this->ob_btn_info = ob_btn_info;
+  this->re_info = re_info;
   this->pNetMgrTask = pNetMgrTask;
   OledTask_cmdQue = in_que;
   
@@ -63,15 +68,14 @@ void OledTask::loop() {
                  DISP_W - FRAME_W * 2, DISP_H - FRAME_W * 2,
                  BLACK);
 
-  this->disp->drawRect(100,30,20,20,WHITE);
+  int y = 60 - this->re_btn_info->push_count * 5;
+  int r = 5 + this->re_btn_info->repeat_count * 2;
+  this->disp->fillCircle(100, y, r, WHITE);
   
-  Esp32RotaryEncoderTask* reTask = *(this->pReTask);
-  if ( reTask != NULL && reTask->is_active() ) {
-    int x = DISP_W / 2
-      + reTask->re->info.angle * 2
-      - reTask->re->info.angle_max * 2 / 2;
-    this->disp->fillCircle(x, 34, 10, WHITE);
-  }
+  int x = DISP_W / 2
+    + this->re_info->angle * 2
+    - this->re_info->angle_max * 2 / 2;
+  this->disp->fillCircle(x, 34, 10, WHITE);
 
   this->disp->setTextSize(1);
   this->disp->setCursor(10, 10);
@@ -99,7 +103,7 @@ void OledTask::loop() {
   unsigned long ms0 = millis();
   this->disp->display();
   unsigned long ms = millis() - ms0;
-  if ( ms > 30 ) {
+  if ( ms > 50 ) {
     log_w("display(): ms=%d", ms);
   }
 } // OledTask::loop()

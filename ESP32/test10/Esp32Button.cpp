@@ -179,17 +179,17 @@ Esp32ButtonCount_t Esp32Button::get_repeat_count() {
 /** [static]
  *
  */
-String Esp32Button::info2String(Esp32ButtonInfo_t info, bool interrupted) {
+String Esp32Button::info2String(Esp32ButtonInfo_t *info, bool interrupted) {
   char buf[128];
   String intrString = interrupted ? "!" : " ";
-  String valueString = info.value ? "H(OFF)" : "L(ON )";
-  String longPressedString = info.long_pressed ? "L" : "-";
+  String valueString = info->value ? "H(OFF)" : "L(ON )";
+  String longPressedString = info->long_pressed ? "L" : "-";
   
   sprintf(buf, "%sBTN[%s:%d] %s P:%d C:%d %s R:%d",
           intrString.c_str(),
-          info.name, info.pin, valueString.c_str(),
-          info.push_count, info.click_count,
-          longPressedString.c_str(), info.repeat_count);
+          info->name, info->pin, valueString.c_str(),
+          info->push_count, info->click_count,
+          longPressedString.c_str(), info->repeat_count);
 
   return String(buf);
 } // Esp32Button::info2String()
@@ -198,5 +198,5 @@ String Esp32Button::info2String(Esp32ButtonInfo_t info, bool interrupted) {
  *
  */
 String Esp32Button::toString(bool interrupted) {
-  return Esp32Button::info2String(this->info, interrupted);
+  return Esp32Button::info2String(&(this->info), interrupted);
 } // Esp32Button::toString()

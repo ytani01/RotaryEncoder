@@ -24,8 +24,6 @@ Esp32NtpTask::Esp32NtpTask(String ntp_svr[], Esp32NetMgrTask **pNetMgrTask)
 
   this->ntp_svr = ntp_svr;
   this->pNetMgrTask = pNetMgrTask;
-
-  this->conf.wdt_sec = Esp32NtpTask::WDT_SEC;
 } // Esp32NtpTask::Esp32NtpTask
 
 /**

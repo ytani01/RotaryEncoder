@@ -9,7 +9,6 @@
 Esp32Task::Esp32Task(String name,
                      uint32_t stack_size,
                      UBaseType_t priority,
-                     uint32_t wdt_sec,
                      UBaseType_t core) {
   String nameString = name;
   if ( nameString.length() > ESP32_TASK_NAME_SIZE ) {
@@ -21,7 +20,6 @@ Esp32Task::Esp32Task(String name,
   this->conf.handle = NULL;
   this->conf.stack_size = stack_size;
   this->conf.priority = priority;
-  this->conf.wdt_sec = wdt_sec;
   this->conf.core = core;
 
   this->_active = false;
@@ -40,9 +38,10 @@ void Esp32Task::start() {
                                         this->conf.priority,
                                         &(this->conf.handle),
                                         this->conf.core);
-  log_i("Start:%s(Stack:%dB,Priority:%d,WDT:%ds,CPU:%d,handle:%X): ret=%d",
+  log_i("Start:%s(Stack:%dB,Priority:%d,CPU:%d,handle:%X): ret=%d",
         this->conf.name, this->conf.stack_size, this->conf.priority,
-        this->conf.wdt_sec, this->conf.core, this->conf.handle, ret);
+        this->conf.core, this->conf.handle,
+        ret);
   if ( ret != pdPASS ) {
     log_e("ret=%d .. HALT", ret);
     while (true) { // !!! halt !!!
@@ -88,36 +87,15 @@ void Esp32Task::call_task_main(void *this_instance) {
  *
  */
 void Esp32Task::__task_main() {
-#if 0
-  // Watchdog Timer の初期化
-  log_d("Init TWDT(%dsec)", this->conf.wdt_sec);
-  //ESP_ERROR_CHECK(esp_task_wdt_delete(NULL));
-  //ESP_ERROR_CHECK(esp_task_wdt_deinit());
-  ESP_ERROR_CHECK(esp_task_wdt_init(this->conf.wdt_sec, true));
-  ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
-#endif
-
   this->_active = false;
-
   this->setup();
   delay(1);
 
   this->_active = true;
-
   while (true) { // main loop
-#if 0
-    ESP_ERROR_CHECK(esp_task_wdt_reset());
-    // XXX タスクごとのWDTの使い方がいまいちわからない?
-    ESP_ERROR_CHECK(esp_task_wdt_delete(NULL));
-    ESP_ERROR_CHECK(esp_task_wdt_init(this->conf.wdt_sec, true));
-    ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
-#endif
-
     this->loop();
-
     delay(1);
   } // main loop
-
   this->_active = false;
   vTaskDelete(NULL);
 } // Esp32Task::task_main()

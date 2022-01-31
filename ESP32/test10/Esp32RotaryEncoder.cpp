@@ -8,12 +8,12 @@
  */
 Esp32RotaryEncoder::Esp32RotaryEncoder(String name,
                                        uint8_t pin_dt, uint8_t pin_clk,
-                                       RotaryEncoderAngle_t angle_max,
+                                       Esp32RotaryEncoderAngle_t angle_max,
                                        pcnt_unit_t pcnt_unit,
                                        void (*intr_hdr)(void *),
                                        void *intr_arg) {
-  if ( name.length() > ROTARY_ENCODER_NAME_SIZE ) {
-    strcpy(this->info.name, name.substring(0, ROTARY_ENCODER_NAME_SIZE).c_str());
+  if ( name.length() > ESP32_RE_NAME_SIZE ) {
+    strcpy(this->info.name, name.substring(0, ESP32_RE_NAME_SIZE).c_str());
   } else {
     strcpy(this->info.name, name.c_str());
   }
@@ -58,8 +58,8 @@ Esp32RotaryEncoder::Esp32RotaryEncoder(String name,
 /**
  *
  */
-RotaryEncoderAngle_t Esp32RotaryEncoder::get() {
-  RotaryEncoderAngle_t prev_angle = this->info.angle;
+Esp32RotaryEncoderAngle_t Esp32RotaryEncoder::get() {
+  Esp32RotaryEncoderAngle_t prev_angle = this->info.angle;
   
   pcnt_get_counter_value(this->pcnt_unit, &(this->info.angle));
 
@@ -113,12 +113,12 @@ void Esp32RotaryEncoder::resume() {
 /**
  *
  */
-String Esp32RotaryEncoder::info2String(RotaryEncoderInfo_t info) {
+String Esp32RotaryEncoder::info2String(Esp32RotaryEncoderInfo_t *info) {
   char buf[128];
 
   sprintf(buf, "RotaryEncoder[%s:%d,%d] %3d %3d/%-3d",
-          info.name, info.pin_dt, info.pin_clk,
-          info.d_angle, info.angle, info.angle_max);
+          info->name, info->pin_dt, info->pin_clk,
+          info->d_angle, info->angle, info->angle_max);
 
   return String(buf);
 } // Esp32RotaryEncoder::info2String()
@@ -127,5 +127,5 @@ String Esp32RotaryEncoder::info2String(RotaryEncoderInfo_t info) {
  *
  */
 String Esp32RotaryEncoder::toString() {
-  return Esp32RotaryEncoder::info2String(this->info);
+  return Esp32RotaryEncoder::info2String(&(this->info));
 } // Esp32RotaryEncoder::toString()
