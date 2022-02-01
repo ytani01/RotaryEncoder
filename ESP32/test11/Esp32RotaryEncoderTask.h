@@ -60,12 +60,12 @@ class Esp32RotaryEncoderTask: public Esp32Task {
   portBASE_TYPE get(Esp32RotaryEncoderInfo_t *re_info);
 
  protected:
+  QueueHandle_t _out_que;
+
+  portBASE_TYPE put();
+
   virtual void setup();
   virtual void loop();
-
-  QueueHandle_t _out_que;
-  
-  //  static void intr_hdr(void *re_obj);
 }; // class Esp32RotaryEncoderTask
 
 /**

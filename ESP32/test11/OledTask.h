@@ -13,6 +13,16 @@
 #include "Esp32NetMgrTask.h"
 
 /**
+ * 表示データ
+ */
+typedef struct {
+  Esp32NetMgrInfo_t *ni;
+  Esp32RotaryEncoderInfo_t *ri1;
+  Esp32ButtonInfo_t *bi1;
+} DispData_t;
+
+#define D this->disp
+/**
  *
  */
 class OledTask: public Esp32Task {
@@ -21,7 +31,7 @@ class OledTask: public Esp32Task {
   static const uint16_t DISP_H = 64;
   static const uint16_t CH_W = 6;
   static const uint16_t CH_H = 8;
-  static const uint16_t FRAME_W = 3;
+  static const uint16_t FRAME_W = 1;
 
   static const uint32_t CMD_BUF_SIZE = 128;
   static const uint32_t CMD_NAME_SIZE = 8;
@@ -30,20 +40,13 @@ class OledTask: public Esp32Task {
 
   Esp32NetMgrTask **pNetMgrTask;
 
-  OledTask(Esp32ButtonInfo_t *re_btn_info,
-           Esp32ButtonInfo_t *ob_btn_info,
-           Esp32RotaryEncoderInfo_t *re_info,
-           Esp32NetMgrTask **pNetMgrTask,
-           QueueHandle_t in_que);
+  OledTask(DispData_t *disp_data);
 
   virtual void setup();
   virtual void loop();
 
  private:
-  Esp32ButtonInfo_t *re_btn_info;
-  Esp32ButtonInfo_t *ob_btn_info;
-  Esp32RotaryEncoderInfo_t *re_info;
-  
+  DispData_t *disp_data;
   char _buf[CMD_BUF_SIZE];
   char _cmd[CMD_NAME_SIZE];
 }; // class OledTask

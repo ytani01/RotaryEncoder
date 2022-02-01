@@ -7,6 +7,12 @@
 #include "Esp32Task.h"
 #include "Esp32NetMgr.h"
 
+typedef struct {
+  Esp32NetMgrMode_t mode;
+  String ssid;
+  uint8_t mac_addr[6];
+} Esp32NetMgrInfo_t;
+
 /**
  *
  */
@@ -15,6 +21,7 @@ class Esp32NetMgrTask: public Esp32Task {
   Esp32NetMgr *netMgr = NULL;
 
   Esp32NetMgrTask(String name, String ap_ssid_hdr,
+                  Esp32NetMgrInfo_t *netmgr_info,
                   unsigned long wifi_try_count=Esp32NetMgr::DEF_TRY_COUNT_MAX);
   String ap_ssid_hdr;
   unsigned long wifi_try_count;
@@ -22,5 +29,7 @@ class Esp32NetMgrTask: public Esp32Task {
  protected:
   virtual void setup();
   virtual void loop();
+
+  Esp32NetMgrInfo_t *netmgr_info;
 }; // class Esp32NetMgrTask
 #endif // _ESP32_NETMGR_TASK_H_

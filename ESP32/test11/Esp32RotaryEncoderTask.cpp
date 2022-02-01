@@ -36,8 +36,25 @@ Esp32RotaryEncoderTask::Esp32RotaryEncoderTask(String re_name,
 /**
  *
  */
+portBASE_TYPE Esp32RotaryEncoderTask::put() {
+  portBASE_TYPE ret = xQueueSend(this->_out_que,
+                                 (void *)&(this->re->info), 1000);
+  if ( ret == pdPASS ) {
+    log_d("que < %s", this->re->toString().c_str());
+  } else {
+    log_w("que X< %s: ret=%d", this->re->toString().c_str(), ret);
+  }
+  return ret;
+} // Esp32RotaryEncoderTask::put()
+
+/**
+ *
+ */
 void Esp32RotaryEncoderTask::setup() {
   log_d("%s", this->re_name.c_str());
+
+  // send initail data
+  this->put();
 } // Esp32RotaryEncoderTask::setup()
 
 /**
@@ -50,13 +67,7 @@ void Esp32RotaryEncoderTask::loop() {
     return;
   }
 
-  portBASE_TYPE ret = xQueueSend(this->_out_que,
-                                 (void *)&(this->re->info), 1000);
-  if ( ret == pdPASS ) {
-    log_d("que < %s", this->re->toString().c_str());
-  } else {
-    log_w("que X< %s: ret=%d", this->re->toString().c_str(), ret);
-  }
+  this->put();
 } // Esp32RotaryEncoderTask::loop()
 
 /**

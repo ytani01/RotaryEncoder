@@ -16,32 +16,6 @@
 #include "Esp32NetMgrTask.h"
 #include "Esp32NtpTask.h"
 
-/**
- * 入力データ用キューエントリ
- */
-typedef enum InType_enum : uint8_t {
-                                    INTYPE_BUTTON,
-                                    INTYPE_ROTARY_ENCODER
-} InType_t;
-const char *InTypeSTR[] = {"BUTTON", "ROTARY_ENCODER"};
-
-typedef struct {
-  InType_t type;
-  union {
-    Esp32ButtonInfo_t btn_info;
-    Esp32RotaryEncoderInfo_t re_info;
-  };
-} InData_t;
-
-/**
- * 表示データ
- */
-struct {
-  String ssid;
-  Esp32RotaryEncoderInfo_t reInfo;
-  Esp32ButtonInfo_t btnReInfo;
-} OutputDate_t;
-  
 // OLED
 const uint16_t DISP_W = 128;
 const uint16_t DISP_H = 64;
@@ -50,7 +24,8 @@ const uint16_t CH_H = 8;
 const uint16_t FRAME_W = 3;
 Adafruit_SSD1306 *disp;
 char disp_cmd[OledTask::CMD_BUF_SIZE];
-OledTask *taskOled = NULL;
+OledTask *oledTask = NULL;
+DispData_t dispData;
 
 // Buttons
 const uint8_t PIN_BTN_RE = 26;
@@ -89,8 +64,8 @@ CRGB leds_ext1[LEDS_N_EXT1];
 
 // WiFi
 const String AP_SSID_HDR = "test";
-const unsigned int WIFI_RETRY_COUNT = 10;
-Esp32NetMgrTask *taskNetMgr = NULL;
+Esp32NetMgrTask *netMgrTask = NULL;
+Esp32NetMgrInfo_t netMgrInfo;
 
 // NTP
 const String NTP_SVR[] = {"ntp.nict.jp", "pool.ntp.org", "time.google.com"};
@@ -207,20 +182,10 @@ void setup() {
 
   log_i("portTICK_PERIOD_MS=%d", portTICK_PERIOD_MS);
   
-  /*
-   * XXX test XXX
-   */
-  Esp32ButtonInfo_t bi1;
-  strcpy(bi1.name, "AAA");
-  
-  InData_t inData;
-  inData.type = INTYPE_BUTTON;
-  inData.btn_info = bi1;
-  log_i("inData.type=%s(%i), %s",
-        InTypeSTR[inData.type], inData.type,
-        inData.btn_info.name);
-
-  //OutputDate_t outData;
+  // init dispData
+  dispData.ni = &netMgrInfo;
+  dispData.ri1 = &reInfo;
+  dispData.bi1 = &reBtnInfo; 
 
   // NeoPixel
   FastLED.addLeds<WS2812B, PIN_NEOPIXEL_ONBOARD, GRB>
@@ -236,61 +201,37 @@ void setup() {
   }
   FastLED.show();
 
-  // Queues
-  // XXX Esp32RotaryEncoderTask classに入れる
-  // XXX Queueにせずに、コールバックを呼び出すほうがいいかも?
-  queRe = xQueueCreate(Q_SIZE, sizeof(Esp32RotaryEncoderInfo_t));
-  if ( queRe == NULL ) {
-    log_e("xQueueCreate(queRe): failed .. HALT");
-    while (true) { // HALT
-      delay(1);
-    }
-  }
-
-  queDispCmd = xQueueCreate(Q_SIZE, sizeof(OledTask::CMD_BUF_SIZE));
-  if ( queDispCmd == NULL ) {
-    log_e("xQueueCreate(queDispCmd): failed .. HALT");
-    while (true) { // HALT
-      delay(1);
-    }
-  }
-
   // Tasks
-  taskOled = new OledTask(&reBtnInfo, &obBtnInfo, &reInfo,
-                          &taskNetMgr, queDispCmd);
-  taskOled->start();
+  unsigned long task_interval = 50;
 
-  delay(500);
+  oledTask = new OledTask(&dispData);
+  oledTask->start();
+  delay(task_interval);
 
-  taskNtp = new Esp32NtpTask((String *)NTP_SVR, &taskNetMgr);
+  taskNtp = new Esp32NtpTask((String *)NTP_SVR, &netMgrTask);
   taskNtp->start();
+  delay(task_interval);
 
-  delay(500);
-
-  taskNetMgr = new Esp32NetMgrTask("NetMgr", AP_SSID_HDR, WIFI_RETRY_COUNT);
-  taskNetMgr->start();
-
-  delay(500);
+  netMgrTask = new Esp32NetMgrTask("NetMgr", AP_SSID_HDR, &netMgrInfo);
+  netMgrTask->start();
+  delay(task_interval);
 
   reBtnWatcher = new Esp32ButtonWatcher(RE_BTN_NAME, PIN_BTN_RE,
                                         reBtn_cb);
   reBtnWatcher->start();
-
-  delay(500);
+  delay(task_interval);
 
   obBtnWatcher = new Esp32ButtonWatcher(ONBOARD_BTN_NAME, PIN_BTN_ONBOARD,
                                         obBtn_cb);
   obBtnWatcher->start();
-
-  delay(500);
+  delay(task_interval);
 
   reWatcher = new Esp32RotaryEncoderWatcher(RE_NAME,
                                             PIN_PULSE_DT, PIN_PULSE_CLK,
                                             PULSE_MAX,
                                             re_cb);
   reWatcher->start();
-
-  delay(500);
+  delay(task_interval);
 
   // start timer1
   timer1.attach_ms(TIMER_INTERVAL, timer1_cb);
@@ -301,5 +242,5 @@ void setup() {
  *
  */
 void loop() {
-  delay(10);
+  delay(100);
 }
