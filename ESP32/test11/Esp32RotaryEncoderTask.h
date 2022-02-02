@@ -85,6 +85,8 @@ public:
                             UBaseType_t priority=PRIORITY_DEF,
                             UBaseType_t core=CORE_DEF);
 
+  Esp32RotaryEncoderInfo_t *get_re_info();
+  
 protected:
   virtual void setup();
   virtual void loop();

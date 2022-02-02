@@ -15,7 +15,7 @@ class Esp32NtpTask: public Esp32Task {
 public:
   const unsigned long INTERVAL_NORMAL = 5 * 60 * 1000; // ms
   const unsigned long INTERVAL_PROGRESS = 10 * 1000; // ms
-  const unsigned long INTERVAL_NO_WIFI = 20 * 1000; // ms
+  const unsigned long INTERVAL_NO_WIFI = 5 * 1000; // ms
   const uint32_t WDT_SEC = INTERVAL_NORMAL / 1000 * 2; // sec
   
   String *ntp_svr;

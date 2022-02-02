@@ -16,6 +16,7 @@
  * 表示データ
  */
 typedef struct {
+  char cmd[64];
   Esp32NetMgrInfo_t *ni;
   Esp32RotaryEncoderInfo_t *ri1;
   Esp32ButtonInfo_t *bi1;

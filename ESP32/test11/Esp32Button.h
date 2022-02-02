@@ -78,7 +78,7 @@ class Esp32Button {
   static const unsigned long DEBOUNCE        	=  100;
   static const unsigned long LONG_PRESS_MSEC 	= 1000;
   static const unsigned long REPEAT_MSEC     	=  300;
-  static const unsigned long CLICK_MSEC		=  800;
+  static const unsigned long CLICK_MSEC		=  600;
 
   Esp32ButtonInfo_t info;
 

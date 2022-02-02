@@ -56,14 +56,19 @@ Esp32RotaryEncoder::Esp32RotaryEncoder(String name,
 } // Esp32RotaryEncoder::Esp32RotaryEncoder()
 
 /**
- *
+ * angleのずれに対する対応
+ *   PCNTのカウンター値をそのままangleには使わない!
+ *   差分だけを利用する。
  */
 Esp32RotaryEncoderAngle_t Esp32RotaryEncoder::get() {
-  Esp32RotaryEncoderAngle_t prev_angle = this->info.angle;
+  static Esp32RotaryEncoderAngle_t cur_angle;
+  Esp32RotaryEncoderAngle_t prev_angle = cur_angle;
   
-  pcnt_get_counter_value(this->pcnt_unit, &(this->info.angle));
+  pcnt_get_counter_value(this->pcnt_unit, &(cur_angle));
 
-  this->info.d_angle = this->info.angle - prev_angle;
+  this->info.d_angle = cur_angle - prev_angle;
+  this->info.angle += this->info.d_angle;
+  
   /*
    * angleが大きく飛んだ場合(XXX 要検討 XXX)
    */

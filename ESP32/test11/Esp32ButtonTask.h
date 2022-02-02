@@ -93,6 +93,8 @@ public:
                      UBaseType_t priority=PRIORITY_DEF,
                      UBaseType_t core=CORE_DEF);
 
+  Esp32ButtonInfo_t *get_btn_info();
+
 protected:
   virtual void setup();
   virtual void loop();

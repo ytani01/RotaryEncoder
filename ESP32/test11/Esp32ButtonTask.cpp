@@ -150,6 +150,13 @@ Esp32ButtonWatcher::Esp32ButtonWatcher(String btn_name, uint8_t pin,
 /**
  *
  */
+Esp32ButtonInfo_t *Esp32ButtonWatcher::get_btn_info() {
+  return &(this->_btn_task->btn->info);
+} // Esp32ButtonWatcher::get_btn_info()
+
+/**
+ *
+ */
 void Esp32ButtonWatcher::setup() {
   this->_btn_task = new Esp32ButtonTask(this->_btn_name, this->_pin,
                                         this->_stack_size,

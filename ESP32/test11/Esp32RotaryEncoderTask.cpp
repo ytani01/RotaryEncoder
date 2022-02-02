@@ -3,6 +3,10 @@
  */
 #include "Esp32RotaryEncoderTask.h"
 
+void IRAM_ATTR intr_hdr(void *p) {
+  log_i("AAA");
+}
+
 /**
  *
  */
@@ -21,7 +25,9 @@ Esp32RotaryEncoderTask::Esp32RotaryEncoderTask(String re_name,
 
   this->re = new Esp32RotaryEncoder(this->re_name,
                                     this->pin_dt, this->pin_clk,
-                                    this->angle_max);
+                                    this->angle_max,
+                                    PCNT_UNIT_0,
+                                    intr_hdr);
 
   this->_out_que = xQueueCreate(Esp32RotaryEncoderTask::Q_SIZE,
                                 sizeof(Esp32RotaryEncoderInfo_t));
@@ -50,6 +56,17 @@ portBASE_TYPE Esp32RotaryEncoderTask::put() {
 /**
  *
  */
+portBASE_TYPE Esp32RotaryEncoderTask::get(Esp32RotaryEncoderInfo_t *re_info) {
+  portBASE_TYPE ret = xQueueReceive(this->_out_que, (void *)re_info, 1000);
+  if ( ret == pdPASS ) {
+    log_d("que > %s", Esp32RotaryEncoder::info2String(re_info).c_str());
+  }
+  return ret;
+} // Esp32RotaryEncoderTask::get()
+
+/**
+ *
+ */
 void Esp32RotaryEncoderTask::setup() {
   log_d("%s", this->re_name.c_str());
 
@@ -69,17 +86,6 @@ void Esp32RotaryEncoderTask::loop() {
 
   this->put();
 } // Esp32RotaryEncoderTask::loop()
-
-/**
- *
- */
-portBASE_TYPE Esp32RotaryEncoderTask::get(Esp32RotaryEncoderInfo_t *re_info) {
-  portBASE_TYPE ret = xQueueReceive(this->_out_que, (void *)re_info, 1000);
-  if ( ret == pdPASS ) {
-    log_d("que > %s", Esp32RotaryEncoder::info2String(re_info).c_str());
-  }
-  return ret;
-} // Esp32RotaryEncoderTask::get()
 
 /**
  * defulat callback
@@ -117,6 +123,12 @@ Esp32RotaryEncoderWatcher(String re_name,
   this->_re_task=NULL;
 } // Esp32RotaryEncoderWatcher::Esp32RotaryEncoderWatcher()
 
+/**
+ *
+ */
+Esp32RotaryEncoderInfo_t *Esp32RotaryEncoderWatcher::get_re_info() {
+  return &(this->_re_task->re->info);
+} // Esp32RotaryEncoderWatcher::get_re_info()
 /**
  *
  */

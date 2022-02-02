@@ -47,10 +47,6 @@ const pcnt_unit_t PCNT_UNIT = PCNT_UNIT_0;
 Esp32RotaryEncoderWatcher *reWatcher = NULL;
 Esp32RotaryEncoderInfo_t reInfo;
 
-// Queues
-#define Q_SIZE 32
-QueueHandle_t queRe, queDispCmd;
-
 // NeoPixel
 const uint8_t PIN_NEOPIXEL_ONBOARD = 27;
 const uint16_t LEDS_N_ONBOARD = 1;
@@ -101,14 +97,8 @@ void reBtn_cb(Esp32ButtonInfo_t *btn_info) {
   }
 
   if ( btn_info->click_count > 3 ) {
-    portBASE_TYPE ret = xQueueSend(queDispCmd, (void *)disp_cmd, 10);
-    if ( ret == pdPASS ) {
-      log_i("OK: ret=%d", ret);
-    } else {
-      log_e("NG: ret=%d", ret);
-    }
-          
     log_w("restart..");
+    strcpy(dispData.cmd, "clear");
     delay(3000);
     //ESP.restart();
     ESP.deepSleep(3000);
@@ -128,13 +118,7 @@ void obBtn_cb(Esp32ButtonInfo_t *btn_info) {
   }
 
   if ( btn_info->click_count > 3 ) {
-    portBASE_TYPE ret = xQueueSend(queDispCmd, (void *)disp_cmd, 10);
-    if ( ret == pdPASS ) {
-      log_i("OK: ret=%d", ret);
-    } else {
-      log_e("NG: ret=%d", ret);
-    }
-          
+    strcpy(dispData.cmd, "clear");
     log_w("restart..");
     delay(3000);
     //ESP.restart();
@@ -148,6 +132,21 @@ void obBtn_cb(Esp32ButtonInfo_t *btn_info) {
  */
 void re_cb(Esp32RotaryEncoderInfo_t *re_info) {
   log_i("%s", Esp32RotaryEncoder::info2String(re_info).c_str());
+
+  /**
+   * XXX
+   * RotaryEncoderのボタンを押した瞬間に、
+   * d_angle=2*n の入力が検知されることがある !??
+   */
+  if ( re_info->d_angle % 2 == 0 ) {
+    log_w("d_angle=%d: ignored", re_info->d_angle);
+
+    // XXX angleを戻す
+    Esp32RotaryEncoderInfo_t *re_info_src = reWatcher->get_re_info();
+    re_info_src->angle -= re_info->d_angle;
+    return;
+  }
+
   reInfo = *re_info;
 }
 
