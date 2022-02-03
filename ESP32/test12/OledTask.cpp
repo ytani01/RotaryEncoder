@@ -28,7 +28,7 @@ void OledTask::setup() {
     bme_active = true;
   }
   log_i("bme_active=%d", bme_active);
-  // bme.setSampling(Adafruit_BME280::MODE_FORCED);  // FORCEDにしない方がよい!?
+  //bme.setSampling(Adafruit_BME280::MODE_FORCED);  // FORCEDにしない方がよい!?
 
   D = new Adafruit_SSD1306(DISP_W, DISP_H);
   D->begin(SSD1306_SWITCHCAPVCC, 0x3C);
@@ -214,8 +214,8 @@ void OledTask::loop() {
     if ( cur_ms - prev_temp_ms > 5000 ) {
       prev_temp_ms = cur_ms;
     
-      bme.takeForcedMeasurement(); // XXX
-      temp = bme.readTemperature() - 1.1;
+      // bme.takeForcedMeasurement(); // XXX
+      temp = bme.readTemperature() - 1.0;
       hum = bme.readHumidity();
       pres = bme.readPressure() / 100.0;
       thi = 0.81 * temp + 0.01 * hum * (0.99 * temp - 14.3) + 46.3;
