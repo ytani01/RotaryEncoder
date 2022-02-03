@@ -211,11 +211,11 @@ void OledTask::loop() {
   static float temp, hum, pres, thi;
   static unsigned long prev_temp_ms = millis() - 5000;
   if ( bme_active ) {
-    if ( cur_ms - prev_temp_ms > 5000 ) {
+    if ( cur_ms - prev_temp_ms > 10 * 1000 ) {
       prev_temp_ms = cur_ms;
     
       // bme.takeForcedMeasurement(); // XXX
-      temp = bme.readTemperature() - 1.0;
+      temp = bme.readTemperature() - 1.5; // XXX offset
       hum = bme.readHumidity();
       pres = bme.readPressure() / 100.0;
       thi = 0.81 * temp + 0.01 * hum * (0.99 * temp - 14.3) + 46.3;
