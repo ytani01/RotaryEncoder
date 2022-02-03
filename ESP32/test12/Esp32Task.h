@@ -55,7 +55,7 @@ class Esp32Task {
 
   virtual void setup();
   virtual void loop();
-
+  
   static void call_task_main(void *this_instance);
 }; // class Esp32Task
 #endif // _ESP32_TASK_H_

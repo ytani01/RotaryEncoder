@@ -4,6 +4,13 @@
 #include "Esp32NtpTask.h"
 
 /**
+ * defulat callback
+ */
+static void _ntp_cb(Esp32NtpTaskInfo_t *ntp_info) {
+  log_i("ntp_info.sntp_stat=%d", ntp_info->sntp_stat);
+} // _ntp_cb()
+
+/** static function
  *
  */
 char* Esp32NtpTask::get_time_str() {
@@ -16,15 +23,29 @@ char* Esp32NtpTask::get_time_str() {
   return buf;
 } // Esp32NetMgrTask::get_time_str()
 
-/**
+/** constructor
  *
  */
-Esp32NtpTask::Esp32NtpTask(String ntp_svr[], Esp32NetMgrTask **pNetMgrTask)
+Esp32NtpTask::Esp32NtpTask(String ntp_svr[], Esp32NetMgrTask **pNetMgrTask,
+                           void (*cb)(Esp32NtpTaskInfo_t *ntp_info))
   : Esp32Task("NTP_task") {
 
   this->ntp_svr = ntp_svr;
   this->pNetMgrTask = pNetMgrTask;
+  this->_cb = cb;
+  if ( cb == NULL ) {
+    this->_cb = _ntp_cb;
+  }
+
+  this->info.sntp_stat = SNTP_SYNC_STATUS_RESET;
 } // Esp32NtpTask::Esp32NtpTask
+
+/**
+ *
+ */
+void *Esp32NtpTask::get_info() {
+  return (void *)&(this->info);
+} // Esp32NtpTask::get_info()
 
 /**
  *
@@ -57,6 +78,9 @@ void Esp32NtpTask::loop() {
 
   if ( ! wifi_available ) {
     log_w("WIFI is not available");
+    this->info.sntp_stat = SNTP_SYNC_STATUS_RESET;
+
+    this->_cb(&(this->info));
     delay(INTERVAL_NO_WIFI);
     return;
   }
@@ -72,20 +96,23 @@ void Esp32NtpTask::loop() {
    *   動機が完了すると「一度だけ」、SNTP_SYNC_STATUS_COMPLETE
    *   SNTP_SYNC_MODE_SMOOTHの同期中の場合は、SNTP_SYNC_STAUS_IN_PROGRESS)
    */
-  sntp_sync_status_t sntp_stat = sntp_get_sync_status();
-  if ( sntp_stat == SNTP_SYNC_STATUS_COMPLETED ) {
+  this->info.sntp_stat = sntp_get_sync_status();
+  if ( this->info.sntp_stat == SNTP_SYNC_STATUS_COMPLETED ) {
     interval = INTERVAL_NORMAL;
     log_i("%s: NTP sync done: sntp_stat=%d, interval=%'d",
-          get_time_str(), sntp_stat, interval);
-  } else if ( sntp_stat == SNTP_SYNC_STATUS_IN_PROGRESS ) {
+          get_time_str(), this->info.sntp_stat, interval);
+
+  } else if ( this->info.sntp_stat == SNTP_SYNC_STATUS_IN_PROGRESS ) {
     interval = INTERVAL_PROGRESS;
     log_i("%s: NTP sync progress: sntp_stat=%d, interval=%'d",
-          get_time_str(), sntp_stat, interval);
+          get_time_str(), this->info.sntp_stat, interval);
+
   } else {
     interval = INTERVAL_NO_WIFI;
     log_i("%s: NTP sync retry: sntp_stat=%d, interval=%'d",
-          get_time_str(), sntp_stat, interval);
+          get_time_str(), this->info.sntp_stat, interval);
   }
 
+  this->_cb(&(this->info));
   delay(interval);
 } // Esp32NtpTask::loop()

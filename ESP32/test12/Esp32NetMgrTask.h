@@ -19,12 +19,12 @@ typedef struct {
 class Esp32NetMgrTask: public Esp32Task {
  public:
   Esp32NetMgr *netMgr = NULL;
+  String ap_ssid_hdr;
+  unsigned long wifi_try_count;
 
   Esp32NetMgrTask(String name, String ap_ssid_hdr,
                   Esp32NetMgrInfo_t *netmgr_info,
                   unsigned long wifi_try_count=Esp32NetMgr::DEF_TRY_COUNT_MAX);
-  String ap_ssid_hdr;
-  unsigned long wifi_try_count;
 
  protected:
   virtual void setup();

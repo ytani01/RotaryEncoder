@@ -11,6 +11,7 @@
 #include "Esp32RotaryEncoder.h"
 #include "Esp32Button.h"
 #include "Esp32NetMgrTask.h"
+#include "Esp32NtpTask.h"
 
 /**
  * 表示データ
@@ -18,6 +19,7 @@
 typedef struct {
   char cmd[64];
   Esp32NetMgrInfo_t *ni;
+  Esp32NtpTaskInfo_t *ntp_info;
   Esp32RotaryEncoderInfo_t *ri1;
   Esp32ButtonInfo_t *bi1;
 } DispData_t;
@@ -50,5 +52,12 @@ class OledTask: public Esp32Task {
   DispData_t *disp_data;
   char _buf[CMD_BUF_SIZE];
   char _cmd[CMD_NAME_SIZE];
+
+  void drawTemp(int x, int y, float temp);
+  void drawHum(int x, int y, float hum);
+  void drawPres(int x, int y, float press);
+  void drawThi(int x, int y, float thi);
+  void drawWiFi(int x, int y, Esp32NetMgrInfo_t *ni);
+  void drawDateTime(int x, int y, struct tm *ti);
 }; // class OledTask
 #endif // _OLED_TASK_H_

@@ -9,7 +9,6 @@
 
 #include "Esp32NetMgr.h"
 
-#include "Esp32Task.h"
 #include "Esp32ButtonTask.h"
 #include "Esp32RotaryEncoderTask.h"
 #include "OledTask.h"
@@ -65,7 +64,8 @@ Esp32NetMgrInfo_t netMgrInfo;
 
 // NTP
 const String NTP_SVR[] = {"ntp.nict.jp", "pool.ntp.org", "time.google.com"};
-Esp32NtpTask *taskNtp = NULL;
+Esp32NtpTask *ntpTask = NULL;
+Esp32NtpTaskInfo_t ntpInfo;
 
 // Timer
 const TickType_t TIMER_INTERVAL = 20 * 1000; // tick == ms (?)
@@ -99,10 +99,10 @@ void reBtn_cb(Esp32ButtonInfo_t *btn_info) {
   if ( btn_info->click_count > 3 ) {
     log_w("restart..");
     strcpy(dispData.cmd, "clear");
-    delay(3000);
+    delay(500);
     //ESP.restart();
-    ESP.deepSleep(3000);
-    delay(2000);
+    ESP.deepSleep(500);
+    delay(100);
   }
 } // reBtn_cb()
 
@@ -148,7 +148,16 @@ void re_cb(Esp32RotaryEncoderInfo_t *re_info) {
   }
 
   reInfo = *re_info;
-}
+} // re_cb()
+
+/**
+ *
+ */
+void ntp_cb(Esp32NtpTaskInfo_t *ntp_info) {
+  log_i("sntp_stat=%d", ntp_info->sntp_stat);
+  
+  ntpInfo = *ntp_info;
+} // ntp_cb()
 
 /**
  * 【注意・重要】
@@ -165,9 +174,9 @@ void timer1_cb() {
   TickType_t tick2 = xTaskGetTickCount();
   TickType_t d_tick = tick2 - tick1;
   log_d("%d %d", tick1, tick2);
-  log_i("[%s] timer test: end(d_tick=%d)",
+  log_d("[%s] timer test: end(d_tick=%d)",
         Esp32NtpTask::get_time_str(), d_tick);
-}
+} // timer1_cb()
 
 /**
  *
@@ -184,7 +193,8 @@ void setup() {
   // init dispData
   dispData.ni = &netMgrInfo;
   dispData.ri1 = &reInfo;
-  dispData.bi1 = &reBtnInfo; 
+  dispData.bi1 = &reBtnInfo;
+  dispData.ntp_info = &ntpInfo;
 
   // NeoPixel
   FastLED.addLeds<WS2812B, PIN_NEOPIXEL_ONBOARD, GRB>
@@ -207,8 +217,8 @@ void setup() {
   oledTask->start();
   delay(task_interval);
 
-  taskNtp = new Esp32NtpTask((String *)NTP_SVR, &netMgrTask);
-  taskNtp->start();
+  ntpTask = new Esp32NtpTask((String *)NTP_SVR, &netMgrTask, ntp_cb);
+  ntpTask->start();
   delay(task_interval);
 
   netMgrTask = new Esp32NetMgrTask("NetMgr", AP_SSID_HDR, &netMgrInfo);
