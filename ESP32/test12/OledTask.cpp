@@ -123,9 +123,11 @@ void OledTask::drawDateTime(int x, int y, struct tm *ti) {
   D->setTextSize(1);
   D->printf("/");
 
-  D->setCursor(hour_x + CH_W * 2 * 2 - 4, hour_y);
-  D->setTextSize(2);
-  D->printf(":");
+  if ( millis() % 1000 >= 500 ) {
+    D->setCursor(hour_x + CH_W * 2 * 2 - 4, hour_y);
+    D->setTextSize(2);
+    D->printf(":");
+  }
 
   D->drawRect(sec_x, sec_y, 61, 5, WHITE);
   for (int x1=sec_x; x1 <= sec_x+60; x1 += 10) {
