@@ -20,12 +20,16 @@ void OledMenu::cursor_up() {
   OledMenu_t m = this->cur;
   int ent_n = m.ent.size();
 
-  this->cur_ent = (this->cur_ent - 1 + ent_n) % ent_n;
+  // XXX 循環させる場合
+  // this->cur_ent = (this->cur_ent - 1 + ent_n) % ent_n;
+  if ( this->cur_ent > 0 ) {
+    this->cur_ent--;
+  }
   if ( this->cur_ent < this->disp_top_ent ) {
     this->disp_top_ent = this->cur_ent;
   }
-  if ( this->cur_ent > this->disp_top_ent + 5 ) {
-    this->disp_top_ent = this->cur_ent - 5;
+  if ( this->cur_ent > this->disp_top_ent + OLED_MENU_DISP_ENT_N ) {
+    this->disp_top_ent = this->cur_ent - OLED_MENU_DISP_ENT_N;
   }
   log_i("ent=%d/%d top=%d", this->cur_ent, ent_n, this->disp_top_ent);
 } // OledMenu::cursor_up()
@@ -37,12 +41,16 @@ void OledMenu::cursor_down() {
   OledMenu_t m = this->cur;
   int ent_n = m.ent.size();
 
-  this->cur_ent = (this->cur_ent + 1) % ent_n;
+  // XXX 循環させる場合
+  // this->cur_ent = (this->cur_ent - 1 + ent_n) % ent_n;
+  if ( this->cur_ent < ent_n - 1 ) {
+    this->cur_ent++;
+  }
   if ( this->cur_ent < this->disp_top_ent ) {
     this->disp_top_ent = this->cur_ent;
   }
-  if ( this->cur_ent > this->disp_top_ent + 5 ) {
-    this->disp_top_ent = this->cur_ent - 5;
+  if ( this->cur_ent > this->disp_top_ent + OLED_MENU_DISP_ENT_N ) {
+    this->disp_top_ent = this->cur_ent - OLED_MENU_DISP_ENT_N;
   }
   log_i("ent=%d/%d top=%d", this->cur_ent, ent_n, this->disp_top_ent);
 } // OledMenu::cursor_down()
@@ -59,7 +67,7 @@ void OledMenu::display(Display_t *disp) {
   disp->printf("%s\n", m.title);
   
   disp->setTextSize(1);
-  for (int i=disp_top_ent; i <= disp_top_ent+5; i++) {
+  for (int i=disp_top_ent; i <= disp_top_ent+OLED_MENU_DISP_ENT_N; i++) {
     if ( i >= m.ent.size() ) {
       break;
     }

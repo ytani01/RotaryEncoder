@@ -9,6 +9,7 @@
 Esp32RotaryEncoder::Esp32RotaryEncoder(String name,
                                        uint8_t pin_dt, uint8_t pin_clk,
                                        Esp32RotaryEncoderAngle_t angle_max,
+                                       pcnt_ctrl_mode_t lctrl_mode,
                                        pcnt_unit_t pcnt_unit,
                                        void (*intr_hdr)(void *),
                                        void *intr_arg) {
@@ -20,18 +21,20 @@ Esp32RotaryEncoder::Esp32RotaryEncoder(String name,
   this->info.pin_dt = pin_dt;
   this->info.pin_clk = pin_clk;
   this->info.angle_max = angle_max;
-  this->info.angle = 0;
-  this->info.d_angle = 0;
+  this->info.lctrl_mode = lctrl_mode;
   this->pcnt_unit = pcnt_unit;
   this->intr_hdr = intr_hdr;
   this->intr_arg = intr_arg;
+
+  this->info.angle = 0;
+  this->info.d_angle = 0;
 
   pcnt_config_t cnf;
   cnf.pulse_gpio_num = this->info.pin_dt;
   cnf.ctrl_gpio_num = this->info.pin_clk;
   cnf.channel = PCNT_CHANNEL_0;
   cnf.unit = this->pcnt_unit;
-  cnf.lctrl_mode = PCNT_MODE_KEEP;
+  cnf.lctrl_mode = this->info.lctrl_mode;
   cnf.hctrl_mode = PCNT_MODE_REVERSE;
   cnf.pos_mode = PCNT_COUNT_INC;
   cnf.neg_mode = PCNT_COUNT_DEC;

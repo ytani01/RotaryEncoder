@@ -7,6 +7,8 @@
 #include "common.h"
 #include "Oled.h"
 
+constexpr int OLED_MENU_DISP_ENT_N = 5;
+
 static constexpr int TITLE_LEN = 16;
 static constexpr int ENT_N = 16;
 

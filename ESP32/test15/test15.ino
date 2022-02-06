@@ -18,44 +18,51 @@
 #include "OledMenu.h"
 
 // OLED
-const uint16_t DISP_W = 128;
-const uint16_t DISP_H = 64;
-const uint16_t CH_W = 6;
-const uint16_t CH_H = 8;
-const uint16_t FRAME_W = 3;
+constexpr uint16_t DISP_W = 128;
+constexpr uint16_t DISP_H = 64;
+constexpr uint16_t CH_W = 6;
+constexpr uint16_t CH_H = 8;
+constexpr uint16_t FRAME_W = 3;
 Adafruit_SSD1306 *disp;
 OledTask *oledTask = NULL;
 DispData_t dispData;
 
 // Buttons
-const uint8_t PIN_BTN_RE = 26;
+constexpr uint8_t PIN_BTN_RE = 26;
 const String RE_BTN_NAME = "RotaryEncoderBtn";
 Esp32ButtonWatcher *reBtnWatcher = NULL;
 Esp32ButtonInfo_t reBtnInfo;
 
-const uint8_t PIN_BTN_ONBOARD = 39;
+constexpr uint8_t PIN_BTN_ONBOARD = 39;
 const String ONBOARD_BTN_NAME = "OnBoardBtn";
 Esp32ButtonWatcher *obBtnWatcher = NULL;
 Esp32ButtonInfo_t obBtnInfo;
 
 // Rotary Encoder
 const String RE_NAME = "RotaryEncoder1";
-const uint8_t PIN_PULSE_DT = 33;
-const uint8_t PIN_PULSE_CLK = 32;
-const int16_t PULSE_MAX = 30;
-const pcnt_unit_t PCNT_UNIT = PCNT_UNIT_0;
+constexpr uint8_t PIN_PULSE_DT = 33;
+constexpr uint8_t PIN_PULSE_CLK = 32;
+/*
+ * RE_ANGLE_MAX, LCTRL_MODE は、ロータリーエンコーダーのタイプによって変える
+ */
+//constexpr int16_t RE_ANGLE_MAX = 30;
+//constexpr pcnt_ctrl_mode_t LCTRL_MODE = PCNT_MODE_KEEP;
+constexpr int16_t RE_ANGLE_MAX = 20;
+constexpr pcnt_ctrl_mode_t RE_LCTRL_MODE = PCNT_MODE_DISABLE;
+
+constexpr pcnt_unit_t PCNT_UNIT = PCNT_UNIT_0;
 Esp32RotaryEncoderWatcher *reWatcher = NULL;
 Esp32RotaryEncoderInfo_t reInfo;
 
 // NeoPixel
-const uint8_t PIN_NEOPIXEL_ONBOARD = 27;
-const uint16_t LEDS_N_ONBOARD = 1;
-const uint8_t LED_BRIGHTNESS_ONBOARD = 50;
+constexpr uint8_t PIN_NEOPIXEL_ONBOARD = 27;
+constexpr uint16_t LEDS_N_ONBOARD = 1;
+constexpr uint8_t LED_BRIGHTNESS_ONBOARD = 50;
 CRGB leds_onboard[LEDS_N_ONBOARD];
 
-const uint8_t PIN_NEOPIXEL_EXT1 = 18;
-const uint16_t LEDS_N_EXT1 = 100;
-const uint8_t LED_BRIGHTNESS_EXT1 = 40;
+constexpr uint8_t PIN_NEOPIXEL_EXT1 = 18;
+constexpr uint16_t LEDS_N_EXT1 = 100;
+constexpr uint8_t LED_BRIGHTNESS_EXT1 = 40;
 CRGB leds_ext1[LEDS_N_EXT1];
 
 // WiFi
@@ -69,7 +76,7 @@ Esp32NtpTask *ntpTask = NULL;
 Esp32NtpTaskInfo_t ntpInfo;
 
 // Timer
-const TickType_t TIMER_INTERVAL = 20 * 1000; // tick == ms (?)
+constexpr TickType_t TIMER_INTERVAL = 20 * 1000; // tick == ms (?)
 Ticker timer1;
 
 // Menu
@@ -427,7 +434,7 @@ void setup() {
 
   reWatcher = new Esp32RotaryEncoderWatcher(RE_NAME,
                                             PIN_PULSE_DT, PIN_PULSE_CLK,
-                                            PULSE_MAX,
+                                            RE_ANGLE_MAX, RE_LCTRL_MODE,
                                             re_cb);
   reWatcher->start();
   delay(task_interval);

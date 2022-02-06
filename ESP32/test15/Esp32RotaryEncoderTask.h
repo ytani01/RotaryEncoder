@@ -48,11 +48,13 @@ class Esp32RotaryEncoderTask: public Esp32Task {
   uint8_t pin_dt;
   uint8_t pin_clk;
   Esp32RotaryEncoderAngle_t angle_max;
+  pcnt_ctrl_mode_t lctrl_mode;
   Esp32RotaryEncoder *re = NULL;
 
   Esp32RotaryEncoderTask(String re_name,
                          uint8_t pin_dt, uint8_t pin_clk,
                          Esp32RotaryEncoderAngle_t angle_max,
+                         pcnt_ctrl_mode_t lctrl_mode=PCNT_MODE_KEEP,
                          uint32_t stack_size=STACK_SIZE_DEF,
                          UBaseType_t priority=PRIORITY_DEF,
                          UBaseType_t core=CORE_DEF);
@@ -80,6 +82,7 @@ public:
   Esp32RotaryEncoderWatcher(String re_name,
                             uint8_t pin_dt, uint8_t pin_clk,
                             Esp32RotaryEncoderAngle_t angle_max,
+                            pcnt_ctrl_mode_t lctrl_mode=PCNT_MODE_KEEP,
                             void (*cb)(Esp32RotaryEncoderInfo_t *re_info)=NULL,
                             uint32_t stack_size=STACK_SIZE_DEF,
                             UBaseType_t priority=PRIORITY_DEF,
@@ -94,6 +97,7 @@ protected:
   String _re_name;
   uint8_t _pin_dt, _pin_clk;
   Esp32RotaryEncoderAngle_t _angle_max;
+  pcnt_ctrl_mode_t _lctrl_mode;
   Esp32RotaryEncoderTask *_re_task;
   void (*_cb)(Esp32RotaryEncoderInfo_t *re_info);
 

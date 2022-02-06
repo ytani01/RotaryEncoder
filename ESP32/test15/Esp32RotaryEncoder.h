@@ -18,6 +18,7 @@ typedef struct {
   uint8_t pin_dt;
   uint8_t pin_clk;
   Esp32RotaryEncoderAngle_t angle_max;
+  pcnt_ctrl_mode_t lctrl_mode;
   Esp32RotaryEncoderAngle_t angle;
   Esp32RotaryEncoderAngle_t d_angle;
 } Esp32RotaryEncoderInfo_t;
@@ -31,10 +32,11 @@ class Esp32RotaryEncoder {
   pcnt_isr_handle_t isr_handle;
 
   Esp32RotaryEncoder(String name,
-                         uint8_t pin_dt, uint8_t pin_clk,
-                         Esp32RotaryEncoderAngle_t angle_max,
-                         pcnt_unit_t pcnt_unit=PCNT_UNIT_0,
-                         void (*intr_hdr)(void *)=NULL, void *intr_arg=NULL);
+                     uint8_t pin_dt, uint8_t pin_clk,
+                     Esp32RotaryEncoderAngle_t angle_max,
+                     pcnt_ctrl_mode_t lctrl_mode=PCNT_MODE_KEEP,
+                     pcnt_unit_t pcnt_unit=PCNT_UNIT_0,
+                     void (*intr_hdr)(void *)=NULL, void *intr_arg=NULL);
 
   Esp32RotaryEncoderAngle_t get();
   String get_name();

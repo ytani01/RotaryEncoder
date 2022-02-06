@@ -13,6 +13,7 @@ void IRAM_ATTR intr_hdr(void *p) {
 Esp32RotaryEncoderTask::Esp32RotaryEncoderTask(String re_name,
                                                uint8_t pin_dt, uint8_t pin_clk,
                                                Esp32RotaryEncoderAngle_t angle_max,
+                                               pcnt_ctrl_mode_t lctrl_mode,
                                                uint32_t stack_size,
                                                UBaseType_t priority,
                                                UBaseType_t core):
@@ -22,10 +23,12 @@ Esp32RotaryEncoderTask::Esp32RotaryEncoderTask(String re_name,
   this->pin_dt = pin_dt;
   this->pin_clk = pin_clk;
   this->angle_max = angle_max;
+  this->lctrl_mode = lctrl_mode;
 
   this->re = new Esp32RotaryEncoder(this->re_name,
                                     this->pin_dt, this->pin_clk,
                                     this->angle_max,
+                                    this->lctrl_mode,
                                     PCNT_UNIT_0,
                                     intr_hdr);
 
@@ -101,6 +104,7 @@ Esp32RotaryEncoderWatcher::
 Esp32RotaryEncoderWatcher(String re_name,
                           uint8_t pin_dt, uint8_t pin_clk,
                           Esp32RotaryEncoderAngle_t angle_max,
+                          pcnt_ctrl_mode_t lctrl_mode,
                           void (*cb)(Esp32RotaryEncoderInfo_t *re_info),
                           uint32_t stack_size,
                           UBaseType_t priority,
@@ -111,6 +115,7 @@ Esp32RotaryEncoderWatcher(String re_name,
   this->_pin_dt = pin_dt;
   this->_pin_clk = pin_clk;
   this->_angle_max = angle_max;
+  this->_lctrl_mode = lctrl_mode;
   this->_cb = cb;
   this->_stack_size = stack_size;
   this->_priority = priority;
@@ -136,6 +141,7 @@ void Esp32RotaryEncoderWatcher::setup() {
   this->_re_task = new Esp32RotaryEncoderTask(this->_re_name,
                                               this->_pin_dt, this->_pin_clk,
                                               this->_angle_max,
+                                              this->_lctrl_mode,
                                               this->_stack_size,
                                               this->_priority,
                                               this->_core);

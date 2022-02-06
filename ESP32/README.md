@@ -7,7 +7,7 @@ ESP32用ロータリー・エンコーダー・ライブラリ
 * マルチタスクで実装しているが、簡単に利用できる
 * Queueを利用しているため、タイミングの制御が不要
 
-## Sample
+## Sample code
 
 ```
 #include "Esp32RotaryEncoderWatcher.h"
@@ -22,6 +22,7 @@ void setup() {
   reWatcher = Esp32RotaryEncoderWatcher("Name",
                                         pin_dt, pin_dk,
                                         angle_max,
+                                        lctrl_mode,
                                         callback_fn);
   reWatcher->start();
 }
@@ -31,29 +32,12 @@ void loop() {
 }
 ```
 
-## Hardware
+## test program
 
-### OLED: SSD1306
+![](docs/test-photo1.jpg)
+![](docs/test-photo2.png)
 
-```
-#include <Adafruit_SSD1306.h>
-#include <Adafruit_GFX.h>
-:
-Adafruit_SSD1306 *disp;
-:
-setup() {
-  disp = new Adafruit_SSD1306(128, 64);
-  disp->display(); // Initially, display Adafruit logo
-}
 
-void task(..) {
-  disp->clearDisplay();
-  disp->drawRect(..);
-  :
-  disp->display();
-  
-}
-```
 
 ## 注意事項
 
