@@ -82,6 +82,10 @@ OledMenuEnt_t menu1_1, menu1_2, menu1_3;
 OledMenu_t menu2;
 OledMenuEnt_t menu2a, menu2b;
 
+// XXX
+OledMenu2 *menu2Top, *menu2Sub;
+OledMenuEnt *ment_reboot, *ment_menu2, *ment_foo;
+
 // Mode
 Mode_t Mode, PrevMode;
 
@@ -128,6 +132,12 @@ void menu_func_reboot() {
  *
  */
 void init_menu() {
+  // XXX
+  menu2Top = new OledMenu2("TopMenu");
+  OledMenuEnt *ment_reboot = new OledMenuEnt("! Reboot", menu_func_reboot);
+  OledMenuEnt *ment_exit = new OledMenuEnt("< exit", menu_func_exitmenu);
+  OledMenuEnt *ment_to_top = new OledMenuEnt("< Top", menu2Top);
+
   // menu: menu1
   strcpy(mentExitMenu.title, "< Clock");
   mentExitMenu.type = OLED_MENU_ENT_TYPE_FUNC;

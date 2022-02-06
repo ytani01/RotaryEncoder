@@ -20,6 +20,7 @@ typedef enum {
               OLED_MENU_ENT_TYPE_MENU,
               OLED_MENU_ENT_TYPE_N
 } OledMenuEntType_t;
+const String OLED_MENU_ENT_TYPE_STR[] = {"Func", "Menu"};
 
 typedef struct oled_menu_ent {
   char title[TITLE_LEN];
@@ -36,7 +37,7 @@ typedef struct oled_menu {
   uint8_t cur;
 } OledMenu_t;
 
-class OledMenu; // 不完全型: 相互参照のために必要
+class OledMenu2; // 不完全型: 相互参照のために必要
 
 /** XXX ToDo: OledMenuEnt_tのクラス化
  *
@@ -47,24 +48,50 @@ public:
   OledMenuEntType_t type;
   union {
     void (*func)();
-    OledMenu *menu;
+    OledMenu2 *menu;
   } dst;
 
   OledMenuEnt(String title, void (*func)()=NULL) {
     this->title = title;
     this->dst.func = func;
     this->type = OLED_MENU_ENT_TYPE_FUNC;
+    log_i("type=%s", OLED_MENU_ENT_TYPE_STR[this->type].c_str());
   };
-  OledMenuEnt(String title, OledMenu *menu=NULL) {
+  OledMenuEnt(String title, OledMenu2 *menu=NULL) {
     this->title = title;
     this->dst.menu = menu;
     this->type = OLED_MENU_ENT_TYPE_MENU;
+    log_i("type=%s", OLED_MENU_ENT_TYPE_STR[this->type].c_str());
   };
 
   const char *title_str() {
     return this->title.c_str();
   };
 }; // class OledMEnuEnt
+
+/**
+ *
+ */
+class OledMenu2 {
+public:
+  String title;
+  std::vector<OledMenuEnt> ent;
+  int cur_ent;
+  int disp_top_ent;
+
+  OledMenu2(String title) {
+    this->title = title;
+
+    this->cur_ent = 0;
+    this->disp_top_ent = 0;
+  };
+
+  int addMenuEnt(OledMenuEnt *ment) {
+    this->ent.push_back(*ment);
+    return this->ent.size();
+  };
+  
+}; // OledMenu2
 
 /**
  *
