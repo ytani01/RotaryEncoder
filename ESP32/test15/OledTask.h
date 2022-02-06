@@ -33,11 +33,6 @@ typedef struct {
  */
 class OledTask: public Esp32Task {
  public:
-  static constexpr uint16_t DISP_W = 128;
-  static constexpr uint16_t DISP_H = 64;
-  static constexpr uint16_t CH_W = 6;
-  static constexpr uint16_t CH_H = 8;
-
   Display_t *disp;
   Esp32NetMgrTask **pNetMgrTask;
 

@@ -7,10 +7,13 @@
 #include "common.h"
 #include "Oled.h"
 
-constexpr int OLED_MENU_DISP_ENT_N = 5;
+constexpr int MENU_TITLE_TEXT_SIZE = 2;
+constexpr int MENU_ENT_TEXT_SIZE = 2;
+constexpr int OLED_MENU_DISP_ENT_N
+= (OLED_DISP_H - (OLED_CH_H * MENU_TITLE_TEXT_SIZE))
+  / (OLED_CH_H * MENU_ENT_TEXT_SIZE);
 
 static constexpr int TITLE_LEN = 16;
-static constexpr int ENT_N = 16;
 
 typedef enum {
               OLED_MENU_ENT_TYPE_FUNC,

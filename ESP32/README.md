@@ -32,7 +32,7 @@ void loop() {
 }
 ```
 
-## test program
+## Test Program
 
 ![](docs/test-photo1.jpg)
 ![](docs/test-photo2.png)

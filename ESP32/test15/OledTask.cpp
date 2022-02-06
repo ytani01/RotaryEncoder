@@ -29,16 +29,15 @@ OledTask::OledTask(DispData_t *disp_data):
 void OledTask::setup() {
   this->_bme = new Esp32Bme280(0x76, -1);
 
-  _D = new Display_t(DISP_W, DISP_H);
+  _D = new Display_t(OLED_DISP_W, OLED_DISP_H);
   _D->begin(SSD1306_SWITCHCAPVCC, 0x3C);
 
-  _D->display(); // display Adafruit Logo
-  delay(1000);
+  //_D->display(); // display Adafruit Logo
+  //delay(1000);
 
   _D->clearDisplay();
   //_D->cp437(true);
   _D->setTextColor(WHITE);
-  _D->setTextWrap(true);
   _D->cp437(true);
 
 } // OledTask::setup()
@@ -50,10 +49,10 @@ void OledTask::drawTemp(int x, int y, float temp) {
   _D->setCursor(x, y);
   _D->setTextSize(3);
   _D->printf("%2.0f", temp);
-  _D->setCursor(x + CH_W * 3 * 2, y);
+  _D->setCursor(x + OLED_CH_W * 3 * 2, y);
   _D->setTextSize(1);
   _D->printf("%cC ", (char)0xF8);
-  _D->setCursor(x + CH_W * 2 * 3 - 5, y + CH_H);
+  _D->setCursor(x + OLED_CH_W * 2 * 3 - 5, y + OLED_CH_H);
   _D->setTextSize(2);
   _D->printf(".%d", int((temp - int(temp))*10));
 } // OledTask::drawTemp()
@@ -65,7 +64,7 @@ void OledTask::drawHum(int x, int y, float hum) {
   _D->setCursor(x, y);
   _D->setTextSize(2);
   _D->printf("%2.0f", hum);
-  _D->setCursor(x + CH_W * 2 * 2, y + CH_H - 1);
+  _D->setCursor(x + OLED_CH_W * 2 * 2, y + OLED_CH_H - 1);
   _D->setTextSize(1);
   _D->printf("%%");  
 } // OledTask::drawHum()
@@ -78,7 +77,7 @@ void OledTask::drawPres(int x, int y, float pres) {
   _D->setTextSize(1);
   _D->printf("%4.0f", pres);
 
-  _D->setCursor(x + CH_W * 4 + 3, y);
+  _D->setCursor(x + OLED_CH_W * 4 + 3, y);
   _D->printf("hPa");
 } // OledTask::drawPres()
 
@@ -90,7 +89,7 @@ void OledTask::drawThi(int x, int y, float thi) {
   _D->setTextSize(2);
   _D->printf("%2.0f", thi);
 
-  _D->setCursor(x, y + CH_H * 2);
+  _D->setCursor(x, y + OLED_CH_H * 2);
   _D->setTextSize(1);
   _D->printf(" THI");
 } // OledTask::drawThi()
@@ -116,19 +115,19 @@ void OledTask::drawWiFi(int x, int y, Esp32NetMgrInfo_t *ni) {
 void OledTask::drawDateTime(int x, int y, struct tm *ti) {
   int mon_x = x - 2;
   int mon_y = y;
-  int hour_x = mon_x + CH_W * 2 * 5 + 1;
+  int hour_x = mon_x + OLED_CH_W * 2 * 5 + 1;
   int hour_y = mon_y + 1;
   int sec_x = x + 53;
   int sec_y = y + 18;
 
-  int x1 = mon_x + CH_W * 2 * 2;
-  int y1 = mon_y + CH_H * 2 - 4;
-  int x2 = x1 + CH_W - 2;
-  int y2 = y1 - CH_H * 2 + 6;
+  int x1 = mon_x + OLED_CH_W * 2 * 2;
+  int y1 = mon_y + OLED_CH_H * 2 - 4;
+  int x2 = x1 + OLED_CH_W - 2;
+  int y2 = y1 - OLED_CH_H * 2 + 6;
   _D->drawLine(x1, y1, x2, y2, WHITE);
 
   if ( millis() % 1000 >= 500 ) {
-    _D->setCursor(hour_x + CH_W * 2 * 2 - 4, hour_y);
+    _D->setCursor(hour_x + OLED_CH_W * 2 * 2 - 4, hour_y);
     _D->setTextSize(2);
     _D->printf(":");
   }
@@ -153,12 +152,12 @@ void OledTask::drawDateTime(int x, int y, struct tm *ti) {
   //_D->write(year_str);
   _D->printf("%2d\n", ti->tm_mon + 1);
 
-  x += CH_W * (2 * 2 + 1);
+  x += OLED_CH_W * (2 * 2 + 1);
   _D->setCursor(x, y);
   _D->setTextSize(2);
   _D->printf("%-2d", ti->tm_mday);
 
-  y += CH_H * 2;
+  y += OLED_CH_H * 2;
   _D->setCursor(x, y);
   _D->setTextSize(1);
   _D->printf("%s", wday_str);
@@ -169,7 +168,7 @@ void OledTask::drawDateTime(int x, int y, struct tm *ti) {
   _D->setTextSize(2);
   _D->printf("%02d", ti->tm_hour);
 
-  _D->setCursor(x + CH_W * 2 * 2 + 4, y);
+  _D->setCursor(x + OLED_CH_W * 2 * 2 + 4, y);
   _D->printf("%02d", ti->tm_min);
 
   _D->fillRect(sec_x+1, sec_y, ti->tm_sec, 4, WHITE);
@@ -277,10 +276,11 @@ void OledTask::loop() {
    */
   int x, y, r;
   // clear
+  _D->setTextWrap(true);
   _D->clearDisplay();
 
-  _D->drawFastHLine(0, 25, DISP_W - 1, WHITE);
-  _D->drawFastHLine(0, 53, DISP_W - 1, WHITE);
+  _D->drawFastHLine(0, 25, OLED_DISP_W - 1, WHITE);
+  _D->drawFastHLine(0, 53, OLED_DISP_W - 1, WHITE);
 
   if ( clr_flag ) {
     _D->display();
@@ -289,8 +289,8 @@ void OledTask::loop() {
   clr_flag = false;
   
   // msec per display
-  x = DISP_W - CH_W * 4 - 2;
-  y = DISP_H - CH_H;
+  x = OLED_DISP_W - OLED_CH_W * 4 - 2;
+  y = OLED_DISP_H - OLED_CH_H;
   _D->setCursor(x, y);
   _D->setTextSize(1);
   _D->printf("%.1f", fps);
@@ -312,10 +312,10 @@ void OledTask::loop() {
   this->drawHum(x, y, hum);
 
   x -= 5;
-  y += CH_H * 2;
+  y += OLED_CH_H * 2;
   this->drawPres(x, y, pres);
 
-  x = DISP_W - CH_W * 2 * 2;
+  x = OLED_DISP_W - OLED_CH_W * 2 * 2;
   y = 0;
   this->drawThi(x, y, thi);
   
@@ -323,20 +323,20 @@ void OledTask::loop() {
   y = 28;
   this->drawDateTime(x, y, ti);
 
-  x = DISP_W - CH_W * 2;
+  x = OLED_DISP_W - OLED_CH_W * 2;
   y = 30;
   _D->setCursor(x, y);
   _D->setTextSize(2);
   _D->printf("%s", ntp_stat_str.c_str());
   
   x = 0;
-  y = DISP_H - CH_H;
+  y = OLED_DISP_H - OLED_CH_H;
   this->drawWiFi(x, y, ni);
 
   // Circle
   if ( ri1->angle_max != 0 ) {
-    x = DISP_W * ri1->angle / ri1->angle_max;
-    y = DISP_H - bi1->push_count * 4;
+    x = OLED_DISP_W * ri1->angle / ri1->angle_max;
+    y = OLED_DISP_H - bi1->push_count * 4;
     r = 3 + bi1->repeat_count * 2;
     _D->fillCircle(x, y, r, WHITE);
   }

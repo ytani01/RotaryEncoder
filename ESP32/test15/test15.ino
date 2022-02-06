@@ -18,11 +18,6 @@
 #include "OledMenu.h"
 
 // OLED
-constexpr uint16_t DISP_W = 128;
-constexpr uint16_t DISP_H = 64;
-constexpr uint16_t CH_W = 6;
-constexpr uint16_t CH_H = 8;
-constexpr uint16_t FRAME_W = 3;
 Adafruit_SSD1306 *disp;
 OledTask *oledTask = NULL;
 DispData_t dispData;
@@ -134,11 +129,11 @@ void menu_func_reboot() {
  */
 void init_menu() {
   // menu: menu1
-  strcpy(mentExitMenu.title, "Return to Clock");
+  strcpy(mentExitMenu.title, "< Clock");
   mentExitMenu.type = OLED_MENU_ENT_TYPE_FUNC;
   mentExitMenu.dst.func = menu_func_exitmenu;
 
-  strcpy(menu1_1.title, "REBOOT");
+  strcpy(menu1_1.title, "* REBOOT");
   menu1_1.type = OLED_MENU_ENT_TYPE_FUNC;
   menu1_1.dst.func = menu_func_reboot;
 
@@ -166,7 +161,7 @@ void init_menu() {
   menu1.ent.push_back(menu1_2);
 
   // menu: menu2
-  strcpy(menu2a.title, "BACK(Top menu)");
+  strcpy(menu2a.title, "< Top");
   menu2a.type = OLED_MENU_ENT_TYPE_MENU;
   menu2a.dst.menu = &menu1;
 
@@ -289,17 +284,10 @@ void obBtn_cb(Esp32ButtonInfo_t *btn_info) {
     ch_hsv(192, 255, 255);
   }
 
-  switch ( Mode ) {
-  case MODE_MAIN:
-    if ( btn_info->long_pressed && btn_info->repeat_count == 0 ) {
-      do_restart();
-    }
-    break;
-      
-  default:
-    log_e("invalid mode: Mode=%d/%d", Mode, MODE_N);
-    break;
-  } // swtich (Mode)
+  if ( btn_info->long_pressed && btn_info->repeat_count == 0 ) {
+    ch_hsv(0, 255, 255);
+    do_restart();
+  }
 } // obBtn_cb()
 
 /**
