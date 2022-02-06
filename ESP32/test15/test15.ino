@@ -96,7 +96,7 @@ Mode_t change_mode(Mode_t mode) {
   case MODE_MENU:
     menuObj->cur = foo1;
     menuObj->cur_ent = 0;
-    menuObj->top_ent = 0;
+    menuObj->disp_top_ent = 0;
     break;
   } // switch(mode)
       
@@ -135,7 +135,7 @@ void init_menu() {
   foo1_1.type = OLED_MENU_ENT_TYPE_FUNC;
   foo1_1.dst.func = menu_func_reboot;
 
-  strcpy(foo1_2.title, "Null");
+  strcpy(foo1_2.title, "dummy");
   foo1_2.type = OLED_MENU_ENT_TYPE_FUNC;
   foo1_2.dst.func = NULL;
 
@@ -145,15 +145,18 @@ void init_menu() {
 
 
   strcpy(foo1.title, "Top menu");
-  foo1.ent[0] = exit_menu;
-  foo1.ent[1] = foo1_2;
-  foo1.ent[2] = foo1_2;
-  foo1.ent[3] = foo1_1;
-  foo1.ent[4] = foo1_2;
-  foo1.ent[5] = foo1_2;
-  foo1.ent[6] = foo1_2;
-  foo1.ent[7] = foo1_2;
-  foo1.ent[8] = foo1_3;
+  foo1.ent.push_back(exit_menu);
+  foo1.ent.push_back(foo1_2);
+  foo1.ent.push_back(foo1_1);
+  foo1.ent.push_back(foo1_2);
+  foo1.ent.push_back(foo1_3);
+  foo1.ent.push_back(foo1_2);
+  foo1.ent.push_back(foo1_2);
+  foo1.ent.push_back(foo1_2);
+  foo1.ent.push_back(foo1_2);
+  foo1.ent.push_back(foo1_2);
+  foo1.ent.push_back(foo1_2);
+  foo1.ent.push_back(foo1_2);
 
   // menu: menu2
   strcpy(menu2a.title, "BACK(Top menu)");
@@ -165,10 +168,10 @@ void init_menu() {
   menu2b.dst.func = NULL;
 
   strcpy(menu2.title, "menu2");
-  menu2.ent[0] = menu2a;
-  menu2.ent[1] = menu2b;
-  menu2.ent[2] = exit_menu;
-  menu2.ent[3] = foo1_1;
+  menu2.ent.push_back(menu2a);
+  menu2.ent.push_back(menu2b);
+  menu2.ent.push_back(exit_menu);
+  menu2.ent.push_back(foo1_1);
   
   // menu object
   menuObj = new OledMenu(foo1);
@@ -206,6 +209,7 @@ void do_restart() {
  *
  */
 void menuCenterBtn_cb(Esp32ButtonInfo_t *btn_info) {
+  // OledMenuEnt_t ment = menuObj->cur.ent[menuObj->cur_ent];
   OledMenuEnt_t ment = menuObj->cur.ent[menuObj->cur_ent];
 
   if ( btn_info->click_count == 1 ) {
@@ -219,7 +223,7 @@ void menuCenterBtn_cb(Esp32ButtonInfo_t *btn_info) {
       log_i("[%s]=>[%s]", ment.title, ment.dst.menu->title);
       menuObj->cur = *ment.dst.menu;
       menuObj->cur_ent = 0;
-      menuObj->top_ent = 0;
+      menuObj->disp_top_ent = 0;
       return;
     }
     return;

@@ -4,6 +4,7 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+#include <vector>
 #include <Arduino.h>
 #include <esp32-hal-log.h>
 

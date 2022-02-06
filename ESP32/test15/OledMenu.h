@@ -4,6 +4,7 @@
 #ifndef _OLED_MENU_H_
 #define _OLED_MENU_H_
 
+#include "common.h"
 #include "Oled.h"
 
 static constexpr int TITLE_LEN = 16;
@@ -26,7 +27,7 @@ typedef struct oled_menu_ent {
 
 typedef struct oled_menu {
   char title[TITLE_LEN];
-  OledMenuEnt_t ent[ENT_N];
+  std::vector<OledMenuEnt_t> ent;
   uint8_t cur;
 } OledMenu_t;
 
@@ -38,11 +39,10 @@ class OledMenu {
   OledMenu_t top;
   OledMenu_t cur;
   int cur_ent;
-  int top_ent;
+  int disp_top_ent;
   
   OledMenu(OledMenu_t top);
 
-  int get_ent_n(OledMenu_t menu);
   void cursor_up();
   void cursor_down();
   void display(Display_t *disp);
