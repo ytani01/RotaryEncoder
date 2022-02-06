@@ -31,6 +31,36 @@ typedef struct oled_menu {
   uint8_t cur;
 } OledMenu_t;
 
+class OledMenu; // 不完全型: 相互参照のために必要
+
+/** XXX ToDo: OledMenuEnt_tのクラス化
+ *
+ */
+class OledMenuEnt {
+public:
+  String title;
+  OledMenuEntType_t type;
+  union {
+    void (*func)();
+    OledMenu *menu;
+  } dst;
+
+  OledMenuEnt(String title, void (*func)()=NULL) {
+    this->title = title;
+    this->dst.func = func;
+    this->type = OLED_MENU_ENT_TYPE_FUNC;
+  };
+  OledMenuEnt(String title, OledMenu *menu=NULL) {
+    this->title = title;
+    this->dst.menu = menu;
+    this->type = OLED_MENU_ENT_TYPE_MENU;
+  };
+
+  const char *title_str() {
+    return this->title.c_str();
+  };
+}; // class OledMEnuEnt
+
 /**
  *
  */
@@ -41,6 +71,8 @@ class OledMenu {
   int cur_ent;
   int disp_top_ent;
   
+  std::vector<OledMenuEnt> ent; // XXX
+
   OledMenu(OledMenu_t top);
 
   void cursor_up();

@@ -74,9 +74,9 @@ Ticker timer1;
 
 // Menu
 OledMenu *menuObj;
-OledMenu_t foo1;
-OledMenuEnt_t exit_menu;
-OledMenuEnt_t foo1_1, foo1_2, foo1_3;
+OledMenu_t menu1;
+OledMenuEnt_t mentExitMenu;
+OledMenuEnt_t menu1_1, menu1_2, menu1_3;
 OledMenu_t menu2;
 OledMenuEnt_t menu2a, menu2b;
 
@@ -94,7 +94,7 @@ Mode_t change_mode(Mode_t mode) {
 
   switch ( mode ) {
   case MODE_MENU:
-    menuObj->cur = foo1;
+    menuObj->cur = menu1;
     menuObj->cur_ent = 0;
     menuObj->disp_top_ent = 0;
     break;
@@ -126,42 +126,42 @@ void menu_func_reboot() {
  *
  */
 void init_menu() {
-  // menu: foo1
-  strcpy(exit_menu.title, "Return to Clock");
-  exit_menu.type = OLED_MENU_ENT_TYPE_FUNC;
-  exit_menu.dst.func = menu_func_exitmenu;
+  // menu: menu1
+  strcpy(mentExitMenu.title, "Return to Clock");
+  mentExitMenu.type = OLED_MENU_ENT_TYPE_FUNC;
+  mentExitMenu.dst.func = menu_func_exitmenu;
 
-  strcpy(foo1_1.title, "REBOOT");
-  foo1_1.type = OLED_MENU_ENT_TYPE_FUNC;
-  foo1_1.dst.func = menu_func_reboot;
+  strcpy(menu1_1.title, "REBOOT");
+  menu1_1.type = OLED_MENU_ENT_TYPE_FUNC;
+  menu1_1.dst.func = menu_func_reboot;
 
-  strcpy(foo1_2.title, "dummy");
-  foo1_2.type = OLED_MENU_ENT_TYPE_FUNC;
-  foo1_2.dst.func = NULL;
+  strcpy(menu1_2.title, "dummy");
+  menu1_2.type = OLED_MENU_ENT_TYPE_FUNC;
+  menu1_2.dst.func = NULL;
 
-  strcpy(foo1_3.title, "> menu2");
-  foo1_3.type = OLED_MENU_ENT_TYPE_MENU;
-  foo1_3.dst.menu = &menu2;
+  strcpy(menu1_3.title, "> menu2");
+  menu1_3.type = OLED_MENU_ENT_TYPE_MENU;
+  menu1_3.dst.menu = &menu2;
 
 
-  strcpy(foo1.title, "Top menu");
-  foo1.ent.push_back(exit_menu);
-  foo1.ent.push_back(foo1_2);
-  foo1.ent.push_back(foo1_1);
-  foo1.ent.push_back(foo1_2);
-  foo1.ent.push_back(foo1_3);
-  foo1.ent.push_back(foo1_2);
-  foo1.ent.push_back(foo1_2);
-  foo1.ent.push_back(foo1_2);
-  foo1.ent.push_back(foo1_2);
-  foo1.ent.push_back(foo1_2);
-  foo1.ent.push_back(foo1_2);
-  foo1.ent.push_back(foo1_2);
+  strcpy(menu1.title, "Top menu");
+  menu1.ent.push_back(mentExitMenu);
+  menu1.ent.push_back(menu1_2);
+  menu1.ent.push_back(menu1_1);
+  menu1.ent.push_back(menu1_2);
+  menu1.ent.push_back(menu1_3);
+  menu1.ent.push_back(menu1_2);
+  menu1.ent.push_back(menu1_2);
+  menu1.ent.push_back(menu1_2);
+  menu1.ent.push_back(menu1_2);
+  menu1.ent.push_back(menu1_2);
+  menu1.ent.push_back(menu1_2);
+  menu1.ent.push_back(menu1_2);
 
   // menu: menu2
   strcpy(menu2a.title, "BACK(Top menu)");
   menu2a.type = OLED_MENU_ENT_TYPE_MENU;
-  menu2a.dst.menu = &foo1;
+  menu2a.dst.menu = &menu1;
 
   strcpy(menu2b.title, "BBB");
   menu2b.type = OLED_MENU_ENT_TYPE_FUNC;
@@ -170,11 +170,11 @@ void init_menu() {
   strcpy(menu2.title, "menu2");
   menu2.ent.push_back(menu2a);
   menu2.ent.push_back(menu2b);
-  menu2.ent.push_back(exit_menu);
-  menu2.ent.push_back(foo1_1);
+  menu2.ent.push_back(mentExitMenu);
+  menu2.ent.push_back(menu1_1);
   
   // menu object
-  menuObj = new OledMenu(foo1);
+  menuObj = new OledMenu(menu1);
 } // init_menu()
 
 /**
@@ -209,7 +209,6 @@ void do_restart() {
  *
  */
 void menuCenterBtn_cb(Esp32ButtonInfo_t *btn_info) {
-  // OledMenuEnt_t ment = menuObj->cur.ent[menuObj->cur_ent];
   OledMenuEnt_t ment = menuObj->cur.ent[menuObj->cur_ent];
 
   if ( btn_info->click_count == 1 ) {
