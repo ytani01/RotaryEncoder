@@ -8,10 +8,12 @@
 #include <Adafruit_BME280.h>
 
 typedef struct {
-  bool active;
+  // input
   uint8_t addr;
-  float temp;
   float temp_offset;
+  // output
+  bool active;
+  float temp;
   float hum;
   float pres;
   float thi;
@@ -31,7 +33,7 @@ class Esp32Bme280 {
   void set_temp_offset(float offset);
   float get_temp_offset();
 
-  bool get(Esp32Bme280Info_t *info);
+  Esp32Bme280Info_t *get();
 
   static float calc_thi(float temp, float hum);
 

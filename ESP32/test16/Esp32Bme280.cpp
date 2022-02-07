@@ -3,62 +3,57 @@
  */
 #include "Esp32Bme280.h"
 
-#define _Info this->_info
-#define _Bme this->_bme
-
 /**
  *
  */
 Esp32Bme280::Esp32Bme280(uint8_t addr, float temp_offset) {
-  _Info.addr = addr;
-  _Info.temp_offset = temp_offset;
+  this->_info.addr = addr;
+  this->_info.temp_offset = temp_offset;
 
-  _Info.active = _Bme.begin(_Info.addr);
+  this->_info.active = this->_bme.begin(this->_info.addr);
 
-  log_i("active=%d", _Info.active);
+  log_i("active=%d", this->_info.active);
 } // Esp32Bme280::Esp32Bme280()
 
 /**
  *
  */
 bool Esp32Bme280::is_active() {
-  return _Info.active;
+  return this->_info.active;
 } // Esp32Bme280::is_active();
 
 /**
  *
  */
 void Esp32Bme280::set_temp_offset(float temp_offset) {
-  _Info.temp_offset = temp_offset;
+  this->_info.temp_offset = temp_offset;
 } // Esp32Bme280::set_temp_offset()
 
 /**
  *
  */
 float Esp32Bme280::get_temp_offset() {
-  return _Info.temp_offset;
+  return this->_info.temp_offset;
 } // Esp32Bme280::get_temp_offset()
 
 /**
  * @param [out] info
  */
-bool Esp32Bme280::get(Esp32Bme280Info_t *info) {
-  if ( ! _Info.active ) {
-    log_w("active=%d", _Info.active);
-    return false;
+Esp32Bme280Info_t *Esp32Bme280::get() {
+  if ( ! this->_info.active ) {
+    log_w("active=%d", this->_info.active);
+    return NULL;
   }
 
-  _Info.temp = _Bme.readTemperature() + _Info.temp_offset;
-  _Info.hum = _Bme.readHumidity();
-  _Info.pres = _Bme.readPressure() / 100;
+  this->_info.temp = this->_bme.readTemperature() + this->_info.temp_offset;
+  this->_info.hum = this->_bme.readHumidity();
+  this->_info.pres = this->_bme.readPressure() / 100;
 
-  _Info.thi = calc_thi(_Info.temp, _Info.hum);
+  this->_info.thi = this->calc_thi(this->_info.temp, this->_info.hum);
 
-  *info = _Info;
-
-  log_i("%.1f C %.0f%% %0.0f hPa %.1f thi",
-        _Info.temp, _Info.hum, _Info.pres, _Info.thi);
-  return true;
+  log_d("%.1f C %.0f%% %0.0f hPa %.1f thi",
+        this->_info.temp, this->_info.hum, this->_info.pres, this->_info.thi);
+  return &this->_info;
 } // Esp32Bme280::get()
 
 /** static function

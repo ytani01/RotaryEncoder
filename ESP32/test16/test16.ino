@@ -70,6 +70,11 @@ const String NTP_SVR[] = {"ntp.nict.jp", "pool.ntp.org", "time.google.com"};
 Esp32NtpTask *ntpTask = NULL;
 Esp32NtpTaskInfo_t ntpInfo;
 
+// BME280
+constexpr uint8_t BME280_ADDR = 0x76;
+constexpr float TEMP_OFFSET = -1.0;
+Esp32Bme280Info_t bmeInfo;
+
 // Timer
 constexpr TickType_t TIMER_INTERVAL = 20 * 1000; // tick == ms (?)
 Ticker timer1;
@@ -282,9 +287,15 @@ void re_cb(Esp32RotaryEncoderInfo_t *re_info) {
   }
 
   switch ( Mode ) {
+  case MODE_MAIN:
+    change_mode(MODE_MENU);
+    break;
+    
   case MODE_MENU:
     menuRe_cb(re_info);
     break;
+
+  default: break;
   } // switch (Mode)
 
   reInfo = *re_info;
@@ -334,11 +345,17 @@ void setup() {
   Mode = MODE_MAIN;
 
   init_menu();
-  // init dispData
+
+  // dispData
   dispData.ni = &netMgrInfo;
+  dispData.ntp_info = &ntpInfo;
   dispData.ri1 = &reInfo;
   dispData.bi1 = &reBtnInfo;
-  dispData.ntp_info = &ntpInfo;
+  dispData.bme_info = &bmeInfo;
+
+  // BME280
+  bmeInfo.addr = BME280_ADDR;
+  bmeInfo.temp_offset = TEMP_OFFSET;
 
   // NeoPixel
   FastLED.addLeds<WS2812B, PIN_NEOPIXEL_ONBOARD, GRB>
@@ -355,7 +372,7 @@ void setup() {
   FastLED.show();
 
   // Tasks
-  unsigned long task_interval = 50;
+  unsigned long task_interval = 10;
 
   oledTask = new OledTask(&dispData);
   oledTask->start();

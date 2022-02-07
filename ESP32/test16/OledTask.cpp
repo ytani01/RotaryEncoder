@@ -1,8 +1,9 @@
 /**
  * Copyright (c) 2022 Yoichi Tanibayashi
  */
-#include "OledTask.h"
 #include <Adafruit_BME280.h>
+#include "OledTask.h"
+#include "Bme280Setup.h"
 
 #define _D this->disp
 
@@ -27,7 +28,8 @@ OledTask::OledTask(DispData_t *disp_data):
  *
  */
 void OledTask::setup() {
-  this->_bme = new Esp32Bme280(0x76, -1);
+  this->_bme = new Esp32Bme280(this->disp_data->bme_info->addr,
+                               this->disp_data->bme_info->temp_offset);
 
   _D = new Display_t(DISPLAY_W, DISPLAY_H);
   _D->begin(SSD1306_SWITCHCAPVCC, 0x3C);
@@ -189,19 +191,28 @@ void OledTask::loop() {
 
   switch ( this->disp_data->mode ) {
   case MODE_MAIN: break;
+
   case MODE_MENU:
     OledMenu_curMenu->display(_D);
     return;
+
   case MODE_SET_TEMP_OFFSET:
-    log_e("not implemented: mode=%d", this->disp_data->mode);
+    
     break;
+
   case MODE_SET_WIFI:
     log_e("not implemented: mode=%d", this->disp_data->mode);
     break;
+
   default:
     log_e("invalid mode: mode=%d", this->disp_data->mode);
     break;
   } // switch (mode)
+
+
+  /*
+   * MODE_MAIN
+   */
 
   // msec per display
   static float fps = 0.0;
@@ -230,26 +241,32 @@ void OledTask::loop() {
     strcpy(this->disp_data->cmd, "");
   }
 
-  // get temp, hum, pres
-  static float temp, hum, pres, thi;
-  static unsigned long prev_temp_ms = millis() - 5000;
-  if ( cur_ms - prev_temp_ms > 10 * 1000 ) {
-    prev_temp_ms = cur_ms;
-    Esp32Bme280Info_t bme_info;
-    if ( this->_bme->is_active() ) {
-      this->_bme->get(&bme_info);
-      temp = bme_info.temp;
-      hum = bme_info.hum;
-      pres = bme_info.pres;
-      thi = bme_info.thi;
-      log_i("%.1f C %.0f%% %0.0f hPa %.1f thi", temp, hum, pres, thi);
-    }
-  }
-
   Esp32NetMgrInfo_t *ni = this->disp_data->ni;
   Esp32ButtonInfo_t *bi1 = this->disp_data->bi1;
   Esp32RotaryEncoderInfo_t *ri1 = this->disp_data->ri1;
   Esp32NtpTaskInfo_t *ntp_info = this->disp_data->ntp_info;
+  Esp32Bme280Info_t *bme_info = this->disp_data->bme_info;
+
+  // get temp, hum, pres
+  static float temp = 0.0;
+  static float hum = 0.0;
+  static float pres = 0.0;
+  static float thi = 0.0;
+  
+  static unsigned long prev_temp_ms = millis() - 5000;
+  if ( cur_ms - prev_temp_ms > 10 * 1000 ) {
+    prev_temp_ms = cur_ms;
+    
+    if ( this->_bme->is_active() ) {
+      *bme_info = *(this->_bme->get());
+      
+      temp = bme_info->temp;
+      hum = bme_info->hum;
+      pres = bme_info->pres;
+      thi = bme_info->thi;
+      log_i("%.1f C %.0f%% %0.0f hPa %.1f thi", temp, hum, pres, thi);
+    }
+  }
 
   String ntp_stat_str = "?";
   switch ( ntp_info->sntp_stat ) {
@@ -281,7 +298,7 @@ void OledTask::loop() {
   _D->clearDisplay();
 
   _D->drawFastHLine(0, 25, DISPLAY_W - 1, WHITE);
-  _D->drawFastHLine(0, 53, DISPLAY_W - 1, WHITE);
+  _D->drawFastHLine(0, 53, DISPLAY_W - DISPLAY_CH_W * 5, WHITE);
 
   if ( clr_flag ) {
     _D->display();
@@ -289,13 +306,6 @@ void OledTask::loop() {
   }
   clr_flag = false;
   
-  // msec per display
-  x = DISPLAY_W - DISPLAY_CH_W * 4 - 2;
-  y = DISPLAY_H - DISPLAY_CH_H;
-  _D->setCursor(x, y);
-  _D->setTextSize(1);
-  _D->printf("%.1f", fps);
-
   // cmd
   if ( cmd != "" ) {
     x = 82;
@@ -334,13 +344,13 @@ void OledTask::loop() {
   y = DISPLAY_H - DISPLAY_CH_H;
   this->drawWiFi(x, y, ni);
 
-  // Circle
-  if ( ri1->angle_max != 0 ) {
-    x = DISPLAY_W * ri1->angle / ri1->angle_max;
-    y = DISPLAY_H - bi1->push_count * 4;
-    r = 3 + bi1->repeat_count * 2;
-    _D->fillCircle(x, y, r, WHITE);
-  }
+  // msec per display
+  x = DISPLAY_W - DISPLAY_CH_W * 4;
+  y = DISPLAY_H - DISPLAY_CH_H - 4;
+  _D->fillRect(x-1, y, DISPLAY_CH_W * 4, DISPLAY_CH_H, BLACK);
+  _D->setCursor(x, y);
+  _D->setTextSize(1);
+  _D->printf("%.1f", fps);
 
   _D->display();
   if ( d_ms_max != prev_d_ms_max ) {

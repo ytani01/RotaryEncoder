@@ -13,6 +13,7 @@
 #include "Esp32NetMgrTask.h"
 #include "Esp32NtpTask.h"
 #include "Esp32Bme280.h"
+#include "Bme280Setup.h"
 #include "OledMenu.h"
 
 /**
@@ -25,6 +26,7 @@ typedef struct {
   Esp32NtpTaskInfo_t *ntp_info;
   Esp32RotaryEncoderInfo_t *ri1;
   Esp32ButtonInfo_t *bi1;
+  Esp32Bme280Info_t *bme_info;
 } DispData_t;
 
 /**
@@ -43,6 +45,7 @@ class OledTask: public Esp32Task {
 protected:
   DispData_t *disp_data;
   Esp32Bme280 *_bme;
+  Bme280Setup *_bme_setup;
 
   void drawTemp(int x, int y, float temp);
   void drawHum(int x, int y, float hum);
