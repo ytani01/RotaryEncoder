@@ -38,6 +38,10 @@ typedef enum {
               NETMGR_MODE_WIFI_OFF,
               NETMGR_MODE_N
 } Esp32NetMgrMode_t;
+const String ESP32_NETMGR_MODE_STR[]
+= {"NULL", "START", "TRY_WIFI",
+   "AP_INIT", "AP_LOOP", "SCANNING_SSID",
+   "WIFI_ON", "WIFI_OFF"};
 
 /**
  *

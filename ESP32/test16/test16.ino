@@ -75,16 +75,7 @@ constexpr TickType_t TIMER_INTERVAL = 20 * 1000; // tick == ms (?)
 Ticker timer1;
 
 // Menu
-OledMenu *menuObj;
-OledMenu_t menu1;
-OledMenuEnt_t mentExitMenu;
-OledMenuEnt_t menu1_1, menu1_2, menu1_3;
-OledMenu_t menu2;
-OledMenuEnt_t menu2a, menu2b;
-
-// XXX
-OledMenu2 *menu2Top, *menu2Sub;
-OledMenuEnt *ment_reboot, *ment_menu2, *ment_foo;
+OledMenu *menuTop, *menuSub;
 
 // Mode
 Mode_t Mode, PrevMode;
@@ -100,93 +91,70 @@ Mode_t change_mode(Mode_t mode) {
 
   switch ( mode ) {
   case MODE_MENU:
-    menuObj->cur = menu1;
-    menuObj->cur_ent = 0;
-    menuObj->disp_top_ent = 0;
+    OledMenu_curMenu->init();
     break;
   } // switch(mode)
       
   return mode;
 }
 
-/**
+/** XXX NetMgrにトリガーをかける必要がある
  *
  */
-void menu_func_exitmenu() {
-  change_mode(PrevMode);
-} // menu_func_exitmenu()
+void menuFunc_wifiRestart() {
+  WiFi.disconnect(true);
+  WiFi.mode(WIFI_OFF);
+  delay(100);
+  
+  menuFunc_exitmenu();
+} // menuFunc_wifiRestart()
 
 /**
  *
  */
-void menu_func_reboot() {
+void menuFunc_exitmenu() {
+  OledMenu_curMenu = menuTop;
+  change_mode(PrevMode);
+} // menuFunc_exitmenu()
+
+/**
+ *
+ */
+void menuFunc_reboot() {
   log_w("restart..");
   strcpy(dispData.cmd, "clear");
   delay(500);
   //ESP.restart();
   ESP.deepSleep(500);
   delay(100);
-} // menu_func_reboot()
+} // menuFunc_reboot()
 
 /**
  *
  */
 void init_menu() {
-  // XXX
-  menu2Top = new OledMenu2("TopMenu");
-  OledMenuEnt *ment_reboot = new OledMenuEnt("! Reboot", menu_func_reboot);
-  OledMenuEnt *ment_exit = new OledMenuEnt("< exit", menu_func_exitmenu);
-  OledMenuEnt *ment_to_top = new OledMenuEnt("< Top", menu2Top);
-
-  // menu: menu1
-  strcpy(mentExitMenu.title, "< Clock");
-  mentExitMenu.type = OLED_MENU_ENT_TYPE_FUNC;
-  mentExitMenu.dst.func = menu_func_exitmenu;
-
-  strcpy(menu1_1.title, "* REBOOT");
-  menu1_1.type = OLED_MENU_ENT_TYPE_FUNC;
-  menu1_1.dst.func = menu_func_reboot;
-
-  strcpy(menu1_2.title, "dummy");
-  menu1_2.type = OLED_MENU_ENT_TYPE_FUNC;
-  menu1_2.dst.func = NULL;
-
-  strcpy(menu1_3.title, "> menu2");
-  menu1_3.type = OLED_MENU_ENT_TYPE_MENU;
-  menu1_3.dst.menu = &menu2;
-
-
-  strcpy(menu1.title, "Top menu");
-  menu1.ent.push_back(mentExitMenu);
-  menu1.ent.push_back(menu1_2);
-  menu1.ent.push_back(menu1_1);
-  menu1.ent.push_back(menu1_2);
-  menu1.ent.push_back(menu1_3);
-  menu1.ent.push_back(menu1_2);
-  menu1.ent.push_back(menu1_2);
-  menu1.ent.push_back(menu1_2);
-  menu1.ent.push_back(menu1_2);
-  menu1.ent.push_back(menu1_2);
-  menu1.ent.push_back(menu1_2);
-  menu1.ent.push_back(menu1_2);
-
-  // menu: menu2
-  strcpy(menu2a.title, "< Top");
-  menu2a.type = OLED_MENU_ENT_TYPE_MENU;
-  menu2a.dst.menu = &menu1;
-
-  strcpy(menu2b.title, "BBB");
-  menu2b.type = OLED_MENU_ENT_TYPE_FUNC;
-  menu2b.dst.func = NULL;
-
-  strcpy(menu2.title, "menu2");
-  menu2.ent.push_back(menu2a);
-  menu2.ent.push_back(menu2b);
-  menu2.ent.push_back(mentExitMenu);
-  menu2.ent.push_back(menu1_1);
+  menuTop = new OledMenu("TopMenu");
+  menuSub = new OledMenu("SubMenu");
+  OledMenu_curMenu = menuTop;
   
-  // menu object
-  menuObj = new OledMenu(menu1);
+  OledMenuEnt *ment_reboot = new OledMenuEnt("! Reboot", menuFunc_reboot);
+  OledMenuEnt *ment_exit = new OledMenuEnt("<< Clock", menuFunc_exitmenu);
+  OledMenuEnt *ment_to_top = new OledMenuEnt("< Top", menuTop);
+  OledMenuEnt *ment_to_sub = new OledMenuEnt("> Sub", menuSub);
+  OledMenuEnt *ment_line = new OledMenuEnt("----------");
+  OledMenuEnt *ment_wifi_restart = new OledMenuEnt("WIFI restart",
+                                                   menuFunc_wifiRestart);
+
+  menuTop->addEnt(ment_exit);
+  menuTop->addEnt(ment_to_sub);
+  menuTop->addEnt(ment_line);
+  menuTop->addEnt(ment_wifi_restart);
+  menuTop->addEnt(ment_reboot);
+
+  menuSub->addEnt(ment_to_top);
+  menuSub->addEnt(ment_wifi_restart);
+  menuSub->addEnt(ment_exit);
+  menuSub->addEnt(ment_reboot);
 } // init_menu()
 
 /**
@@ -220,35 +188,6 @@ void do_restart() {
 /**
  *
  */
-void menuCenterBtn_cb(Esp32ButtonInfo_t *btn_info) {
-  OledMenuEnt_t ment = menuObj->cur.ent[menuObj->cur_ent];
-
-  if ( btn_info->click_count == 1 ) {
-    if ( ment.type == OLED_MENU_ENT_TYPE_FUNC && ment.dst.func != NULL ) {
-      log_i("[%s] call func()", ment.title);
-      ment.dst.func();
-      return;
-    }
-
-    if ( ment.type == OLED_MENU_ENT_TYPE_MENU && ment.dst.menu != NULL ) {
-      log_i("[%s]=>[%s]", ment.title, ment.dst.menu->title);
-      menuObj->cur = *ment.dst.menu;
-      menuObj->cur_ent = 0;
-      menuObj->disp_top_ent = 0;
-      return;
-    }
-    return;
-  }
-
-  if ( btn_info->click_count >= 4 ) {
-    do_restart();
-    return;
-  }
-} // menuCenterBtn_cb()
-
-/**
- *
- */
 void reBtn_cb(Esp32ButtonInfo_t *btn_info) {
   log_i("%s", Esp32Button::info2String(btn_info).c_str());
   reBtnInfo = *btn_info;
@@ -265,14 +204,25 @@ void reBtn_cb(Esp32ButtonInfo_t *btn_info) {
       change_mode(MODE_MENU);
       return;
     }
-
     if ( btn_info->click_count >= 4 ) {
       do_restart();
     }
     break;
       
   case MODE_MENU:
-    menuCenterBtn_cb(btn_info);
+    if ( btn_info->click_count == 1 ) {
+      if ( OledMenu_curMenu->select() ) {
+        return;
+      }
+    }
+    if ( btn_info->click_count == 2 ) {
+      OledMenu_curMenu->change_text_size();
+      return;
+    }
+    if ( btn_info->click_count >= 4 ) {
+      do_restart();
+      return;
+    }
     break;
 
   default:
@@ -305,9 +255,9 @@ void obBtn_cb(Esp32ButtonInfo_t *btn_info) {
  */
 void menuRe_cb(Esp32RotaryEncoderInfo_t *re_info) {
   if ( re_info->d_angle > 0 ) {
-    menuObj->cursor_up();
+    OledMenu_curMenu->cursor_up();
   } else  if ( re_info->d_angle < 0 ) {
-    menuObj->cursor_down();
+    OledMenu_curMenu->cursor_down();
   }
 } // menuRe_cb()
 
@@ -389,7 +339,6 @@ void setup() {
   dispData.ri1 = &reInfo;
   dispData.bi1 = &reBtnInfo;
   dispData.ntp_info = &ntpInfo;
-  dispData.menu = menuObj;
 
   // NeoPixel
   FastLED.addLeds<WS2812B, PIN_NEOPIXEL_ONBOARD, GRB>

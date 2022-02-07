@@ -4,42 +4,29 @@
 #ifndef _OLED_MENU_H_
 #define _OLED_MENU_H_
 
-#include "common.h"
-#include "Oled.h"
+#include <vector>
+#include <Arduino.h>
+#include <esp32-hal-log.h>
+#include "Display.h"
 
 constexpr int MENU_TITLE_TEXT_SIZE = 2;
-constexpr int MENU_ENT_TEXT_SIZE = 2;
-constexpr int OLED_MENU_DISP_ENT_N
-= (OLED_DISP_H - (OLED_CH_H * MENU_TITLE_TEXT_SIZE))
-  / (OLED_CH_H * MENU_ENT_TEXT_SIZE);
+constexpr int MENU_ENT_TEXT_SIZE = 1;
 
 static constexpr int TITLE_LEN = 16;
 
 typedef enum {
               OLED_MENU_ENT_TYPE_FUNC,
               OLED_MENU_ENT_TYPE_MENU,
+              OLED_MENU_ENT_TYPE_NULL,
               OLED_MENU_ENT_TYPE_N
 } OledMenuEntType_t;
-const String OLED_MENU_ENT_TYPE_STR[] = {"Func", "Menu"};
+const String OLED_MENU_ENT_TYPE_STR[] = {"FUNC", "MENU", "NULL"};
 
-typedef struct oled_menu_ent {
-  char title[TITLE_LEN];
-  OledMenuEntType_t type;
-  union _dst {
-    void (*func)();
-    struct oled_menu *menu;
-  } dst;
-} OledMenuEnt_t;
+class OledMenu; // 不完全型: OledMenuEntからの相互参照のために必要
 
-typedef struct oled_menu {
-  char title[TITLE_LEN];
-  std::vector<OledMenuEnt_t> ent;
-  uint8_t cur;
-} OledMenu_t;
+extern OledMenu *OledMenu_curMenu;
 
-class OledMenu2; // 不完全型: 相互参照のために必要
-
-/** XXX ToDo: OledMenuEnt_tのクラス化
+/**
  *
  */
 class OledMenuEnt {
@@ -48,68 +35,39 @@ public:
   OledMenuEntType_t type;
   union {
     void (*func)();
-    OledMenu2 *menu;
+    OledMenu *menu;
   } dst;
 
-  OledMenuEnt(String title, void (*func)()=NULL) {
-    this->title = title;
-    this->dst.func = func;
-    this->type = OLED_MENU_ENT_TYPE_FUNC;
-    log_i("type=%s", OLED_MENU_ENT_TYPE_STR[this->type].c_str());
-  };
-  OledMenuEnt(String title, OledMenu2 *menu=NULL) {
-    this->title = title;
-    this->dst.menu = menu;
-    this->type = OLED_MENU_ENT_TYPE_MENU;
-    log_i("type=%s", OLED_MENU_ENT_TYPE_STR[this->type].c_str());
-  };
+  OledMenuEnt(String title);
+  OledMenuEnt(String title, void (*func)());
+  OledMenuEnt(String title, OledMenu *menu);
 
-  const char *title_str() {
-    return this->title.c_str();
-  };
+  const char *title_str();
 }; // class OledMEnuEnt
 
 /**
  *
  */
-class OledMenu2 {
+class OledMenu {
 public:
   String title;
   std::vector<OledMenuEnt> ent;
   int cur_ent;
   int disp_top_ent;
+  int menu_ent_text_size;
 
-  OledMenu2(String title) {
-    this->title = title;
+  OledMenu(String title, int menu_ent_text_size=MENU_ENT_TEXT_SIZE);
 
-    this->cur_ent = 0;
-    this->disp_top_ent = 0;
-  };
+  void init();
+  const char *title_str();
+  int addEnt(OledMenuEnt *ment);
+  int change_text_size(int text_size=0);
 
-  int addMenuEnt(OledMenuEnt *ment) {
-    this->ent.push_back(*ment);
-    return this->ent.size();
-  };
-  
-}; // OledMenu2
-
-/**
- *
- */
-class OledMenu {
- public:
-  OledMenu_t top;
-  OledMenu_t cur;
-  int cur_ent;
-  int disp_top_ent;
-  
-  std::vector<OledMenuEnt> ent; // XXX
-
-  OledMenu(OledMenu_t top);
-
+  bool select();
   void cursor_up();
   void cursor_down();
+
   void display(Display_t *disp);
-}; // class OledMenu
+}; // OledMenu
 
 #endif // _OLED_MENU_H_

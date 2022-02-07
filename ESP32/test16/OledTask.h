@@ -6,7 +6,7 @@
 
 #include <esp32-hal-log.h> // XXX
 #include "common.h"
-#include "Oled.h"
+#include "Display.h"
 #include "Esp32Task.h"
 #include "Esp32RotaryEncoder.h"
 #include "Esp32Button.h"
@@ -25,7 +25,6 @@ typedef struct {
   Esp32NtpTaskInfo_t *ntp_info;
   Esp32RotaryEncoderInfo_t *ri1;
   Esp32ButtonInfo_t *bi1;
-  OledMenu *menu;
 } DispData_t;
 
 /**

@@ -43,9 +43,17 @@ Esp32NetMgr::Esp32NetMgr(String ap_ssid_hdr, unsigned int try_count_max) {
  *
  */
 Esp32NetMgrMode_t Esp32NetMgr::loop() {
+  static Esp32NetMgrMode_t prev_mode = NETMGR_MODE_NULL;
   ConfWifi conf_data;
   static String ssid = "";
   static String ssid_pw = "";
+
+  if ( this->cur_mode != prev_mode ) {
+    log_i("cur_mode: %s(%d) ==> %s(%d)",
+          ESP32_NETMGR_MODE_STR[prev_mode].c_str(), prev_mode,
+          ESP32_NETMGR_MODE_STR[this->cur_mode].c_str(), this->cur_mode);
+    prev_mode = this->cur_mode;
+  }
   
   this->_loop_count++;
 
@@ -90,7 +98,8 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
     break;
 
   case NETMGR_MODE_AP_INIT:
-    log_i("%s", this->ModeStr[this->cur_mode]);
+    // log_i("%s", this->ModeStr[this->cur_mode]);
+    log_i("cur_mode=%s", ESP32_NETMGR_MODE_STR[this->cur_mode]);
 
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
@@ -167,7 +176,7 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
   }
   this->cur_ssid = ssid;
 
-  delay(1);
+  //delay(1);
   return this->cur_mode;
 } // Esp32NetMgr::loop()
 

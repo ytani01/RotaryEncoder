@@ -32,17 +32,11 @@ void Esp32NetMgrTask::setup() {
  *
  */
 void Esp32NetMgrTask::loop() {
-  static Esp32NetMgrMode_t prev_mode = NETMGR_MODE_NULL;
   Esp32NetMgrMode_t mode = this->netMgr->loop();
 
   this->netmgr_info->mode = mode;
   this->netmgr_info->ssid = this->netMgr->cur_ssid;
   if ( mode == NETMGR_MODE_AP_LOOP ) {
     this->netmgr_info->ssid = this->netMgr->ap_ssid;
-  }
-  
-  if ( mode != prev_mode ) {
-    log_i("mode=%s", this->netMgr->ModeStr[mode]);
-    prev_mode = mode;
   }
 } // Esp32NetMgrTask::loop()

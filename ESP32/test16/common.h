@@ -18,6 +18,7 @@ typedef enum {
               MODE_SET_WIFI,
               MODE_N
 } Mode_t;
-static const String MODE_T_STR[] = {"Main", "Menu", "SetTempOffset", "SetWiFi"};
+static const String MODE_T_STR[]
+= {"MAIN", "MENU", "SET_TEMP_OFFSET", "SET_WIFI"};
 
 #endif // _COMMON_H_
