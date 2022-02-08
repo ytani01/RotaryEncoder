@@ -143,15 +143,13 @@ void OledTask::drawDateTime(int x, int y, struct tm *ti) {
     return;
   }
 
-  char year_str[8], month_str[4], day_str[4], wday_str[4];
-  char hour_str[4], minute_str[4];
+  char wday_str[4];
   strftime(wday_str, sizeof(wday_str), "%a", ti);
   
   x = mon_x;
   y = mon_y;
   _D->setCursor(mon_x, mon_y);
   _D->setTextSize(2);
-  //_D->write(year_str);
   _D->printf("%2d\n", ti->tm_mon + 1);
 
   x += DISPLAY_CH_W * (2 * 2 + 1);
@@ -189,7 +187,14 @@ void OledTask::loop() {
   int d_ms = cur_ms - prev_ms;
   prev_ms = cur_ms;
 
-  switch ( this->disp_data->mode ) {
+  Mode_t cur_mode = this->disp_data->mode;
+  static Mode_t prev_mode = MODE_N;
+  if ( cur_mode != prev_mode ) {
+    log_i("mode:%s", MODE_T_STR[cur_mode].c_str());
+    prev_mode = cur_mode;
+  }
+  
+  switch ( cur_mode ) {
   case MODE_MAIN: break;
 
   case MODE_MENU:
@@ -197,16 +202,23 @@ void OledTask::loop() {
     return;
 
   case MODE_SET_TEMP_OFFSET:
-    
-    break;
+    _D->clearDisplay();
+    _D->setCursor(0,28);
+    _D->setTextSize(1);
+    _D->printf("%s", MODE_T_STR[cur_mode].c_str());
+    _D->display();
+    return;
 
   case MODE_SET_WIFI:
-    log_e("not implemented: mode=%d", this->disp_data->mode);
-    break;
-
   default:
-    log_e("invalid mode: mode=%d", this->disp_data->mode);
-    break;
+    log_e("invalid mode: mode=%d", cur_mode);
+
+    _D->clearDisplay();
+    _D->setCursor(0,28);
+    _D->setTextSize(1);
+    _D->printf("%s", MODE_T_STR[cur_mode].c_str());
+    _D->display();
+    return;
   } // switch (mode)
 
 

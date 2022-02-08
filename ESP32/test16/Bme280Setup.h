@@ -23,7 +23,7 @@ class Bme280Setup {
     disp->setCursor(60, 30);
     disp->setTextWrap(false);
     disp->setTextSize(2);
-    disp->printf("%s: %d", __FILE__, this->bme_info->temp_offset);
+    disp->printf("%s: %.1f", __FILE__, this->bme_info->temp_offset);
 
     disp->display();
   };

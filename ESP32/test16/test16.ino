@@ -92,16 +92,24 @@ Mode_t change_mode(Mode_t mode) {
   PrevMode = Mode;
   Mode = mode;
   dispData.mode = Mode;
-  log_i("mode: %s ==> %s", MODE_T_STR[PrevMode], MODE_T_STR[mode]);
+  log_i("mode: %s ==> %s", MODE_T_STR[PrevMode].c_str(), MODE_T_STR[mode].c_str());
 
   switch ( mode ) {
+  case MODE_MAIN:
+    break;
   case MODE_MENU:
     OledMenu_curMenu->init();
+    break;
+  case MODE_SET_TEMP_OFFSET:
+    break;
+  case MODE_SET_WIFI:
+    break;
+  case MODE_N:
     break;
   } // switch(mode)
       
   return mode;
-}
+} // change_mode()
 
 /** XXX NetMgrにトリガーをかける必要がある
  *
@@ -113,6 +121,13 @@ void menuFunc_wifiRestart() {
   
   menuFunc_exitmenu();
 } // menuFunc_wifiRestart()
+
+/**
+ *
+ */
+void menuFunc_tempOffset() {
+  change_mode(MODE_SET_TEMP_OFFSET);
+} // menuFunc_tempOffset()
 
 /**
  *
@@ -147,12 +162,15 @@ void init_menu() {
   OledMenuEnt *ment_to_top = new OledMenuEnt("< Top", menuTop);
   OledMenuEnt *ment_to_sub = new OledMenuEnt("> Sub", menuSub);
   OledMenuEnt *ment_line = new OledMenuEnt("----------");
+  OledMenuEnt *ment_set_temp_offset = new OledMenuEnt("temp offset",
+                                                      menuFunc_tempOffset);
   OledMenuEnt *ment_wifi_restart = new OledMenuEnt("WIFI restart",
                                                    menuFunc_wifiRestart);
 
   menuTop->addEnt(ment_exit);
   menuTop->addEnt(ment_to_sub);
   menuTop->addEnt(ment_line);
+  menuTop->addEnt(ment_set_temp_offset);
   menuTop->addEnt(ment_wifi_restart);
   menuTop->addEnt(ment_reboot);
 
@@ -230,9 +248,17 @@ void reBtn_cb(Esp32ButtonInfo_t *btn_info) {
     }
     break;
 
+  case MODE_SET_TEMP_OFFSET:
+    if ( btn_info->click_count > 0 ) {
+      change_mode(MODE_MAIN);
+      return;
+    }
+    break;
+
   default:
     log_e("invalid mode: Mode=%d/%d", Mode, MODE_N);
-    break;
+    change_mode(MODE_MAIN);
+    return;
   } // swtich (Mode)
 } // reBtn_cb()
 

@@ -98,7 +98,7 @@ bool OledMenu::select() {
   OledMenuEnt ment = this->ent[this->cur_ent];
 
   if ( ment.type == OLED_MENU_ENT_TYPE_FUNC && ment.dst.func != NULL ) {
-    log_i("[%s] call func()", ment.title);
+    log_i("[%s] call func()", ment.title_str());
     ment.dst.func();
     return true;
   }
