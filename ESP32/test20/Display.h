@@ -8,6 +8,7 @@
 #include <Adafruit_GFX.h>
 
 typedef Adafruit_SSD1306 Display_t;
+#define DispBegin(addr) begin(SSD1306_SWITCHCAPVCC, addr)
 
 static constexpr uint16_t DISPLAY_W = 128;
 static constexpr uint16_t DISPLAY_H = 64;

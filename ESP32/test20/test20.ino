@@ -8,6 +8,9 @@
 #include <FastLED.h>
 
 #include "common.h"
+#include "Display.h"
+#include "MainMode.h"
+
 #include "Esp32NetMgr.h"
 
 #include "Esp32ButtonTask.h"
@@ -17,10 +20,21 @@
 #include "Esp32NtpTask.h"
 #include "OledMenu.h"
 
+// Modes
+std::vector<ModeBase *> Mode;
+
+MainMode *mainMode;
+
+Mode_t curMode = MODE_MAIN;
+Mode_t prevMode = MODE_MAIN;
+
+// common data
+CommonData_t commonData;
+
 // OLED
-Adafruit_SSD1306 *disp;
-OledTask *oledTask = NULL;
-DispData_t dispData;
+Display_t *Disp;
+//OledTask *oledTask = NULL;
+//DispData_t dispData;
 
 // Buttons
 constexpr uint8_t PIN_BTN_RE = 26;
@@ -82,33 +96,21 @@ Ticker timer1;
 // Menu
 OledMenu *menuTop, *menuSub;
 
-// Mode
-Mode_t Mode, PrevMode;
-
 /**
  *
  */
-Mode_t change_mode(Mode_t mode) {
-  PrevMode = Mode;
-  Mode = mode;
-  dispData.mode = Mode;
-  log_i("mode: %s ==> %s", MODE_T_STR[PrevMode].c_str(), MODE_T_STR[mode].c_str());
+bool change_mode(Mode_t mode) {
+  if ( ! Mode[curMode]->resume() ) {
+    log_e("failed");
+    return false;
+  }
 
-  switch ( mode ) {
-  case MODE_MAIN:
-    break;
-  case MODE_MENU:
-    OledMenu_curMenu->init();
-    break;
-  case MODE_SET_TEMP_OFFSET:
-    break;
-  case MODE_SET_WIFI:
-    break;
-  case MODE_N:
-    break;
-  } // switch(mode)
-      
-  return mode;
+  prevMode = curMode;
+  curMode = mode;
+  log_i("mode: %s ==> %s",
+        MODE_T_STR[prevMode].c_str(),
+        MODE_T_STR[curMode].c_str());
+  return true;
 } // change_mode()
 
 /** XXX NetMgrにトリガーをかける必要がある
@@ -134,7 +136,7 @@ void menuFunc_tempOffset() {
  */
 void menuFunc_exitmenu() {
   OledMenu_curMenu = menuTop;
-  change_mode(PrevMode);
+  change_mode(prevMode);
 } // menuFunc_exitmenu()
 
 /**
@@ -142,8 +144,9 @@ void menuFunc_exitmenu() {
  */
 void menuFunc_reboot() {
   log_w("restart..");
-  strcpy(dispData.cmd, "clear");
+  commonData.msg = "clear";
   delay(500);
+
   //ESP.restart();
   ESP.deepSleep(500);
   delay(100);
@@ -200,86 +203,13 @@ void ch_hsv(uint8_t hue, uint8_t sat, uint8_t val) {
 void do_restart() {
   log_w("restart..");
   
-  strcpy(dispData.cmd, "clear");
+  commonData.msg = "clear";
   delay(500);
   
   //ESP.restart();
   ESP.deepSleep(100);
   delay(100);
 } // do_restart()
-
-/**
- *
- */
-void reBtn_cb(Esp32ButtonInfo_t *btn_info) {
-  log_i("%s", Esp32Button::info2String(btn_info).c_str());
-  reBtnInfo = *btn_info;
-
-  if ( btn_info->push_count > 0 ) {
-    ch_hsv(0, 255, 255);
-  } else {
-    ch_hsv(128, 255, 255);
-  }
-
-  switch ( Mode ) {
-  case MODE_MAIN:
-    if ( btn_info->click_count == 1 ) {
-      change_mode(MODE_MENU);
-      return;
-    }
-    if ( btn_info->click_count >= 4 ) {
-      do_restart();
-    }
-    break;
-      
-  case MODE_MENU:
-    if ( btn_info->click_count == 1 ) {
-      if ( OledMenu_curMenu->select() ) {
-        return;
-      }
-    }
-    if ( btn_info->click_count == 2 ) {
-      OledMenu_curMenu->change_text_size();
-      return;
-    }
-    if ( btn_info->click_count >= 4 ) {
-      do_restart();
-      return;
-    }
-    break;
-
-  case MODE_SET_TEMP_OFFSET:
-    if ( btn_info->click_count > 0 ) {
-      change_mode(MODE_MAIN);
-      return;
-    }
-    break;
-
-  default:
-    log_e("invalid mode: Mode=%d/%d", Mode, MODE_N);
-    change_mode(MODE_MAIN);
-    return;
-  } // swtich (Mode)
-} // reBtn_cb()
-
-/**
- *
- */
-void obBtn_cb(Esp32ButtonInfo_t *btn_info) {
-  log_i("%s", Esp32Button::info2String(btn_info).c_str());
-  obBtnInfo = *btn_info;
-
-  if ( btn_info->push_count > 0 ) {
-    ch_hsv(64, 255, 255);
-  } else {
-    ch_hsv(192, 255, 255);
-  }
-
-  if ( btn_info->long_pressed && btn_info->repeat_count == 0 ) {
-    ch_hsv(0, 255, 255);
-    do_restart();
-  }
-} // obBtn_cb()
 
 /**
  *
@@ -291,41 +221,6 @@ void menuRe_cb(Esp32RotaryEncoderInfo_t *re_info) {
     OledMenu_curMenu->cursor_down();
   }
 } // menuRe_cb()
-
-/**
- *
- */
-void re_cb(Esp32RotaryEncoderInfo_t *re_info) {
-  log_i("%s", Esp32RotaryEncoder::info2String(re_info).c_str());
-
-  /**
-   * XXX
-   * RotaryEncoderのボタンを押した瞬間に、
-   * d_angle=2*n の入力が検知されることがある !??
-   */
-  if ( re_info->d_angle % 2 == 0 ) {
-    log_w("d_angle=%d: ignored", re_info->d_angle);
-
-    // XXX angleを戻す
-    Esp32RotaryEncoderInfo_t *re_info_src = reWatcher->get_re_info();
-    re_info_src->angle -= re_info->d_angle;
-    return;
-  }
-
-  switch ( Mode ) {
-  case MODE_MAIN:
-    change_mode(MODE_MENU);
-    break;
-    
-  case MODE_MENU:
-    menuRe_cb(re_info);
-    break;
-
-  default: break;
-  } // switch (Mode)
-
-  reInfo = *re_info;
-} // re_cb()
 
 /**
  *
@@ -358,6 +253,61 @@ void timer1_cb() {
 /**
  *
  */
+void reBtn_cb(Esp32ButtonInfo_t *btn_info) {
+  log_i("%s", Esp32Button::info2String(btn_info).c_str());
+  reBtnInfo = *btn_info;
+
+  if ( btn_info->push_count > 0 ) {
+    ch_hsv(0, 255, 255);
+  } else {
+    ch_hsv(128, 255, 255);
+  }
+
+  Mode[curMode]->reBtn_cb(btn_info);
+} // reBtn_cb()
+
+/**
+ *
+ */
+void obBtn_cb(Esp32ButtonInfo_t *btn_info) {
+  log_i("%s", Esp32Button::info2String(btn_info).c_str());
+  obBtnInfo = *btn_info;
+
+  if ( btn_info->push_count > 0 ) {
+    ch_hsv(64, 255, 255);
+  } else {
+    ch_hsv(192, 255, 255);
+  }
+
+  Mode[curMode]->obBtn_cb(btn_info);
+} // obBtn_cb()
+
+/**
+ *
+ */
+void re_cb(Esp32RotaryEncoderInfo_t *re_info) {
+  log_i("%s", Esp32RotaryEncoder::info2String(re_info).c_str());
+
+  /**
+   * XXX
+   * RotaryEncoderのボタンを押した瞬間に、
+   * d_angle=2*n の入力が検知されることがある !??
+   */
+  if ( re_info->d_angle % 2 == 0 ) {
+    log_w("d_angle=%d: ignored", re_info->d_angle);
+
+    // XXX angleを戻す
+    Esp32RotaryEncoderInfo_t *re_info_src = reWatcher->get_re_info();
+    re_info_src->angle -= re_info->d_angle;
+    return;
+  }
+
+  Mode[curMode]->re_cb(re_info);
+} // re_cb()
+
+/**
+ *
+ */
 void setup() {
   Serial.begin(115200);
   do {
@@ -368,16 +318,26 @@ void setup() {
   Serial.println("===== start =====");
   log_i("portTICK_PERIOD_MS=%d", portTICK_PERIOD_MS);
 
-  Mode = MODE_MAIN;
+  mainMode = new MainMode("MainMode", &commonData);
+  Mode.push_back(mainMode);
+
+  log_i("setup");
+  for (int i=0; i < Mode.size(); i++) {
+    log_i("%d:%s", i, Mode[i]->get_name().c_str());
+    Mode[i]->setup();
+  }
+  change_mode(MODE_MAIN);
+
+  Disp = new Display_t(DISPLAY_W, DISPLAY_H);
+  Disp->DispBegin(0x3C);
+  Disp->clearDisplay();
 
   init_menu();
 
-  // dispData
-  dispData.ni = &netMgrInfo;
-  dispData.ntp_info = &ntpInfo;
-  dispData.ri1 = &reInfo;
-  dispData.bi1 = &reBtnInfo;
-  dispData.bme_info = &bmeInfo;
+  // commonData
+  commonData.netmgr_info = &netMgrInfo;
+  commonData.ntp_info = &ntpInfo;
+  commonData.bme_info = &bmeInfo;
 
   // BME280
   bmeInfo.addr = BME280_ADDR;
@@ -396,13 +356,13 @@ void setup() {
     leds_ext1[i] = CRGB(255,255,255);
   }
   FastLED.show();
-
+  
   // Tasks
   unsigned long task_interval = 10;
 
-  oledTask = new OledTask(&dispData);
-  oledTask->start();
-  delay(task_interval);
+  //  oledTask = new OledTask(&dispData);
+  //  oledTask->start();
+  //  delay(task_interval);
 
   ntpTask = new Esp32NtpTask((String *)NTP_SVR, &netMgrTask, ntp_cb);
   ntpTask->start();
@@ -438,5 +398,24 @@ void setup() {
  *
  */
 void loop() {
-  delay(100);
+  static unsigned long prev_ms = millis();
+  unsigned long cur_ms = millis();
+  int d_ms = cur_ms - prev_ms;
+  prev_ms = cur_ms;
+
+  float fps = 0.0;
+  if ( d_ms != 0 ) {
+    fps = 1000.0 / (float)d_ms;
+  }
+
+  Disp->clearDisplay();
+  if ( commonData.msg == "clear" ) {
+    Disp->display();
+    return;
+  }
+
+  Mode[curMode]->display(Disp, fps);
+
+  Disp->display();
+  delay(1);
 }
