@@ -14,9 +14,41 @@ MainMode::MainMode(String name, CommonData_t *common_data)
 /**
  *
  */
+Mode_t MainMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
+  if ( bi->click_count > 0 ) {
+    return MODE_MENU;
+  }
+  return MODE_N;
+} // MainMode::reBtn_cb()
+
+/**
+ *
+ */
+Mode_t MainMode::obBtn_cb(Esp32ButtonInfo_t *bi) {
+  if ( bi->click_count > 0 ) {
+    common_data->msg = " Onboard Btn\n";
+    common_data->msg += " click:" + String(bi->click_count);
+  }
+  return MODE_N;
+} // MainMode::obBtn_cb()
+
+/**
+ *
+ */
+Mode_t MainMode::re_cb(Esp32RotaryEncoderInfo_t *ri) {
+  if ( ri->d_angle != 0 ) {
+    return MODE_MENU;
+  }
+
+  return MODE_N;
+} // MainMode::re_cb()
+
+/**
+ *
+ */
 void MainMode::display(Display_t *disp, float fps) {
   int x, y;
-  
+
   disp->setTextWrap(false);
   disp->setTextColor(WHITE, BLACK);
   

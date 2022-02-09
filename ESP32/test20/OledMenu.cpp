@@ -3,9 +3,7 @@
  */
 #include "OledMenu.h"
 
-OledMenu *OledMenu_curMenu = NULL;
-
-/**
+/** constructor
  *
  */
 OledMenuEnt::OledMenuEnt(String title) {
@@ -14,7 +12,7 @@ OledMenuEnt::OledMenuEnt(String title) {
   log_i("type=%s", OLED_MENU_ENT_TYPE_STR[this->type].c_str());
 } // OledMenuEnt::OledMenuEnt()
 
-/**
+/** constructor
  *
  */
 OledMenuEnt::OledMenuEnt(String title, void (*func)()) {
@@ -24,14 +22,27 @@ OledMenuEnt::OledMenuEnt(String title, void (*func)()) {
   log_i("type=%s", OLED_MENU_ENT_TYPE_STR[this->type].c_str());
 } // OledMenuEnt::OledMenuEnt()
 
-/**
+/** constructor
  *
  */
 OledMenuEnt::OledMenuEnt(String title, OledMenu *menu) {
   this->title = title;
   this->dst.menu = menu;
   this->type = OLED_MENU_ENT_TYPE_MENU;
-  log_i("type=%s", OLED_MENU_ENT_TYPE_STR[this->type].c_str());
+  log_i("type=%s(%s)",
+        OLED_MENU_ENT_TYPE_STR[this->type].c_str(),
+        this->dst.menu->title_str());
+} // OledMenuEnt::OledMenuEnt()
+
+/** constructor
+ *
+ */
+OledMenuEnt::OledMenuEnt(String title, Mode_t mode) {
+  this->title = title;
+  this->dst.mode = mode;
+  this->type = OLED_MENU_ENT_TYPE_MODE;
+  log_i("type=%s(%s)", OLED_MENU_ENT_TYPE_STR[this->type].c_str(),
+        MODE_T_STR[this->dst.mode].c_str());
 } // OledMenuEnt::OledMenuEnt()
 
 /**
@@ -92,24 +103,28 @@ int OledMenu::change_text_size(int text_size) {
 } // OledMenu::change_text_size()
 
 /**
- *
+ * @return  destination menu
  */
-bool OledMenu::select() {
+OledMenu* OledMenu::select() {
   OledMenuEnt ment = this->ent[this->cur_ent];
 
   if ( ment.type == OLED_MENU_ENT_TYPE_FUNC && ment.dst.func != NULL ) {
     log_i("[%s] call func()", ment.title_str());
     ment.dst.func();
-    return true;
+    return this;
   }
   if ( ment.type == OLED_MENU_ENT_TYPE_MENU && ment.dst.menu != NULL ) {
     log_i("ment[%s] ==> dst.menu:[%s]",
           ment.title_str(), ment.dst.menu->title_str());
-    OledMenu_curMenu = ment.dst.menu;
-    OledMenu_curMenu->init();
-    return true;
+    ment.dst.menu->init();
+    return ment.dst.menu;
   }
-  return false;
+  if ( ment.type == OLED_MENU_ENT_TYPE_MODE && ment.dst.mode < MODE_N ) {
+    log_i("ment[%s] ==> dst.mode:[%s]",
+          ment.title_str(), MODE_T_STR[ment.dst.mode]);
+    return this;
+  }
+  return this;
 } // OledMenu::select()
 
 /**
@@ -129,7 +144,8 @@ void OledMenu::cursor_up() {
   }
   log_i("ent=%d/%d top=%d", this->cur_ent, ent_n - 1, this->disp_top_ent);
 
-  if ( this->ent[this->cur_ent].type == OLED_MENU_ENT_TYPE_NULL ) {
+  if ( this->ent[this->cur_ent].type == OLED_MENU_ENT_TYPE_NULL
+       && this->cur_ent > 0 ) {
     this->cursor_up();
   }
 } // OledMenu::cursor_up()
@@ -142,7 +158,7 @@ void OledMenu::cursor_down() {
 
   // XXX 循環させる場合
   // this->cur_ent = (this->cur_ent - 1 + ent_n) % ent_n;
-  if ( this->cur_ent < ent_n - 1 ) {
+  if ( this->cur_ent < (ent_n - 1) ) {
     this->cur_ent++;
   }
   
@@ -154,7 +170,8 @@ void OledMenu::cursor_down() {
   }
   log_i("ent=%d/%d top=%d", this->cur_ent, ent_n - 1, this->disp_top_ent);
 
-  if ( this->ent[this->cur_ent].type == OLED_MENU_ENT_TYPE_NULL ) {
+  if ( this->ent[this->cur_ent].type == OLED_MENU_ENT_TYPE_NULL
+       && this->cur_ent < (ent_n - 1) ) {
     this->cursor_down();
   }
 } // OledMenu::cursor_down()

@@ -10,58 +10,30 @@
 #include "Esp32RotaryEncoder.h"
 #include "Display.h"
 
+#define _cur_mode this->common_data->cur_mode
+
 /**
  *
  */
 class ModeBase {
 public:
+  ModeBase(String name, CommonData_t *common_data);
+
+  String get_name();
+
+  virtual void setup();
+  virtual bool enter(Mode_t prev_mode);
+  virtual bool exit();
+
+  virtual Mode_t reBtn_cb(Esp32ButtonInfo_t *bi);
+  virtual Mode_t obBtn_cb(Esp32ButtonInfo_t *bi);
+  virtual Mode_t re_cb(Esp32RotaryEncoderInfo_t *ri);
+  virtual void display(Display_t *disp, float fps=0.0);
+
+protected:
   String name;
   CommonData_t *common_data;
-
-  ModeBase(String name, CommonData_t *common_data) {
-    this->name = name;
-    this->common_data = common_data;
-  };
-
-  String get_name() {
-    return this->name;
-  };
-  
-  /**
-   * 最初の初期化
-   */
-  virtual void setup() {
-    log_i("");
-  };
-
-  /**
-   * モード切替時に毎回実行
-   */
-  virtual bool resume() {
-    log_i("");
-    return true;
-  };
-  
-  virtual void reBtn_cb(Esp32ButtonInfo_t *bi) {
-    log_i("");
-  };
-  
-  virtual void obBtn_cb(Esp32ButtonInfo_t *bi) {
-    log_i("");
-  };
-  
-  virtual void re_cb(Esp32RotaryEncoderInfo_t *ri) {
-    log_i("");
-  };
-  
-  virtual void display(Display_t *disp, float fps) {
-    disp->clearDisplay();
-    disp->setCursor(0, 0);
-    disp->setTextSize(1);
-    disp->setTextColor(BLACK, WHITE);
-    disp->printf("%s", __FILE__);
-    // disp->display();
-  };
+  Mode_t prev_mode;
 }; // class ModeBase
 
 #endif // _MODE_BASE_H_

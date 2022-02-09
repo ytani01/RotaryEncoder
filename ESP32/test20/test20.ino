@@ -10,31 +10,27 @@
 #include "common.h"
 #include "Display.h"
 #include "MainMode.h"
-
-#include "Esp32NetMgr.h"
+#include "MenuMode.h"
+#include "RestartMode.h"
 
 #include "Esp32ButtonTask.h"
 #include "Esp32RotaryEncoderTask.h"
-#include "OledTask.h"
 #include "Esp32NetMgrTask.h"
 #include "Esp32NtpTask.h"
-#include "OledMenu.h"
 
 // Modes
+#define _curMode commonData.cur_mode
+
 std::vector<ModeBase *> Mode;
-
 MainMode *mainMode;
-
-Mode_t curMode = MODE_MAIN;
-Mode_t prevMode = MODE_MAIN;
+MenuMode *menuMode;
+RestartMode *restartMode;
 
 // common data
 CommonData_t commonData;
 
 // OLED
 Display_t *Disp;
-//OledTask *oledTask = NULL;
-//DispData_t dispData;
 
 // Buttons
 constexpr uint8_t PIN_BTN_RE = 26;
@@ -90,7 +86,7 @@ constexpr float TEMP_OFFSET = -1.0;
 Esp32Bme280Info_t bmeInfo;
 
 // Timer
-constexpr TickType_t TIMER_INTERVAL = 20 * 1000; // tick == ms (?)
+constexpr TickType_t TIMER_INTERVAL = 60 * 1000; // tick == ms (?)
 Ticker timer1;
 
 // Menu
@@ -100,16 +96,21 @@ OledMenu *menuTop, *menuSub;
  *
  */
 bool change_mode(Mode_t mode) {
-  if ( ! Mode[curMode]->resume() ) {
-    log_e("failed");
+  if ( ! Mode[_curMode]->exit() ) {
+    log_e("%s:exit(): failed", MODE_T_STR[_curMode].c_str());
     return false;
   }
 
-  prevMode = curMode;
-  curMode = mode;
+  if ( ! Mode[mode]->enter(_curMode) ) {
+    log_e("%s:enter(): failed", MODE_T_STR[mode].c_str());
+    return false;
+  }
+
+  Mode_t prev_mode = _curMode;
+  _curMode = mode;
   log_i("mode: %s ==> %s",
-        MODE_T_STR[prevMode].c_str(),
-        MODE_T_STR[curMode].c_str());
+        MODE_T_STR[prev_mode].c_str(),
+        MODE_T_STR[_curMode].c_str());
   return true;
 } // change_mode()
 
@@ -136,7 +137,7 @@ void menuFunc_tempOffset() {
  */
 void menuFunc_exitmenu() {
   OledMenu_curMenu = menuTop;
-  change_mode(prevMode);
+  change_mode(MODE_MAIN);
 } // menuFunc_exitmenu()
 
 /**
@@ -151,37 +152,6 @@ void menuFunc_reboot() {
   ESP.deepSleep(500);
   delay(100);
 } // menuFunc_reboot()
-
-/**
- *
- */
-void init_menu() {
-  menuTop = new OledMenu("TopMenu");
-  menuSub = new OledMenu("SubMenu");
-  OledMenu_curMenu = menuTop;
-  
-  OledMenuEnt *ment_reboot = new OledMenuEnt("! Reboot", menuFunc_reboot);
-  OledMenuEnt *ment_exit = new OledMenuEnt("<< Clock", menuFunc_exitmenu);
-  OledMenuEnt *ment_to_top = new OledMenuEnt("< Top", menuTop);
-  OledMenuEnt *ment_to_sub = new OledMenuEnt("> Sub", menuSub);
-  OledMenuEnt *ment_line = new OledMenuEnt("----------");
-  OledMenuEnt *ment_set_temp_offset = new OledMenuEnt("temp offset",
-                                                      menuFunc_tempOffset);
-  OledMenuEnt *ment_wifi_restart = new OledMenuEnt("WIFI restart",
-                                                   menuFunc_wifiRestart);
-
-  menuTop->addEnt(ment_exit);
-  menuTop->addEnt(ment_to_sub);
-  menuTop->addEnt(ment_line);
-  menuTop->addEnt(ment_set_temp_offset);
-  menuTop->addEnt(ment_wifi_restart);
-  menuTop->addEnt(ment_reboot);
-
-  menuSub->addEnt(ment_to_top);
-  menuSub->addEnt(ment_wifi_restart);
-  menuSub->addEnt(ment_exit);
-  menuSub->addEnt(ment_reboot);
-} // init_menu()
 
 /**
  *
@@ -203,8 +173,8 @@ void ch_hsv(uint8_t hue, uint8_t sat, uint8_t val) {
 void do_restart() {
   log_w("restart..");
   
-  commonData.msg = "clear";
-  delay(500);
+  commonData.msg = " Reboot.. ";
+  delay(1000);
   
   //ESP.restart();
   ESP.deepSleep(100);
@@ -263,7 +233,22 @@ void reBtn_cb(Esp32ButtonInfo_t *btn_info) {
     ch_hsv(128, 255, 255);
   }
 
-  Mode[curMode]->reBtn_cb(btn_info);
+  if ( btn_info->click_count >= 4 ) {
+    do_restart();
+    return;
+  }
+
+#if 0 // XXX
+  if ( _curMode == MODE_MAIN && btn_info->click_count > 0 ) {
+    change_mode(MODE_MENU);
+    return;
+  }
+#endif 
+
+  Mode_t dst_mode = Mode[_curMode]->reBtn_cb(btn_info);
+  if ( dst_mode != MODE_N && dst_mode != _curMode ) {
+    change_mode(dst_mode);
+  }
 } // reBtn_cb()
 
 /**
@@ -279,7 +264,15 @@ void obBtn_cb(Esp32ButtonInfo_t *btn_info) {
     ch_hsv(192, 255, 255);
   }
 
-  Mode[curMode]->obBtn_cb(btn_info);
+  if ( btn_info->long_pressed && btn_info->repeat_count == 0 ) {
+    do_restart();
+    return;
+  }
+
+  Mode_t dst_mode = Mode[_curMode]->obBtn_cb(btn_info);
+  if ( dst_mode != MODE_N && dst_mode != _curMode ) {
+    change_mode(dst_mode);
+  }
 } // obBtn_cb()
 
 /**
@@ -302,7 +295,10 @@ void re_cb(Esp32RotaryEncoderInfo_t *re_info) {
     return;
   }
 
-  Mode[curMode]->re_cb(re_info);
+  Mode_t dst_mode = Mode[_curMode]->re_cb(re_info);
+  if ( dst_mode != MODE_N && dst_mode != _curMode ) {
+    change_mode(dst_mode);
+  }
 } // re_cb()
 
 /**
@@ -313,31 +309,20 @@ void setup() {
   do {
     delay(100);
   } while (!Serial);  // Serial Init Wait
-
   Serial.println();
   Serial.println("===== start =====");
   log_i("portTICK_PERIOD_MS=%d", portTICK_PERIOD_MS);
 
-  mainMode = new MainMode("MainMode", &commonData);
-  Mode.push_back(mainMode);
-
-  log_i("setup");
-  for (int i=0; i < Mode.size(); i++) {
-    log_i("%d:%s", i, Mode[i]->get_name().c_str());
-    Mode[i]->setup();
-  }
-  change_mode(MODE_MAIN);
-
-  Disp = new Display_t(DISPLAY_W, DISPLAY_H);
-  Disp->DispBegin(0x3C);
-  Disp->clearDisplay();
-
-  init_menu();
-
-  // commonData
+  // init commonData
   commonData.netmgr_info = &netMgrInfo;
   commonData.ntp_info = &ntpInfo;
   commonData.bme_info = &bmeInfo;
+
+  // init Display
+  Disp = new Display_t(DISPLAY_W, DISPLAY_H);
+  Disp->DispBegin(0x3C);
+  Disp->clearDisplay();
+  Disp->display();
 
   // BME280
   bmeInfo.addr = BME280_ADDR;
@@ -359,10 +344,6 @@ void setup() {
   
   // Tasks
   unsigned long task_interval = 10;
-
-  //  oledTask = new OledTask(&dispData);
-  //  oledTask->start();
-  //  delay(task_interval);
 
   ntpTask = new Esp32NtpTask((String *)NTP_SVR, &netMgrTask, ntp_cb);
   ntpTask->start();
@@ -392,6 +373,20 @@ void setup() {
   // start timer1
   timer1.attach_ms(TIMER_INTERVAL, timer1_cb);
   log_i("start Timer: %.1f sec", TIMER_INTERVAL / 1000.0);
+
+  // init Mode[]
+  mainMode = new MainMode("MainMode", &commonData);
+  Mode.push_back(mainMode);
+  menuMode = new MenuMode("MenuMode", &commonData);
+  Mode.push_back(menuMode);
+  restartMode = new RestartMode("RestartMode", &commonData);
+  Mode.push_back(restartMode);
+
+  for (int i=0; i < Mode.size(); i++) {
+    log_i("%d:%s", i, Mode[i]->get_name().c_str());
+    Mode[i]->setup();
+  }
+  change_mode(MODE_MAIN);  
 } // setup()
 
 /**
@@ -409,12 +404,24 @@ void loop() {
   }
 
   Disp->clearDisplay();
-  if ( commonData.msg == "clear" ) {
+  
+  if ( commonData.msg.length() > 0 ) {
+    log_i("msg:\"%s\"", commonData.msg.c_str());
+
+    Disp->fillRect(0, 0, DISPLAY_W, DISPLAY_H, WHITE);
+    Disp->setCursor(0, 10);
+    Disp->setTextSize(1);
+    Disp->setTextColor(BLACK, WHITE);
+    Disp->setTextWrap(true);
+    Disp->printf("%s", commonData.msg.c_str());
     Disp->display();
+
+    delay(1500);
+    commonData.msg = "";
     return;
   }
 
-  Mode[curMode]->display(Disp, fps);
+  Mode[_curMode]->display(Disp, fps);
 
   Disp->display();
   delay(1);
