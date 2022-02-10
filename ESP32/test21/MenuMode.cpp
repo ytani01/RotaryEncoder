@@ -3,6 +3,13 @@
  */
 #include "MenuMode.h"
 
+/** static function
+ *
+ */
+static void restart_wifi(void *common_data) {
+  ((CommonData_t *)common_data)->netmgr_info->ext_cmd = "restart";
+} // restart_wifi()
+
 /** constructor
  *
  */
@@ -14,15 +21,19 @@ MenuMode::MenuMode(String name, CommonData_t *common_data)
   this->topMenu = new OledMenu("TopMenu");
   this->subMenu = new OledMenu("SubMenu");
 
-  OledMenuEnt *ment_reboot = new OledMenuEnt("! Reboot", MODE_RESTART);
+  OledMenuEnt *ment_reboot = new OledMenuEnt("!! Reboot", MODE_RESTART);
   OledMenuEnt *ment_mode_main = new OledMenuEnt("<< Clock", MODE_MAIN);
-  OledMenuEnt *ment_menu_top = new OledMenuEnt("< Top Menu", topMenu);
-  OledMenuEnt *ment_menu_sub = new OledMenuEnt("> Sub Menu", subMenu);
+  OledMenuEnt *ment_menu_top = new OledMenuEnt(" < Top Menu", topMenu);
+  OledMenuEnt *ment_menu_sub = new OledMenuEnt(" > Sub Menu", subMenu);
+  OledMenuEnt *ment_wifi_restart
+    = new OledMenuEnt(" * restart WiFi",
+                      restart_wifi, (void *)(this->common_data));
   OledMenuEnt *ment_line = new OledMenuEnt("----------");
 
   this->topMenu->addEnt(ment_mode_main);
   this->topMenu->addEnt(ment_menu_sub);
-  this->topMenu->addEnt(ment_line);
+  this->topMenu->addEnt(ment_line);  
+  this->topMenu->addEnt(ment_wifi_restart);
   this->topMenu->addEnt(ment_reboot);
 
   this->subMenu->addEnt(ment_menu_top);
@@ -79,7 +90,8 @@ Mode_t MenuMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
     dst_mode = dst.obj.mode;
     break;
   case OLED_MENU_DST_TYPE_FUNC:
-    // XXX
+    dst.obj.func(dst.param);
+    dst_mode = MODE_MAIN;
     break;
   default:
     break;

@@ -38,10 +38,14 @@ typedef enum {
               NETMGR_MODE_WIFI_OFF,
               NETMGR_MODE_N
 } Esp32NetMgrMode_t;
-const String ESP32_NETMGR_MODE_STR[]
+static const char *ESP32_NETMGR_MODE_STR[]
 = {"NULL", "START", "TRY_WIFI",
    "AP_INIT", "AP_LOOP", "SCANNING_SSID",
    "WIFI_ON", "WIFI_OFF"};
+
+static const char *WL_STATUS_T_STR[]
+= {"IDLE_STATUS", "NO_SSID_AVAIL", "SCAN_COMPLETED", "CONNECTED",
+   "CONNECT_FAILED", "CONNECTION_LOST", "DISCONNECTED"};
 
 /**
  *
@@ -50,23 +54,21 @@ class Esp32NetMgr {
 public:
   static const unsigned int TRY_INTERVAL  = 500; // ms
   static const unsigned int DEF_TRY_COUNT_MAX = 15;
-  unsigned int try_count_max = DEF_TRY_COUNT_MAX;
   
   static const unsigned int SSID_N_MAX = 50;
   
   static const int DNS_PORT    = 53;
   static const int WEBSVR_PORT = 80;
 
-  // XXX static constにしたいが、初期化が面倒！
-  char *ModeStr[Esp32NetMgrMode_t::NETMGR_MODE_N] = 
-    {(char *)"NULL", (char *)"START", (char *)"TRY_WIFI",
-     (char *)"AP_INIT", (char *)"AP_LOOP", (char *)"SCANNING",
-     (char *)"WIFI_ON", (char *)"WIFI_OFF"};
   Esp32NetMgrMode_t cur_mode = NETMGR_MODE_START;
   
   static String myName;
   static unsigned int ssidN;
   static SSIDent ssidEnt[SSID_N_MAX];
+
+  String ext_cmd = "";
+
+  unsigned int try_count_max = DEF_TRY_COUNT_MAX;
 
   uint8_t mac_addr[6];
   String cur_ssid = "";

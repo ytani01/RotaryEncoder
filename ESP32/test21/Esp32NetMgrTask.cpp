@@ -26,6 +26,8 @@ void Esp32NetMgrTask::setup() {
   for (int i=0; i < 6; i++) {
     this->netmgr_info->mac_addr[i] = this->netMgr->mac_addr[i];
   } // for(i)
+
+  this->netmgr_info->ext_cmd = "";
 } // Esp32NetMgrTask::setup()
 
 /**
@@ -34,6 +36,11 @@ void Esp32NetMgrTask::setup() {
 void Esp32NetMgrTask::loop() {
   Esp32NetMgrMode_t mode = this->netMgr->loop();
 
+  if ( this->netmgr_info->ext_cmd.length() > 0 ) {
+    this->netMgr->ext_cmd = this->netmgr_info->ext_cmd;
+    this->netmgr_info->ext_cmd = "";
+  }
+  
   this->netmgr_info->mode = mode;
   this->netmgr_info->ssid = this->netMgr->cur_ssid;
   if ( mode == NETMGR_MODE_AP_LOOP ) {

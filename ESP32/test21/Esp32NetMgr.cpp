@@ -47,16 +47,26 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
   ConfWifi conf_data;
   static String ssid = "";
   static String ssid_pw = "";
+  bool restart_flag = false;
 
   if ( this->cur_mode != prev_mode ) {
     log_i("cur_mode: %s(%d) ==> %s(%d)",
-          ESP32_NETMGR_MODE_STR[prev_mode].c_str(), prev_mode,
-          ESP32_NETMGR_MODE_STR[this->cur_mode].c_str(), this->cur_mode);
+          ESP32_NETMGR_MODE_STR[prev_mode], prev_mode,
+          ESP32_NETMGR_MODE_STR[this->cur_mode], this->cur_mode);
     prev_mode = this->cur_mode;
   }
-  
   this->_loop_count++;
 
+  if ( this->ext_cmd.length() > 0 ) {
+    log_i("ext_cmd=%s", this->ext_cmd.c_str());
+    if ( this->ext_cmd == "restart" ) {
+      restart_flag = true;
+    }
+    this->ext_cmd = "";
+  }
+
+  wl_status_t wl_stat = WiFi.status();
+  
   switch (this->cur_mode) {
   case NETMGR_MODE_NULL:
     break;
@@ -76,8 +86,19 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
     break;
 
   case NETMGR_MODE_TRY_WIFI:
-    if (WiFi.status() == WL_CONNECTED) {
-      log_i("IPaddr=%s", WiFi.localIP().toString().c_str());
+    if ( restart_flag ) {
+      log_i("restart_flag=%s", (restart_flag ? "true" : "false"));
+      WiFi.disconnect(true);
+      WiFi.mode(WIFI_OFF);
+      this->cur_mode = NETMGR_MODE_START;
+      delay(100);
+      break;
+    }
+
+    if (wl_stat == WL_CONNECTED) {
+      log_i("wl_stat=%s(%d): IPaddr=%s",
+            WL_STATUS_T_STR[wl_stat], wl_stat,
+            WiFi.localIP().toString().c_str());
 
       this->net_is_available = true;
       this->cur_mode = NETMGR_MODE_WIFI_ON;
@@ -91,8 +112,10 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
       break;
     }
 
-    log_i("%s: loop_count=%d WiFi.status=0x%X",
-          this->ModeStr[this->cur_mode], this->_loop_count, WiFi.status());
+    log_i("%s %d/%d wl_stat=%s(%d)",
+          ESP32_NETMGR_MODE_STR[this->cur_mode],
+          this->_loop_count, this->try_count_max,
+          WL_STATUS_T_STR[wl_stat], wl_stat);
 
     delay(TRY_INTERVAL);
     break;
@@ -148,17 +171,35 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
   case NETMGR_MODE_AP_LOOP:
     this->dns_svr.processNextRequest();
     web_svr.handleClient();
+
+    if ( restart_flag ) {
+      log_i("restart_flag=%s", (restart_flag ? "true" : "false"));
+      WiFi.disconnect(true);
+      WiFi.mode(WIFI_OFF);
+      this->cur_mode = NETMGR_MODE_START;
+      delay(100);
+    }
     break;
 
   case NETMGR_MODE_WIFI_ON:
-    if (WiFi.status() != WL_CONNECTED) {
-      //this->cur_mode = NETMGR_MODE_WIFI_OFF;
+    if ( wl_stat != WL_CONNECTED ) {
+      log_w("wl_stat=%s(%d)", WL_STATUS_T_STR[wl_stat], wl_stat);
       this->cur_mode = NETMGR_MODE_START;
+      break;
+    }
+
+    if ( restart_flag ) {
+      log_i("restart_flag=%s", (restart_flag ? "true" : "false"));
+      WiFi.disconnect(true);
+      WiFi.mode(WIFI_OFF);
+      this->cur_mode = NETMGR_MODE_START;
+      delay(100);
     }
     break;
 
   case NETMGR_MODE_WIFI_OFF:
-    if (WiFi.status() == WL_CONNECTED) {
+    if (wl_stat == WL_CONNECTED) {
+      log_i("wl_stat=%s(%d)", WL_STATUS_T_STR[wl_stat], wl_stat);
       this->cur_mode = NETMGR_MODE_WIFI_ON;
     }
     break;

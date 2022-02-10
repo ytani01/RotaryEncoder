@@ -196,12 +196,11 @@ void reBtn_cb(Esp32ButtonInfo_t *btn_info) {
     return;
   }
 
-#if 0 // XXX
-  if ( _curMode == MODE_MAIN && btn_info->click_count > 0 ) {
-    change_mode(MODE_MENU);
+  if ( btn_info->click_count >= 2 ) {
+    commonData.netmgr_info->ext_cmd = "restart";
+    log_i("ext_cmd=%s", commonData.netmgr_info->ext_cmd.c_str());
     return;
   }
-#endif 
 
   Mode_t dst_mode = Mode[_curMode]->reBtn_cb(btn_info);
   if ( dst_mode != MODE_N && dst_mode != _curMode ) {

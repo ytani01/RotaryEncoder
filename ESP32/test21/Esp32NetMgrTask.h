@@ -11,6 +11,7 @@ typedef struct {
   Esp32NetMgrMode_t mode;
   uint8_t mac_addr[6];
   String ssid;
+  String ext_cmd;
 } Esp32NetMgrInfo_t;
 
 /**
