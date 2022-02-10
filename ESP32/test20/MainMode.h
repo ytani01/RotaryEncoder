@@ -19,6 +19,11 @@ class MainMode: public ModeBase {
   virtual void display(Display_t *disp, float fps);
 
  protected:
+  void drawTemp(Display_t *disp, int x, int y, float temp);
+  void drawHum(Display_t *disp, int x, int y, float hum);
+  void drawPres(Display_t *disp, int x, int y, float pres);
+  void drawThi(Display_t *disp, int x, int y, float thi);
+
   void drawWiFi(Display_t *disp, int x, int y, Esp32NetMgrInfo_t *ni);
   void drawNtp(Display_t *disp, int x, int y,
                Esp32NtpTaskInfo_t *ntp_info,

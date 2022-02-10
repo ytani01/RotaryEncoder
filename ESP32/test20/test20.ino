@@ -83,7 +83,7 @@ Esp32NtpTaskInfo_t ntpInfo;
 // BME280
 constexpr uint8_t BME280_ADDR = 0x76;
 constexpr float TEMP_OFFSET = -1.0;
-Esp32Bme280Info_t bmeInfo;
+Esp32Bme280 *Bme;
 
 // Timer
 constexpr TickType_t TIMER_INTERVAL = 60 * 1000; // tick == ms (?)
@@ -316,17 +316,21 @@ void setup() {
   // init commonData
   commonData.netmgr_info = &netMgrInfo;
   commonData.ntp_info = &ntpInfo;
-  commonData.bme_info = &bmeInfo;
+
+  // BME280
+  Bme = new Esp32Bme280(BME280_ADDR, TEMP_OFFSET);
+  commonData.bme_info = Bme->get();
+  log_i("%f,%f,%f,%f",
+        commonData.bme_info->temp,
+        commonData.bme_info->hum,
+        commonData.bme_info->pres,
+        commonData.bme_info->thi);
 
   // init Display
   Disp = new Display_t(DISPLAY_W, DISPLAY_H);
   Disp->DispBegin(0x3C);
   Disp->clearDisplay();
   Disp->display();
-
-  // BME280
-  bmeInfo.addr = BME280_ADDR;
-  bmeInfo.temp_offset = TEMP_OFFSET;
 
   // NeoPixel
   FastLED.addLeds<WS2812B, PIN_NEOPIXEL_ONBOARD, GRB>

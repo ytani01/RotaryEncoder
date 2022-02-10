@@ -56,6 +56,21 @@ void MainMode::display(Display_t *disp, float fps) {
   disp->drawFastHLine(0, 53, DISPLAY_W - DISPLAY_CH_W * 5, WHITE);
 
 
+  x = 0;
+  y = 0;
+  this->drawTemp(disp, x, y, common_data->bme_info->temp);
+
+  x += 63;
+  this->drawHum(disp, x, y, common_data->bme_info->hum);
+
+  x -= 5;
+  y += DISPLAY_CH_H * 2;
+  this->drawPres(disp, x, y, common_data->bme_info->pres);
+
+  x = DISPLAY_W - DISPLAY_CH_W * 2 * 2;
+  y = 0;
+  this->drawThi(disp, x, y, common_data->bme_info->thi);
+
   time_t t_now = time(NULL);
   struct tm *ti = localtime(&t_now);
   x = 0;
@@ -84,6 +99,58 @@ void MainMode::display(Display_t *disp, float fps) {
 /**
  *
  */
+void MainMode::drawTemp(Display_t *disp, int x, int y, float temp) {
+  disp->setCursor(x, y);
+  disp->setTextSize(3);
+  disp->printf("%2.0f", temp);
+  disp->setCursor(x + DISPLAY_CH_W * 3 * 2, y);
+  disp->setTextSize(1);
+  disp->printf("%cC ", (char)0xF8);
+  disp->setCursor(x + DISPLAY_CH_W * 2 * 3 - 5, y + DISPLAY_CH_H);
+  disp->setTextSize(2);
+  disp->printf(".%d", int((temp - int(temp))*10));
+} // MainMode::drawTemp()
+
+/**
+ *
+ */
+void MainMode::drawHum(Display_t *disp, int x, int y, float hum) {
+  disp->setCursor(x, y);
+  disp->setTextSize(2);
+  disp->printf("%2.0f", hum);
+  disp->setCursor(x + DISPLAY_CH_W * 2 * 2, y + DISPLAY_CH_H - 1);
+  disp->setTextSize(1);
+  disp->printf("%%");  
+} // MainMode::drawHum()
+
+/**
+ *
+ */
+void MainMode::drawPres(Display_t *disp, int x, int y, float pres) {
+  disp->setCursor(x, y);
+  disp->setTextSize(1);
+  disp->printf("%4.0f", pres);
+
+  disp->setCursor(x + DISPLAY_CH_W * 4 + 3, y);
+  disp->printf("hPa");
+} // MainMode::drawPres()
+
+/**
+ *
+ */
+void MainMode::drawThi(Display_t *disp, int x, int y, float thi) {
+  disp->setCursor(x, y);
+  disp->setTextSize(2);
+  disp->printf("%2.0f", thi);
+
+  disp->setCursor(x, y + DISPLAY_CH_H * 2);
+  disp->setTextSize(1);
+  disp->printf(" THI");
+} // MainMode::drawThi()
+
+/**
+ *
+ */
 void MainMode::drawWiFi(Display_t *disp, int x, int y, Esp32NetMgrInfo_t *ni) {
   disp->setCursor(x, y);
   disp->setTextSize(1);
@@ -94,7 +161,7 @@ void MainMode::drawWiFi(Display_t *disp, int x, int y, Esp32NetMgrInfo_t *ni) {
   } else {
     disp->printf("WiFi..");
   }  
-} // OledTask::drawWiFi()
+} // MainMode::drawWiFi()
 
 /**
  *
