@@ -29,7 +29,7 @@ void ModeBase::setup() {
  * モード切替時に毎回実行
  */
 bool ModeBase::enter(Mode_t prev_mode) {
-  log_i("prev_mode=%s", MODE_T_STR[prev_mode].c_str());
+  log_i("prev_mode=%s", MODE_T_STR[prev_mode]);
   this->prev_mode = prev_mode;
   return true;
 } // ModeBase::resume()

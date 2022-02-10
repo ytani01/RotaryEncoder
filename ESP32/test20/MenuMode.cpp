@@ -16,31 +16,19 @@ MenuMode::MenuMode(String name, CommonData_t *common_data)
 
   OledMenuEnt *ment_reboot = new OledMenuEnt("! Reboot", MODE_RESTART);
   OledMenuEnt *ment_mode_main = new OledMenuEnt("<< Clock", MODE_MAIN);
-  OledMenuEnt *ment_to_top = new OledMenuEnt("< Top", topMenu);
-  OledMenuEnt *ment_to_sub = new OledMenuEnt("> Sub", subMenu);
+  OledMenuEnt *ment_menu_top = new OledMenuEnt("< Top Menu", topMenu);
+  OledMenuEnt *ment_menu_sub = new OledMenuEnt("> Sub Menu", subMenu);
   OledMenuEnt *ment_line = new OledMenuEnt("----------");
 
   this->topMenu->addEnt(ment_mode_main);
-  this->topMenu->addEnt(ment_to_sub);
+  this->topMenu->addEnt(ment_menu_sub);
   this->topMenu->addEnt(ment_line);
-  this->topMenu->addEnt(ment_to_sub);
-  this->topMenu->addEnt(ment_to_sub);
-  this->topMenu->addEnt(ment_to_sub);
-  this->topMenu->addEnt(ment_mode_main);
   this->topMenu->addEnt(ment_reboot);
 
-  this->subMenu->addEnt(ment_line);
-  this->subMenu->addEnt(ment_to_top);
-  this->subMenu->addEnt(ment_line);
-  this->subMenu->addEnt(ment_to_top);
-  this->subMenu->addEnt(ment_to_top);
-  this->subMenu->addEnt(ment_to_top);
-  this->subMenu->addEnt(ment_to_top);
-  this->subMenu->addEnt(ment_line);
+  this->subMenu->addEnt(ment_menu_top);
   this->subMenu->addEnt(ment_mode_main);
   this->subMenu->addEnt(ment_line);
   this->subMenu->addEnt(ment_reboot);
-  this->subMenu->addEnt(ment_line);
 } // MenuMode::MenuMode()
 
 /**
@@ -69,17 +57,35 @@ bool MenuMode::enter(Mode_t prev_mode) {
  * @return  destination mode
  */
 Mode_t MenuMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
-  if ( bi->click_count > 0 ) {
-    OledMenuEnt ment = this->curMenu->ent[this->curMenu->cur_ent];
+  Mode_t dst_mode = MODE_N;
 
-    this->curMenu = this->curMenu->select();
-    log_i("%s", this->curMenu->title_str());
-    
-    if ( ment.type == OLED_MENU_ENT_TYPE_MODE ) {
-      return ment.dst.mode;
-    }
+  if ( bi->click_count == 0 ) {
+    return dst_mode;
   }
-  return MODE_N;
+
+  /*
+   * bi->click_count > 0
+   */
+  OledMenuDst_t dst = this->curMenu->select();
+  log_i("dst.type=%s", OLED_MENU_DST_TYPE_STR[dst.type]);
+
+  switch ( dst.type ) {
+  case OLED_MENU_DST_TYPE_MENU:
+    log_i("dst.obj.menu=%s", dst.obj.menu->title_str());
+    this->curMenu = dst.obj.menu;
+    break;
+  case OLED_MENU_DST_TYPE_MODE:
+    log_i("dst.obj.mode=%s", MODE_T_STR[dst.obj.mode]);
+    dst_mode = dst.obj.mode;
+    break;
+  case OLED_MENU_DST_TYPE_FUNC:
+    // XXX
+    break;
+  default:
+    break;
+  } // switch
+
+  return dst_mode;
 } // MenuMode::reBtn_cb()
 
 /**

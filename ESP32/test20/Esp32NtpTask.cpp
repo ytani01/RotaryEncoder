@@ -99,18 +99,24 @@ void Esp32NtpTask::loop() {
   this->info.sntp_stat = sntp_get_sync_status();
   if ( this->info.sntp_stat == SNTP_SYNC_STATUS_COMPLETED ) {
     interval = INTERVAL_NORMAL;
-    log_i("%s: NTP sync done: sntp_stat=%d, interval=%'d",
-          get_time_str(), this->info.sntp_stat, interval);
+    log_i("%s: NTP sync done: sntp_stat=%s(%d), interval=%'d",
+          get_time_str(),
+          SNTP_SYNC_STATUS_STR[this->info.sntp_stat], this->info.sntp_stat,
+          interval);
 
   } else if ( this->info.sntp_stat == SNTP_SYNC_STATUS_IN_PROGRESS ) {
     interval = INTERVAL_PROGRESS;
-    log_i("%s: NTP sync progress: sntp_stat=%d, interval=%'d",
-          get_time_str(), this->info.sntp_stat, interval);
+    log_i("%s: NTP sync progress: sntp_stat=%s(%d), interval=%'d",
+          get_time_str(),
+          SNTP_SYNC_STATUS_STR[this->info.sntp_stat], this->info.sntp_stat,
+          interval);
 
   } else {
     interval = INTERVAL_NO_WIFI;
-    log_i("%s: NTP sync retry: sntp_stat=%d, interval=%'d",
-          get_time_str(), this->info.sntp_stat, interval);
+    log_i("%s: NTP sync retry: sntp_stat=%s(%d), interval=%'d",
+          get_time_str(),
+          SNTP_SYNC_STATUS_STR[this->info.sntp_stat], this->info.sntp_stat,
+          interval);
   }
 
   this->_cb(&(this->info));

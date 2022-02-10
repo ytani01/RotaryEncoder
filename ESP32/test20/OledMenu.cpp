@@ -8,18 +8,20 @@
  */
 OledMenuEnt::OledMenuEnt(String title) {
   this->title = title;
-  this->type = OLED_MENU_ENT_TYPE_NULL;
-  log_i("type=%s", OLED_MENU_ENT_TYPE_STR[this->type].c_str());
+  this->dst.type = OLED_MENU_DST_TYPE_NULL;
+  log_i("type=%s", OLED_MENU_DST_TYPE_STR[this->dst.type]);
 } // OledMenuEnt::OledMenuEnt()
 
 /** constructor
  *
  */
-OledMenuEnt::OledMenuEnt(String title, void (*func)()) {
+OledMenuEnt::OledMenuEnt(String title,
+                         void (*func)(void *param), void *func_param) {
   this->title = title;
-  this->dst.func = func;
-  this->type = OLED_MENU_ENT_TYPE_FUNC;
-  log_i("type=%s", OLED_MENU_ENT_TYPE_STR[this->type].c_str());
+  this->dst.type = OLED_MENU_DST_TYPE_FUNC;
+  this->dst.obj.func = func;
+  this->dst.param = func_param;
+  log_i("type=%s", OLED_MENU_DST_TYPE_STR[this->dst.type]);
 } // OledMenuEnt::OledMenuEnt()
 
 /** constructor
@@ -27,11 +29,11 @@ OledMenuEnt::OledMenuEnt(String title, void (*func)()) {
  */
 OledMenuEnt::OledMenuEnt(String title, OledMenu *menu) {
   this->title = title;
-  this->dst.menu = menu;
-  this->type = OLED_MENU_ENT_TYPE_MENU;
+  this->dst.type = OLED_MENU_DST_TYPE_MENU;
+  this->dst.obj.menu = menu;
   log_i("type=%s(%s)",
-        OLED_MENU_ENT_TYPE_STR[this->type].c_str(),
-        this->dst.menu->title_str());
+        OLED_MENU_DST_TYPE_STR[this->dst.type],
+        this->dst.obj.menu->title_str());
 } // OledMenuEnt::OledMenuEnt()
 
 /** constructor
@@ -39,10 +41,10 @@ OledMenuEnt::OledMenuEnt(String title, OledMenu *menu) {
  */
 OledMenuEnt::OledMenuEnt(String title, Mode_t mode) {
   this->title = title;
-  this->dst.mode = mode;
-  this->type = OLED_MENU_ENT_TYPE_MODE;
-  log_i("type=%s(%s)", OLED_MENU_ENT_TYPE_STR[this->type].c_str(),
-        MODE_T_STR[this->dst.mode].c_str());
+  this->dst.type = OLED_MENU_DST_TYPE_MODE;
+  this->dst.obj.mode = mode;
+  log_i("type=%s(%s)", OLED_MENU_DST_TYPE_STR[this->dst.type],
+        MODE_T_STR[this->dst.obj.mode]);
 } // OledMenuEnt::OledMenuEnt()
 
 /**
@@ -105,26 +107,29 @@ int OledMenu::change_text_size(int text_size) {
 /**
  * @return  destination menu
  */
-OledMenu* OledMenu::select() {
+OledMenuDst_t OledMenu::select() {
   OledMenuEnt ment = this->ent[this->cur_ent];
 
-  if ( ment.type == OLED_MENU_ENT_TYPE_FUNC && ment.dst.func != NULL ) {
+  if ( ment.dst.type == OLED_MENU_DST_TYPE_FUNC
+       && ment.dst.obj.func != NULL ) {
     log_i("[%s] call func()", ment.title_str());
-    ment.dst.func();
-    return this;
+    ment.dst.obj.func(ment.dst.param);
+    return ment.dst;
   }
-  if ( ment.type == OLED_MENU_ENT_TYPE_MENU && ment.dst.menu != NULL ) {
-    log_i("ment[%s] ==> dst.menu:[%s]",
-          ment.title_str(), ment.dst.menu->title_str());
-    ment.dst.menu->init();
-    return ment.dst.menu;
+  if ( ment.dst.type == OLED_MENU_DST_TYPE_MENU
+       && ment.dst.obj.menu != NULL ) {
+    log_i("ment[%s] ==> dst.obj.menu:[%s]",
+          ment.title_str(), ment.dst.obj.menu->title_str());
+    ment.dst.obj.menu->init();
+    return ment.dst;
   }
-  if ( ment.type == OLED_MENU_ENT_TYPE_MODE && ment.dst.mode < MODE_N ) {
-    log_i("ment[%s] ==> dst.mode:[%s]",
-          ment.title_str(), MODE_T_STR[ment.dst.mode]);
-    return this;
+  if ( ment.dst.type == OLED_MENU_DST_TYPE_MODE
+       && ment.dst.obj.mode < MODE_N ) {
+    log_i("ment[%s] ==> dst.obj.mode:[%s]",
+          ment.title_str(), MODE_T_STR[ment.dst.obj.mode]);
+    return ment.dst;
   }
-  return this;
+  return ment.dst;
 } // OledMenu::select()
 
 /**
@@ -144,7 +149,7 @@ void OledMenu::cursor_up() {
   }
   log_i("ent=%d/%d top=%d", this->cur_ent, ent_n - 1, this->disp_top_ent);
 
-  if ( this->ent[this->cur_ent].type == OLED_MENU_ENT_TYPE_NULL
+  if ( this->ent[this->cur_ent].dst.type == OLED_MENU_DST_TYPE_NULL
        && this->cur_ent > 0 ) {
     this->cursor_up();
   }
@@ -170,7 +175,7 @@ void OledMenu::cursor_down() {
   }
   log_i("ent=%d/%d top=%d", this->cur_ent, ent_n - 1, this->disp_top_ent);
 
-  if ( this->ent[this->cur_ent].type == OLED_MENU_ENT_TYPE_NULL
+  if ( this->ent[this->cur_ent].dst.type == OLED_MENU_DST_TYPE_NULL
        && this->cur_ent < (ent_n - 1) ) {
     this->cursor_down();
   }

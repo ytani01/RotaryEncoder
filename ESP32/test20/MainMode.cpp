@@ -60,10 +60,10 @@ void MainMode::display(Display_t *disp, float fps) {
   y = 0;
   this->drawTemp(disp, x, y, common_data->bme_info->temp);
 
-  x += 63;
+  x += 62;
   this->drawHum(disp, x, y, common_data->bme_info->hum);
 
-  x -= 5;
+  x -= 6;
   y += DISPLAY_CH_H * 2;
   this->drawPres(disp, x, y, common_data->bme_info->pres);
 
@@ -100,15 +100,23 @@ void MainMode::display(Display_t *disp, float fps) {
  *
  */
 void MainMode::drawTemp(Display_t *disp, int x, int y, float temp) {
-  disp->setCursor(x, y);
+  disp->setCursor(x, y + 1);
   disp->setTextSize(3);
-  disp->printf("%2.0f", temp);
+  disp->printf("%2d", int(temp));
+
+  disp->setCursor(x + DISPLAY_CH_W * 2 * 3 - 3, y + DISPLAY_CH_H * 2);
+  disp->setTextSize(1);
+  disp->printf(".");
+  
+  disp->setCursor(x + DISPLAY_CH_W * 2 * 3 + 3, y + DISPLAY_CH_H);
+  disp->setTextSize(2);
+  char buf[5];
+  sprintf(buf, "%4.1f", temp);
+  disp->printf("%c", buf[3]);
+
   disp->setCursor(x + DISPLAY_CH_W * 3 * 2, y);
   disp->setTextSize(1);
-  disp->printf("%cC ", (char)0xF8);
-  disp->setCursor(x + DISPLAY_CH_W * 2 * 3 - 5, y + DISPLAY_CH_H);
-  disp->setTextSize(2);
-  disp->printf(".%d", int((temp - int(temp))*10));
+  disp->printf("%cC", (char)247);
 } // MainMode::drawTemp()
 
 /**
@@ -118,7 +126,7 @@ void MainMode::drawHum(Display_t *disp, int x, int y, float hum) {
   disp->setCursor(x, y);
   disp->setTextSize(2);
   disp->printf("%2.0f", hum);
-  disp->setCursor(x + DISPLAY_CH_W * 2 * 2, y + DISPLAY_CH_H - 1);
+  disp->setCursor(x + DISPLAY_CH_W * 2 * 2 + 1, y + DISPLAY_CH_H - 1);
   disp->setTextSize(1);
   disp->printf("%%");  
 } // MainMode::drawHum()
@@ -131,7 +139,7 @@ void MainMode::drawPres(Display_t *disp, int x, int y, float pres) {
   disp->setTextSize(1);
   disp->printf("%4.0f", pres);
 
-  disp->setCursor(x + DISPLAY_CH_W * 4 + 3, y);
+  disp->setCursor(x + DISPLAY_CH_W * 4 + 2, y);
   disp->printf("hPa");
 } // MainMode::drawPres()
 
@@ -140,12 +148,13 @@ void MainMode::drawPres(Display_t *disp, int x, int y, float pres) {
  */
 void MainMode::drawThi(Display_t *disp, int x, int y, float thi) {
   disp->setCursor(x, y);
+  disp->setTextSize(1);
+  disp->printf("THI");
+
+  disp->setCursor(x, y + DISPLAY_CH_H + 1);
   disp->setTextSize(2);
   disp->printf("%2.0f", thi);
 
-  disp->setCursor(x, y + DISPLAY_CH_H * 2);
-  disp->setTextSize(1);
-  disp->printf(" THI");
 } // MainMode::drawThi()
 
 /**
@@ -188,9 +197,12 @@ void MainMode::drawNtp(Display_t *disp, int x, int y,
     ntp_stat_str = "x";
   }
 
-  x = DISPLAY_W - DISPLAY_CH_W * 2;
-  y = 30;
+  x = DISPLAY_W - DISPLAY_CH_W * 3;
+  y = 27;
   disp->setCursor(x, y);
+  disp->setTextSize(1);
+  disp->printf("NTP");
+  disp->setCursor(x + DISPLAY_CH_W, y + DISPLAY_CH_H - 1);
   disp->setTextSize(2);
   disp->printf("%s", ntp_stat_str.c_str());
 } // MainMode::drawNtp()  
@@ -201,10 +213,10 @@ void MainMode::drawNtp(Display_t *disp, int x, int y,
 void MainMode::drawDateTime(Display_t *disp, int x, int y, struct tm *ti) {
   int mon_x = x - 2;
   int mon_y = y;
-  int hour_x = mon_x + DISPLAY_CH_W * 2 * 5 + 1;
-  int hour_y = mon_y + 1;
-  int sec_x = x + 53;
-  int sec_y = y + 18;
+  int hour_x = mon_x + DISPLAY_CH_W * 2 * 5 - 1;
+  int hour_y = mon_y;
+  int sec_x = x + 52;
+  int sec_y = y + 17;
 
 
   int x1 = mon_x + DISPLAY_CH_W * 2 * 2;
@@ -242,6 +254,7 @@ void MainMode::drawDateTime(Display_t *disp, int x, int y, struct tm *ti) {
   disp->setTextSize(2);
   disp->printf("%-2d", ti->tm_mday);
 
+  x -= 10;
   y += DISPLAY_CH_H * 2;
   disp->setCursor(x, y);
   disp->setTextSize(1);

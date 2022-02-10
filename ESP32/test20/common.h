@@ -5,13 +5,12 @@
 #define _COMMON_H_
 
 #include <vector>
-#include <stack> // XXX
+// #include <stack> // XXX
 #include <esp32-hal-log.h>
 
 #include "Esp32NetMgrTask.h"
 #include "Esp32NtpTask.h"
 #include "Esp32Bme280.h"
-#include "Bme280Setup.h"
 
 typedef enum {
               MODE_MAIN,
@@ -21,13 +20,13 @@ typedef enum {
               MODE_SET_WIFI,
               MODE_N
 } Mode_t;
-static const String MODE_T_STR[]
+static const char *MODE_T_STR[]
 = {"MAIN", "MENU", "RESTART", "SET_TEMP_OFFSET", "SET_WIFI"};
 
 typedef struct {
   String msg;
   Mode_t cur_mode;
-  std::stack<Mode_t> mode_stack; // XXX
+  // std::stack<Mode_t> mode_stack; // XXX
   Esp32NetMgrInfo_t *netmgr_info;
   Esp32NtpTaskInfo_t *ntp_info;
   Esp32Bme280Info_t *bme_info;

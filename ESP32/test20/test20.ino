@@ -86,7 +86,7 @@ constexpr float TEMP_OFFSET = -1.0;
 Esp32Bme280 *Bme;
 
 // Timer
-constexpr TickType_t TIMER_INTERVAL = 60 * 1000; // tick == ms (?)
+constexpr TickType_t TIMER_INTERVAL = 10 * 1000; // tick == ms (?)
 Ticker timer1;
 
 // Menu
@@ -97,61 +97,20 @@ OledMenu *menuTop, *menuSub;
  */
 bool change_mode(Mode_t mode) {
   if ( ! Mode[_curMode]->exit() ) {
-    log_e("%s:exit(): failed", MODE_T_STR[_curMode].c_str());
+    log_e("%s:exit(): failed", MODE_T_STR[_curMode]);
     return false;
   }
 
   if ( ! Mode[mode]->enter(_curMode) ) {
-    log_e("%s:enter(): failed", MODE_T_STR[mode].c_str());
-    return false;
+    log_e("%s:enter(): failed", MODE_T_STR[mode]);
   }
 
   Mode_t prev_mode = _curMode;
   _curMode = mode;
   log_i("mode: %s ==> %s",
-        MODE_T_STR[prev_mode].c_str(),
-        MODE_T_STR[_curMode].c_str());
+        MODE_T_STR[prev_mode], MODE_T_STR[_curMode]);
   return true;
 } // change_mode()
-
-/** XXX NetMgrにトリガーをかける必要がある
- *
- */
-void menuFunc_wifiRestart() {
-  WiFi.disconnect(true);
-  WiFi.mode(WIFI_OFF);
-  delay(100);
-  
-  menuFunc_exitmenu();
-} // menuFunc_wifiRestart()
-
-/**
- *
- */
-void menuFunc_tempOffset() {
-  change_mode(MODE_SET_TEMP_OFFSET);
-} // menuFunc_tempOffset()
-
-/**
- *
- */
-void menuFunc_exitmenu() {
-  OledMenu_curMenu = menuTop;
-  change_mode(MODE_MAIN);
-} // menuFunc_exitmenu()
-
-/**
- *
- */
-void menuFunc_reboot() {
-  log_w("restart..");
-  commonData.msg = "clear";
-  delay(500);
-
-  //ESP.restart();
-  ESP.deepSleep(500);
-  delay(100);
-} // menuFunc_reboot()
 
 /**
  *
@@ -184,19 +143,9 @@ void do_restart() {
 /**
  *
  */
-void menuRe_cb(Esp32RotaryEncoderInfo_t *re_info) {
-  if ( re_info->d_angle > 0 ) {
-    OledMenu_curMenu->cursor_up();
-  } else  if ( re_info->d_angle < 0 ) {
-    OledMenu_curMenu->cursor_down();
-  }
-} // menuRe_cb()
-
-/**
- *
- */
 void ntp_cb(Esp32NtpTaskInfo_t *ntp_info) {
-  log_i("sntp_stat=%d", ntp_info->sntp_stat);
+  log_i("sntp_stat=%s(%d)",
+        SNTP_SYNC_STATUS_STR[ntp_info->sntp_stat], ntp_info->sntp_stat);
   
   ntpInfo = *ntp_info;
 } // ntp_cb()
@@ -208,10 +157,19 @@ void ntp_cb(Esp32NtpTaskInfo_t *ntp_info) {
  */
 void timer1_cb() {
   TickType_t tick1 = xTaskGetTickCount();
-  log_i("[%s] timer test: start(priority=%d)",
+  log_d("[%s] timer test: start(priority=%d)",
         Esp32NtpTask::get_time_str(), uxTaskPriorityGet(NULL));
 
-  delay(TIMER_INTERVAL / 2);
+  commonData.bme_info = Bme->get();
+  float temp_offset = Bme->get_temp_offset();
+  log_i("%s: Bme->get(): %.2f(%.1f), %.1f, %.1f, %.1f",
+        Esp32NtpTask::get_time_str(),
+        commonData.bme_info->temp, temp_offset,
+        commonData.bme_info->hum,
+        commonData.bme_info->pres,
+        commonData.bme_info->thi);
+
+  //  delay(TIMER_INTERVAL / 2);
 
   TickType_t tick2 = xTaskGetTickCount();
   TickType_t d_tick = tick2 - tick1;
@@ -320,8 +278,9 @@ void setup() {
   // BME280
   Bme = new Esp32Bme280(BME280_ADDR, TEMP_OFFSET);
   commonData.bme_info = Bme->get();
-  log_i("%f,%f,%f,%f",
-        commonData.bme_info->temp,
+  float temp_offset = Bme->get_temp_offset();
+  log_i("%.1f(%.1f), %.1f, %.1f, %.1f",
+        commonData.bme_info->temp, temp_offset,
         commonData.bme_info->hum,
         commonData.bme_info->pres,
         commonData.bme_info->thi);
@@ -403,8 +362,16 @@ void loop() {
   prev_ms = cur_ms;
 
   float fps = 0.0;
+  static float min_fps = 10000.0;
+  static unsigned long min_fps_ms = millis();
   if ( d_ms != 0 ) {
     fps = 1000.0 / (float)d_ms;
+    if ( fps < min_fps ) {
+      min_fps = fps;
+      min_fps_ms = cur_ms;
+    } else if ( cur_ms - min_fps_ms > 3000 ) {
+      min_fps = fps;
+    }
   }
 
   Disp->clearDisplay();
@@ -425,8 +392,8 @@ void loop() {
     return;
   }
 
-  Mode[_curMode]->display(Disp, fps);
+  Mode[_curMode]->display(Disp, min_fps);
 
   Disp->display();
   delay(1);
-}
+} // loop()

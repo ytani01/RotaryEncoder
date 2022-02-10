@@ -14,16 +14,25 @@ constexpr int MENU_ENT_TEXT_SIZE = 1;
 
 static constexpr int TITLE_LEN = 16;
 
-typedef enum {
-              OLED_MENU_ENT_TYPE_FUNC,
-              OLED_MENU_ENT_TYPE_MENU,
-              OLED_MENU_ENT_TYPE_MODE,
-              OLED_MENU_ENT_TYPE_NULL,
-              OLED_MENU_ENT_TYPE_N
-} OledMenuEntType_t;
-const String OLED_MENU_ENT_TYPE_STR[] = {"FUNC", "MENU", "MODE", "NULL"};
-
 class OledMenu; // 不完全型: OledMenuEntからの相互参照のために必要
+
+typedef enum {
+              OLED_MENU_DST_TYPE_FUNC,
+              OLED_MENU_DST_TYPE_MENU,
+              OLED_MENU_DST_TYPE_MODE,
+              OLED_MENU_DST_TYPE_NULL
+} OledMenuDstType_t;
+static const char *OLED_MENU_DST_TYPE_STR[] = {"FUNC", "MENU", "MODE", "NULL"};
+
+typedef struct {
+  OledMenuDstType_t type;
+  union {
+    void (*func)(void *param);
+    OledMenu *menu;
+    Mode_t mode;
+  } obj;
+  void *param;
+} OledMenuDst_t;
 
 extern OledMenu *OledMenu_curMenu;
 
@@ -33,15 +42,10 @@ extern OledMenu *OledMenu_curMenu;
 class OledMenuEnt {
 public:
   String title;
-  OledMenuEntType_t type;
-  union {
-    void (*func)();
-    OledMenu *menu;
-    Mode_t mode;
-  } dst;
+  OledMenuDst_t dst;
 
   OledMenuEnt(String title);
-  OledMenuEnt(String title, void (*func)());
+  OledMenuEnt(String title, void (*func)(void *param), void *func_param);
   OledMenuEnt(String title, OledMenu *menu);
   OledMenuEnt(String title, Mode_t mode);
 
@@ -66,7 +70,7 @@ public:
   int addEnt(OledMenuEnt *ment);
   int change_text_size(int text_size=0);
 
-  OledMenu* select();
+  OledMenuDst_t select();
   void cursor_up();
   void cursor_down();
 

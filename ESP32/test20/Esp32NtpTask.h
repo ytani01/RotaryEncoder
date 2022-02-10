@@ -8,6 +8,8 @@
 #include "Esp32Task.h"
 #include "Esp32NetMgrTask.h"
 
+static const char *SNTP_SYNC_STATUS_STR[] = {"RESET", "COMPLETED", "IN_PROGRESS"};
+
 typedef struct {
   sntp_sync_status_t sntp_stat;
 } Esp32NtpTaskInfo_t;
