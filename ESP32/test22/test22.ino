@@ -264,8 +264,9 @@ void menu_cb(String text) {
     do_restart();
   }
 
-  if ( text = "clear_ssid" ) {
+  if ( text == "clear_ssid" ) {
     netMgrTask->clear_ssid();
+    netMgrTask->restart_wifi();
     change_mode(MODE_MAIN);
     return;
   }

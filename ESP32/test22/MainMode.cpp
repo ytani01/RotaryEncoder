@@ -52,10 +52,11 @@ void MainMode::display(Display_t *disp, float fps) {
   disp->setTextWrap(false);
   disp->setTextColor(WHITE, BLACK);
   
+  // frame
   disp->drawFastHLine(0, 25, DISPLAY_W - 1, WHITE);
   disp->drawFastHLine(0, 53, DISPLAY_W - DISPLAY_CH_W * 5, WHITE);
 
-
+  // Temp, Hum, Pres, Thi
   x = 0;
   y = 0;
   this->drawTemp(disp, x, y, common_data->bme_info->temp);
@@ -71,23 +72,27 @@ void MainMode::display(Display_t *disp, float fps) {
   y = 0;
   this->drawThi(disp, x, y, common_data->bme_info->thi);
 
+  // Date/Time
   time_t t_now = time(NULL);
   struct tm *ti = localtime(&t_now);
   x = 0;
   y = 28;
   this->drawDateTime(disp, x, y, ti);
 
+  // NTP
   x = DISPLAY_W - DISPLAY_CH_W * 2;
   y = 30;
   this->drawNtp(disp, x, y,
                 common_data->ntp_info,
                 common_data->netmgr_info);
 
+  // WiFi
   x = 0;
   y = DISPLAY_H - DISPLAY_CH_H;
   this->drawWiFi(disp, x, y, common_data->netmgr_info);
 
 
+  // fps
   x = DISPLAY_W - DISPLAY_CH_W * 4;
   y = DISPLAY_H - DISPLAY_CH_H - 4;
   disp->fillRect(x-1, y, DISPLAY_CH_W * 4, DISPLAY_CH_H, BLACK);
@@ -184,7 +189,7 @@ void MainMode::drawWiFi(Display_t *disp, int x, int y, Esp32NetMgrInfo_t *ni) {
   } else if ( ni->mode == NETMGR_MODE_AP_LOOP ) {
     disp->printf("AP:%s", ni->ssid.c_str());
   } else {
-    disp->printf("WiFi..");
+    disp->printf("==>%s..", ni->ssid.c_str());
   }  
 } // MainMode::drawWiFi()
 

@@ -40,9 +40,10 @@ void MenuMode::setup() {
   this->topMenu->addEnt(ment_menu_sub);
   this->topMenu->addEnt(ment_mode_sto);
   this->topMenu->addEnt(ment_line);
-  this->topMenu->addEnt(ment_text_clear_ssid);
   this->topMenu->addEnt(ment_text_restart_wifi);
   this->topMenu->addEnt(ment_text_reboot);
+  this->topMenu->addEnt(ment_line);
+  this->topMenu->addEnt(ment_text_clear_ssid);
 
   this->subMenu->addEnt(ment_menu_top);
   this->subMenu->addEnt(ment_mode_main);

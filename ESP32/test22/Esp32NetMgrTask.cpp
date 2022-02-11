@@ -30,7 +30,6 @@ void Esp32NetMgrTask::restart_wifi() {
 void Esp32NetMgrTask::clear_ssid() {
   log_i("");
   this->netMgr->save_ssid("", "");
-  this->restart_wifi();
 } // Esp32NetMgrTask::clear_ssid()
 
 /**
