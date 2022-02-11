@@ -25,7 +25,7 @@ public:
   virtual void display(Display_t *disp, float fps);
 
 protected:
-  OledMenu *topMenu, *subMenu;
+  OledMenu *topMenu, *clockMenu, *thermometerMenu, *wifiMenu, *systemMenu;
   OledMenu *curMenu;
   void (*cb)(String text) = NULL;
 }; // class MenuMode

@@ -72,8 +72,12 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
 
     WiFi.begin(ssid.c_str(), ssid_pw.c_str());
     delay(100);
-    this->cur_mode = NETMGR_MODE_TRY_WIFI;
     this->_loop_count = 0;
+    this->cur_mode = NETMGR_MODE_TRY_WIFI;
+
+    if ( ssid == "" ) {
+      this->cur_mode = NETMGR_MODE_AP_INIT;
+    }
     break;
 
   case NETMGR_MODE_TRY_WIFI:

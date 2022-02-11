@@ -241,7 +241,7 @@ void OledMenu::display(Display_t *disp) {
     if ( i == this->cur_ent ) {
       disp->setTextColor(BLACK, WHITE);
     }
-    disp->printf(" %-16s\n", this->ent[i].title_str());
+    disp->printf("%-16s\n", this->ent[i].title_str());
     disp->setTextColor(WHITE, BLACK);
   } // for (i)
   

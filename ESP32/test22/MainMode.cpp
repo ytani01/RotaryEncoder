@@ -203,7 +203,7 @@ void MainMode::drawNtp(Display_t *disp, int x, int y,
 
   switch ( ntp_info->sntp_stat ) {
   case SNTP_SYNC_STATUS_RESET:
-    ntp_stat_str = "!";
+    ntp_stat_str = "*";
     break;
   case SNTP_SYNC_STATUS_IN_PROGRESS:
     ntp_stat_str = "~";
