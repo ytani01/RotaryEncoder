@@ -12,6 +12,7 @@
 #include "MainMode.h"
 #include "MenuMode.h"
 #include "RestartMode.h"
+#include "SetTempOffsetMode.h"
 
 #include "Esp32ButtonTask.h"
 #include "Esp32RotaryEncoderTask.h"
@@ -25,6 +26,7 @@ std::vector<ModeBase *> Mode;
 MainMode *mainMode;
 MenuMode *menuMode;
 RestartMode *restartMode;
+SetTempOffsetMode *setTempOffsetMode;
 
 // common data
 CommonData_t commonData;
@@ -354,12 +356,14 @@ void setup() {
   Mode.push_back(menuMode);
   restartMode = new RestartMode("RestartMode", &commonData);
   Mode.push_back(restartMode);
+  setTempOffsetMode = new SetTempOffsetMode("SetTempOffsetMode", &commonData);
+  Mode.push_back(setTempOffsetMode);
 
   for (int i=0; i < Mode.size(); i++) {
     log_i("%d:%s", i, Mode[i]->get_name().c_str());
     Mode[i]->setup();
   }
-  change_mode(MODE_MAIN);  
+  change_mode(MODE_MAIN); 
 } // setup()
 
 /**

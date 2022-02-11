@@ -6,7 +6,7 @@
 
 #include "ModeBase.h"
 
-/**
+/** constructor
  *
  */
 class MainMode: public ModeBase {
