@@ -90,15 +90,6 @@ void MainMode::display(Display_t *disp, float fps) {
   x = 0;
   y = DISPLAY_H - DISPLAY_CH_H;
   this->drawWiFi(disp, x, y, common_data->netmgr_info);
-
-
-  // fps
-  x = DISPLAY_W - DISPLAY_CH_W * 4;
-  y = DISPLAY_H - DISPLAY_CH_H - 4;
-  disp->fillRect(x-1, y, DISPLAY_CH_W * 4, DISPLAY_CH_H, BLACK);
-  disp->setCursor(x, y);
-  disp->setTextSize(1);
-  disp->printf("%.1f", fps);
 } // MainMode::display()
 
 /**

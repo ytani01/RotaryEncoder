@@ -215,7 +215,7 @@ void OledMenu::cursor_down() {
  *
  */
 void OledMenu::display(Display_t *disp) {
-  disp->clearDisplay();
+  //disp->clearDisplay();
   disp->setCursor(0,0);
   disp->setTextWrap(false);
   
@@ -245,5 +245,5 @@ void OledMenu::display(Display_t *disp) {
     disp->setTextColor(WHITE, BLACK);
   } // for (i)
   
-  disp->display();
+  //disp->display();
 } // OledMenu::display()

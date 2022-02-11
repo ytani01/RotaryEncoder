@@ -383,7 +383,7 @@ void loop() {
   prev_ms = cur_ms;
 
   float fps = 0.0;
-  static float min_fps = 10000.0;
+  static float min_fps = 99999.9;
   static unsigned long min_fps_ms = millis();
   if ( d_ms != 0 ) {
     fps = 1000.0 / (float)d_ms;
@@ -414,6 +414,17 @@ void loop() {
   }
 
   Mode[_curMode]->display(Disp, min_fps);
+
+  Disp->setTextColor(WHITE, BLACK);
+  
+  // fps
+  int x, y;
+  x = DISPLAY_W - DISPLAY_CH_W * 7;
+  y = DISPLAY_H - DISPLAY_CH_H - 4;
+  Disp->fillRect(x - 1, y - 1, DISPLAY_CH_W * 7, DISPLAY_CH_H + 1, BLACK);
+  Disp->setCursor(x, y);
+  Disp->setTextSize(1);
+  Disp->printf("%.1ffps", fps);
 
   Disp->display();
   delay(1);
