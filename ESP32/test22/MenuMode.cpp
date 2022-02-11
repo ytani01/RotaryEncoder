@@ -27,6 +27,8 @@ void MenuMode::setup() {
   OledMenuEnt *ment_menu_top = new OledMenuEnt(" < Top Menu", topMenu);
   OledMenuEnt *ment_menu_sub = new OledMenuEnt(" > Sub Menu", subMenu);
 
+  OledMenuEnt *ment_text_clear_ssid = new OledMenuEnt(" @ clear SSID",
+                                                      "clear_ssid");
   OledMenuEnt *ment_text_restart_wifi = new OledMenuEnt(" @ restart WiFi",
                                                         "restart_wifi");
   OledMenuEnt *ment_text_reboot = new OledMenuEnt("!@ reboot", "reboot");
@@ -37,7 +39,8 @@ void MenuMode::setup() {
   this->topMenu->addEnt(ment_mode_main);
   this->topMenu->addEnt(ment_menu_sub);
   this->topMenu->addEnt(ment_mode_sto);
-  this->topMenu->addEnt(ment_line);  
+  this->topMenu->addEnt(ment_line);
+  this->topMenu->addEnt(ment_text_clear_ssid);
   this->topMenu->addEnt(ment_text_restart_wifi);
   this->topMenu->addEnt(ment_text_reboot);
 

@@ -88,9 +88,10 @@ public:
   Esp32NetMgr(String ap_ssid_hdr, unsigned int try_count_max=DEF_TRY_COUNT_MAX);
   Esp32NetMgrMode_t loop();
 
+  void save_ssid(String ssid, String pw);
   void restart();
   String get_mac_addr_String();
-  void set_ssid(String ssid="");
+  //  void set_ssid(String ssid="");
   
 protected:
   static WebServer web_svr;

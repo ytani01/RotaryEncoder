@@ -27,6 +27,7 @@ class Esp32NetMgrTask: public Esp32Task {
                   unsigned long wifi_try_count=Esp32NetMgr::DEF_TRY_COUNT_MAX);
 
   void restart_wifi();
+  void clear_ssid();
 
  protected:
   Esp32NetMgrInfo_t *netmgr_info;

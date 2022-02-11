@@ -27,6 +27,15 @@ void Esp32NetMgrTask::restart_wifi() {
 /**
  *
  */
+void Esp32NetMgrTask::clear_ssid() {
+  log_i("");
+  this->netMgr->save_ssid("", "");
+  this->restart_wifi();
+} // Esp32NetMgrTask::clear_ssid()
+
+/**
+ *
+ */
 void Esp32NetMgrTask::setup() {
   log_d("%s", this->conf.name);
   this->netMgr = new Esp32NetMgr(this->ap_ssid_hdr, this->wifi_try_count);

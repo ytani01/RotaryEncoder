@@ -52,7 +52,6 @@ Mode_t SetTempOffsetMode::re_cb(Esp32RotaryEncoderInfo_t *ri) {
 void SetTempOffsetMode::display(Display_t *disp, float fps) {
   float temp = common_data->bme_info->temp;
   float temp_offset = common_data->bme_info->temp_offset;
-
   int x, y;
 
   x = 5;

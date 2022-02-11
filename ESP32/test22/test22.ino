@@ -264,6 +264,12 @@ void menu_cb(String text) {
     do_restart();
   }
 
+  if ( text = "clear_ssid" ) {
+    netMgrTask->clear_ssid();
+    change_mode(MODE_MAIN);
+    return;
+  }
+
   if ( text == "restart_wifi" ) {
     netMgrTask->restart_wifi();
     change_mode(MODE_MAIN);

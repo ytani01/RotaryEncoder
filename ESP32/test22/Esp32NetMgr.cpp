@@ -11,7 +11,7 @@ unsigned int Esp32NetMgr::ssidN = 0;
 SSIDent Esp32NetMgr::ssidEnt[Esp32NetMgr::SSID_N_MAX];
 WebServer Esp32NetMgr::web_svr(WEBSVR_PORT);
 
-/**
+/** constructor
  *
  */
 Esp32NetMgr::Esp32NetMgr(String ap_ssid_hdr, unsigned int try_count_max) {
@@ -206,6 +206,33 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
 /** public
  *
  */
+void Esp32NetMgr::save_ssid(String ssid, String ssid_pw) {
+  log_i("save_ssid> |%s|%s|", ssid.c_str(), ssid_pw.c_str());
+
+  ConfWifi conf_data;
+
+  conf_data.ssid = ssid;
+  conf_data.ssid_pw = ssid_pw;
+  conf_data.print();
+ 
+  conf_data.save();
+} // Esp32NetMgr::save_ssid()
+
+/**
+ *
+ */
+String Esp32NetMgr::get_mac_addr_String() {
+  char buf[13];
+  sprintf(buf, "%02X%02X%02X%02X%02X%02X",
+          this->mac_addr[0], this->mac_addr[1], this->mac_addr[2],
+          this->mac_addr[3], this->mac_addr[4], this->mac_addr[5]);
+
+  return String(buf);
+} // Esp32NetMgr::get_mac_addr_String()
+
+/**
+ *
+ */
 void Esp32NetMgr::restart() {
   log_i("cur_mode=%s", ESP32_NETMGR_MODE_STR[this->cur_mode]);
   this->restart_flag = true;
@@ -288,6 +315,9 @@ String Esp32NetMgr::html_header(String title) {
   return html;
 } // Esp32NetMgr::handle_header()
 
+/**
+ *
+ */
 String Esp32NetMgr::html_footer() {
   String html = "";
   html += "</body>";
@@ -295,11 +325,17 @@ String Esp32NetMgr::html_footer() {
   return html;
 } // Esp32NetMgr::html_footer();
 
+/**
+ *
+ */
 void Esp32NetMgr::async_scan_ssid_start() {
   log_i("Esp32NetMgr::async_scan_ssid_start> ..");
   WiFi.scanNetworks(true);
 } // Esp32NetMgr::async_scan_ssid_start()
 
+/**
+ *
+ */
 unsigned int Esp32NetMgr::async_scan_ssid_wait(SSIDent ssid_ent[]) {
   int16_t ret;
 
@@ -376,6 +412,9 @@ void Esp32NetMgr::handle_top() {
   web_svr.send(200, "text/html", html);
 } // Esp32NetMgr::handle_top()
 
+/**
+ *
+ */
 void Esp32NetMgr::handle_select_ssid() {
   ConfWifi conf_data;
   String   ssid, ssid_pw;
@@ -447,6 +486,9 @@ void Esp32NetMgr::handle_select_ssid() {
   web_svr.send(200, "text/html", html);
 } // Esp32NetMgr::handle_select_ssid()
 
+/**
+ *
+ */
 void Esp32NetMgr::handle_save_ssid(){
   ConfWifi conf_data;
   String ssid = web_svr.arg("ssid");
@@ -507,15 +549,3 @@ void Esp32NetMgr::handle_do_reboot() {
   delay(2000);
   ESP.restart();
 } // Esp32NetMgr::handle_do_reboot()
-
-/**
- *
- */
-String Esp32NetMgr::get_mac_addr_String() {
-  char buf[13];
-  sprintf(buf, "%02X%02X%02X%02X%02X%02X",
-          this->mac_addr[0], this->mac_addr[1], this->mac_addr[2],
-          this->mac_addr[3], this->mac_addr[4], this->mac_addr[5]);
-
-  return String(buf);
-} // Esp32NetMgr::get_mac_addr_String()
