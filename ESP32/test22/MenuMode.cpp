@@ -51,7 +51,8 @@ bool MenuMode::enter(Mode_t prev_mode) {
   ModeBase::enter(prev_mode);
 
   if ( prev_mode == MODE_MAIN ) {
-    this->setup();
+    this->curMenu = this->topMenu;
+    this->curMenu->init();
   }
   
   return true;

@@ -100,6 +100,14 @@ void MainMode::display(Display_t *disp, float fps) {
  *
  */
 void MainMode::drawTemp(Display_t *disp, int x, int y, float temp) {
+  disp->setCursor(x + DISPLAY_CH_W * 3 * 2, y);
+  disp->setTextSize(1);
+  disp->printf("%cC", (char)247);
+
+  if ( isnan(temp) ) {
+    return;
+  }
+
   disp->setCursor(x, y + 1);
   disp->setTextSize(3);
   disp->printf("%2d", int(temp));
@@ -113,34 +121,39 @@ void MainMode::drawTemp(Display_t *disp, int x, int y, float temp) {
   char buf[5];
   sprintf(buf, "%4.1f", temp);
   disp->printf("%c", buf[3]);
-
-  disp->setCursor(x + DISPLAY_CH_W * 3 * 2, y);
-  disp->setTextSize(1);
-  disp->printf("%cC", (char)247);
 } // MainMode::drawTemp()
 
 /**
  *
  */
 void MainMode::drawHum(Display_t *disp, int x, int y, float hum) {
-  disp->setCursor(x, y);
-  disp->setTextSize(2);
-  disp->printf("%2.0f", hum);
   disp->setCursor(x + DISPLAY_CH_W * 2 * 2 + 1, y + DISPLAY_CH_H - 1);
   disp->setTextSize(1);
   disp->printf("%%");  
+
+  if ( isnan(hum) ) {
+    return;
+  }
+
+  disp->setCursor(x, y);
+  disp->setTextSize(2);
+  disp->printf("%2.0f", hum);
 } // MainMode::drawHum()
 
 /**
  *
  */
 void MainMode::drawPres(Display_t *disp, int x, int y, float pres) {
-  disp->setCursor(x, y);
-  disp->setTextSize(1);
-  disp->printf("%4.0f", pres);
-
   disp->setCursor(x + DISPLAY_CH_W * 4 + 2, y);
+  disp->setTextSize(1);
   disp->printf("hPa");
+
+  if ( isnan(pres) ) {
+    return;
+  }
+
+  disp->setCursor(x, y);
+  disp->printf("%4.0f", pres);
 } // MainMode::drawPres()
 
 /**
@@ -151,10 +164,13 @@ void MainMode::drawThi(Display_t *disp, int x, int y, float thi) {
   disp->setTextSize(1);
   disp->printf("THI");
 
+  if ( isnan(thi) ) {
+    return;
+  }
+
   disp->setCursor(x, y + DISPLAY_CH_H + 1);
   disp->setTextSize(2);
   disp->printf("%2.0f", thi);
-
 } // MainMode::drawThi()
 
 /**
