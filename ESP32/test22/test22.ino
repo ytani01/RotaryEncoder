@@ -382,19 +382,6 @@ void loop() {
   int d_ms = cur_ms - prev_ms;
   prev_ms = cur_ms;
 
-  float fps = 0.0;
-  static float min_fps = 99999.9;
-  static unsigned long min_fps_ms = millis();
-  if ( d_ms != 0 ) {
-    fps = 1000.0 / (float)d_ms;
-    if ( fps < min_fps ) {
-      min_fps = fps;
-      min_fps_ms = cur_ms;
-    } else if ( cur_ms - min_fps_ms > 3000 ) {
-      min_fps = fps;
-    }
-  }
-
   Disp->clearDisplay();
   
   if ( commonData.msg.length() > 0 ) {
@@ -413,18 +400,31 @@ void loop() {
     return;
   }
 
-  Mode[_curMode]->display(Disp, min_fps);
+  Mode[_curMode]->display(Disp);
 
   Disp->setTextColor(WHITE, BLACK);
   
   // fps
+  float fps = 0.0;
+  static float min_fps = 99999.9;
+  static unsigned long min_fps_ms = millis();
+  if ( d_ms != 0 ) {
+    fps = 1000.0 / (float)d_ms;
+    if ( fps < min_fps ) {
+      min_fps = fps;
+      min_fps_ms = cur_ms;
+    } else if ( cur_ms - min_fps_ms > 3000 ) {
+      min_fps = fps;
+    }
+  }
+
   int x, y;
   x = DISPLAY_W - DISPLAY_CH_W * 7;
   y = DISPLAY_H - DISPLAY_CH_H - 4;
   Disp->fillRect(x - 1, y - 1, DISPLAY_CH_W * 7, DISPLAY_CH_H + 1, BLACK);
   Disp->setCursor(x, y);
   Disp->setTextSize(1);
-  Disp->printf("%.1ffps", fps);
+  Disp->printf("%.1ffps", min_fps);
 
   Disp->display();
   delay(1);
