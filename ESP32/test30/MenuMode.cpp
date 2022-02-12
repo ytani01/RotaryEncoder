@@ -92,7 +92,7 @@ Mode_t MenuMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
   Mode_t dst_mode = MODE_N;
 
   if ( bi->click_count == 0 ) {
-    return dst_mode;
+    return MODE_N;
   }
 
   if ( bi->click_count > 1 ) {

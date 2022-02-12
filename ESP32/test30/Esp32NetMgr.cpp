@@ -196,12 +196,13 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
     break;
   } // switch
 
-  if ( this->cur_mode == NETMGR_MODE_WIFI_ON ) {
+  if ( this->cur_mode == NETMGR_MODE_WIFI_ON
+       || this->cur_mode == NETMGR_MODE_TRY_WIFI ) {
     this->cur_ssid = ssid;
   } else {
     this->cur_ssid = "";
   }
-  this->cur_ssid = ssid;
+  //this->cur_ssid = ssid;
 
   //delay(1);
   return this->cur_mode;

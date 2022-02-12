@@ -19,6 +19,8 @@
 #include "Esp32NetMgrTask.h"
 #include "Esp32NtpTask.h"
 
+#include "ConfBase.h"
+
 // Modes
 #define _curMode commonData.cur_mode
 
@@ -290,6 +292,17 @@ void setup() {
   Serial.println("===== start =====");
   log_i("portTICK_PERIOD_MS=%d", portTICK_PERIOD_MS);
 
+  // XXX test
+  ConfBase *f1 = new ConfBase("/test");
+  int ret;
+  ret = f1->save();
+  log_i("f1->save(): %d", ret);
+  ret = f1->load();
+  log_i("f1->load(): %d", ret);
+
+  f1 = new ConfBase("/wifi.txt");
+  f1->load();
+  
   // init commonData
   commonData.netmgr_info = &netMgrInfo;
   commonData.ntp_info = &ntpInfo;

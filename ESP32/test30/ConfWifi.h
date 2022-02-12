@@ -15,7 +15,6 @@ class ConfWifi {
  public:
   String ssid = "";
   String ssid_pw = "";
-  String ntp_svr[3];
 
   ConfWifi();
 
