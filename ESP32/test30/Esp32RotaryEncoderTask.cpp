@@ -59,12 +59,14 @@ portBASE_TYPE Esp32RotaryEncoderTask::put() {
 /**
  *
  */
-portBASE_TYPE Esp32RotaryEncoderTask::get(Esp32RotaryEncoderInfo_t *re_info) {
-  portBASE_TYPE ret = xQueueReceive(this->_out_que, (void *)re_info, 1000);
+Esp32RotaryEncoderInfo_t *Esp32RotaryEncoderTask::get() {
+  Esp32RotaryEncoderInfo_t re_info;
+  portBASE_TYPE ret = xQueueReceive(this->_out_que, (void *)&re_info, 1000);
   if ( ret == pdPASS ) {
     log_d("que > %s", Esp32RotaryEncoder::info2String(re_info).c_str());
+    return &re_info;
   }
-  return ret;
+  return (Esp32RotaryEncoderInfo_t *)NULL;
 } // Esp32RotaryEncoderTask::get()
 
 /**
@@ -100,15 +102,12 @@ static void _re_cb(Esp32RotaryEncoderInfo_t *re_info) {
 /**
  *
  */
-Esp32RotaryEncoderWatcher::
-Esp32RotaryEncoderWatcher(String re_name,
-                          uint8_t pin_dt, uint8_t pin_clk,
-                          Esp32RotaryEncoderAngle_t angle_max,
-                          pcnt_ctrl_mode_t lctrl_mode,
-                          void (*cb)(Esp32RotaryEncoderInfo_t *re_info),
-                          uint32_t stack_size,
-                          UBaseType_t priority,
-                          UBaseType_t core):
+Esp32RotaryEncoderWatcher::Esp32RotaryEncoderWatcher
+(String re_name, uint8_t pin_dt, uint8_t pin_clk,
+ Esp32RotaryEncoderAngle_t angle_max,
+ pcnt_ctrl_mode_t lctrl_mode,
+ void (*cb)(Esp32RotaryEncoderInfo_t *re_info),
+ uint32_t stack_size, UBaseType_t priority, UBaseType_t core):
   Esp32Task(re_name + "Watcher", stack_size, priority, core) {
 
   this->_re_name = re_name;
@@ -134,17 +133,19 @@ Esp32RotaryEncoderWatcher(String re_name,
 Esp32RotaryEncoderInfo_t *Esp32RotaryEncoderWatcher::get_re_info() {
   return &(this->_re_task->re->info);
 } // Esp32RotaryEncoderWatcher::get_re_info()
+
 /**
  *
  */
 void Esp32RotaryEncoderWatcher::setup() {
-  this->_re_task = new Esp32RotaryEncoderTask(this->_re_name,
-                                              this->_pin_dt, this->_pin_clk,
-                                              this->_angle_max,
-                                              this->_lctrl_mode,
-                                              this->_stack_size,
-                                              this->_priority,
-                                              this->_core);
+  this->_re_task =
+    new Esp32RotaryEncoderTask(this->_re_name,
+                               this->_pin_dt, this->_pin_clk,
+                               this->_angle_max,
+                               this->_lctrl_mode,
+                               this->_stack_size,
+                               this->_priority,
+                               this->_core);
   this->_re_task->start();
 } // Esp32RotaryEncoderWatcher::setup()
 

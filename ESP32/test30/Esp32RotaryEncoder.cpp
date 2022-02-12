@@ -1,5 +1,9 @@
 /**
  * Copyright (c) 2022 Yoichi Tanibayashi
+ *
+ * [重要] angleのずれに対する対応
+ *   PCNTのカウンター値をそのままangleには使わない!
+ *   差分だけを利用する。
  */
 #include "Esp32RotaryEncoder.h"
 
@@ -59,7 +63,7 @@ Esp32RotaryEncoder::Esp32RotaryEncoder(String name,
 } // Esp32RotaryEncoder::Esp32RotaryEncoder()
 
 /**
- * angleのずれに対する対応
+ * [重要] angleのずれに対する対応
  *   PCNTのカウンター値をそのままangleには使わない!
  *   差分だけを利用する。
  */
@@ -118,7 +122,7 @@ void Esp32RotaryEncoder::resume() {
   pcnt_counter_resume(this->pcnt_unit);
 } // Esp32RotaryEncoder::resume()
 
-/**
+/** static
  *
  */
 String Esp32RotaryEncoder::info2String(Esp32RotaryEncoderInfo_t *info) {

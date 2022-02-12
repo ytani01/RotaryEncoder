@@ -59,7 +59,7 @@ class Esp32RotaryEncoderTask: public Esp32Task {
                          UBaseType_t priority=PRIORITY_DEF,
                          UBaseType_t core=CORE_DEF);
 
-  portBASE_TYPE get(Esp32RotaryEncoderInfo_t *re_info);
+  Esp32RotaryEncoderInfo_t *get();
 
  protected:
   QueueHandle_t _out_que;
