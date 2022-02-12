@@ -59,21 +59,19 @@ portBASE_TYPE Esp32RotaryEncoderTask::put() {
 /**
  *
  */
-Esp32RotaryEncoderInfo_t *Esp32RotaryEncoderTask::get() {
-  Esp32RotaryEncoderInfo_t re_info;
-  portBASE_TYPE ret = xQueueReceive(this->_out_que, (void *)&re_info, 1000);
+portBASE_TYPE Esp32RotaryEncoderTask::get(Esp32RotaryEncoderInfo_t *re_info) {
+  portBASE_TYPE ret = xQueueReceive(this->_out_que, (void *)re_info, 1000);
   if ( ret == pdPASS ) {
     log_d("que > %s", Esp32RotaryEncoder::info2String(re_info).c_str());
-    return &re_info;
   }
-  return (Esp32RotaryEncoderInfo_t *)NULL;
+  return ret;
 } // Esp32RotaryEncoderTask::get()
 
 /**
  *
  */
 void Esp32RotaryEncoderTask::setup() {
-  log_d("%s", this->re_name.c_str());
+  log_i("%s", this->re_name.c_str());
 
   // send initail data
   this->put();
@@ -92,7 +90,7 @@ void Esp32RotaryEncoderTask::loop() {
   this->put();
 } // Esp32RotaryEncoderTask::loop()
 
-/**
+/** static
  * defulat callback
  */
 static void _re_cb(Esp32RotaryEncoderInfo_t *re_info) {
@@ -102,12 +100,14 @@ static void _re_cb(Esp32RotaryEncoderInfo_t *re_info) {
 /**
  *
  */
-Esp32RotaryEncoderWatcher::Esp32RotaryEncoderWatcher
-(String re_name, uint8_t pin_dt, uint8_t pin_clk,
- Esp32RotaryEncoderAngle_t angle_max,
- pcnt_ctrl_mode_t lctrl_mode,
- void (*cb)(Esp32RotaryEncoderInfo_t *re_info),
- uint32_t stack_size, UBaseType_t priority, UBaseType_t core):
+Esp32RotaryEncoderWatcher::
+Esp32RotaryEncoderWatcher(String re_name,
+                          uint8_t pin_dt, uint8_t pin_clk,
+                          Esp32RotaryEncoderAngle_t angle_max,
+                          pcnt_ctrl_mode_t lctrl_mode,
+                          void (*cb)(Esp32RotaryEncoderInfo_t *re_info),
+                          uint32_t stack_size, UBaseType_t priority,
+                          UBaseType_t core):
   Esp32Task(re_name + "Watcher", stack_size, priority, core) {
 
   this->_re_name = re_name;
@@ -130,9 +130,9 @@ Esp32RotaryEncoderWatcher::Esp32RotaryEncoderWatcher
 /**
  *
  */
-Esp32RotaryEncoderInfo_t *Esp32RotaryEncoderWatcher::get_re_info() {
+Esp32RotaryEncoderInfo_t *Esp32RotaryEncoderWatcher::get_re_info_src() {
   return &(this->_re_task->re->info);
-} // Esp32RotaryEncoderWatcher::get_re_info()
+} // Esp32RotaryEncoderWatcher::get_re_info_src()
 
 /**
  *
@@ -160,6 +160,6 @@ void Esp32RotaryEncoderWatcher::loop() {
   Esp32RotaryEncoderInfo_t re_info;
   portBASE_TYPE ret = this->_re_task->get(&re_info);
   if ( ret == pdPASS ) {
-      (*(this->_cb))(&re_info);
+    (*(this->_cb))(&re_info); // callback
   }
 } // Esp32RotaryEncoderWatcher::loop()

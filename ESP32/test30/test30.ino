@@ -243,7 +243,7 @@ void re_cb(Esp32RotaryEncoderInfo_t *re_info) {
     log_w("d_angle=%d: ignored", re_info->d_angle);
 
     // XXX angleを戻す
-    Esp32RotaryEncoderInfo_t *re_info_src = reWatcher->get_re_info();
+    Esp32RotaryEncoderInfo_t *re_info_src = reWatcher->get_re_info_src();
     re_info_src->angle -= re_info->d_angle;
     return;
   }
