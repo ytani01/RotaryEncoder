@@ -16,9 +16,14 @@ class ConfBase {
 
   ConfBase(String file_name) {
     this->file_name = file_name;
+
+    if ( ! SPIFFS.begin(true) ) {
+        log_e("%s: SPIFFS mount failed", this->file_name.c_str());
+    }
   };
 
   virtual int load() {
+    // test code
     if ( this->open_read() < 0 ) {
       return -1;
     }
@@ -34,6 +39,7 @@ class ConfBase {
   };
   
   virtual int save() {
+    // test code
     if ( this->open_write() < 0 ) {
       return -1;
     }
@@ -54,9 +60,6 @@ class ConfBase {
   int open_read() {
     log_i("%s", this->file_name.c_str());
 
-    if ( ! SPIFFS.begin(true) ) {
-        log_e("%s: SPIFFS mount failed", this->file_name.c_str());
-    }
     this->file = SPIFFS.open(this->file_name.c_str(), "r");
     if ( ! this->file ) {
       log_e("%s: open failed", file_name.c_str());
@@ -69,9 +72,6 @@ class ConfBase {
   int open_write() {
     log_i("%s", this->file_name.c_str());
 
-    if ( ! SPIFFS.begin(true) ) {
-        log_e("%s: SPIFFS mount failed", this->file_name.c_str());
-    }
     this->file = SPIFFS.open(this->file_name.c_str(), "w");
     if ( ! this->file ) {
       log_e("%s: open failed", file_name.c_str());

@@ -62,7 +62,7 @@ public:
   static const int WEBSVR_PORT = 80;
 
   Esp32NetMgrMode_t cur_mode = NETMGR_MODE_START;
-  
+
   static String myName;
   static unsigned int ssidN;
   static SSIDent ssidEnt[SSID_N_MAX];
@@ -95,6 +95,7 @@ public:
   
 protected:
   static WebServer web_svr;
+ 
   unsigned int _loop_count = 0;
   bool restart_flag = false;
 

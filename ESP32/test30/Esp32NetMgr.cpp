@@ -3,6 +3,7 @@
  */
 #include "Esp32NetMgr.h"
 
+static ConfWifi *confData;
 /**
  * Initialize static variables
  */
@@ -37,6 +38,8 @@ Esp32NetMgr::Esp32NetMgr(String ap_ssid_hdr, unsigned int try_count_max) {
           this->mac_addr[0], this->mac_addr[1], this->mac_addr[2],
           this->mac_addr[3], this->mac_addr[4], this->mac_addr[5]);
   log_i("MacAddr=%s", mac_str);
+
+  confData = new ConfWifi;
 } // Esp32NetMgr::Esp32NetMgr()
 
 /**
@@ -44,7 +47,6 @@ Esp32NetMgr::Esp32NetMgr(String ap_ssid_hdr, unsigned int try_count_max) {
  */
 Esp32NetMgrMode_t Esp32NetMgr::loop() {
   static Esp32NetMgrMode_t prev_mode = NETMGR_MODE_NULL;
-  ConfWifi conf_data;
   static String ssid = "";
   static String ssid_pw = "";
 
@@ -65,9 +67,9 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
   case NETMGR_MODE_START:
     log_i("NETMGR_MODE_START");
 
-    conf_data.load();
-    ssid = conf_data.ssid;
-    ssid_pw = conf_data.ssid_pw;
+    confData->load();
+    ssid = confData->ssid;
+    ssid_pw = confData->ssid_pw;
     log_i("|%s|%s|", ssid.c_str(), ssid_pw.c_str());
 
     WiFi.begin(ssid.c_str(), ssid_pw.c_str());
@@ -204,6 +206,7 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
   }
   //this->cur_ssid = ssid;
 
+  //delete conf_data;
   //delay(1);
   return this->cur_mode;
 } // Esp32NetMgr::loop()
@@ -214,13 +217,11 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
 void Esp32NetMgr::save_ssid(String ssid, String ssid_pw) {
   log_i("save_ssid> |%s|%s|", ssid.c_str(), ssid_pw.c_str());
 
-  ConfWifi conf_data;
-
-  conf_data.ssid = ssid;
-  conf_data.ssid_pw = ssid_pw;
-  conf_data.print();
+  confData->ssid = ssid;
+  confData->ssid_pw = ssid_pw;
+  confData->print();
  
-  conf_data.save();
+  confData->save();
 } // Esp32NetMgr::save_ssid()
 
 /**
@@ -393,12 +394,11 @@ unsigned int Esp32NetMgr::scan_ssid(SSIDent ssid_ent[]) {
  *
  */
 void Esp32NetMgr::handle_top() {
-  ConfWifi conf_data;
   String   ssid, ssid_pw;
 
-  conf_data.load();
-  ssid = conf_data.ssid;
-  ssid_pw = conf_data.ssid_pw;
+  confData->load();
+  ssid = confData->ssid;
+  ssid_pw = confData->ssid_pw;
   
   log_i("ssid=%s, ssid_pw=%s", ssid.c_str(), ssid_pw.c_str());
 
@@ -421,13 +421,12 @@ void Esp32NetMgr::handle_top() {
  *
  */
 void Esp32NetMgr::handle_select_ssid() {
-  ConfWifi conf_data;
   String   ssid, ssid_pw;
   
 
-  conf_data.load();
-  ssid = conf_data.ssid;
-  ssid_pw = conf_data.ssid_pw;
+  confData->load();
+  ssid = confData->ssid;
+  ssid_pw = confData->ssid_pw;
   
   Esp32NetMgr::ssidN = Esp32NetMgr::async_scan_ssid_wait(Esp32NetMgr::ssidEnt);
   log_i("Esp32NetMgr::ssidN=%s", String(Esp32NetMgr::ssidN));
@@ -495,19 +494,18 @@ void Esp32NetMgr::handle_select_ssid() {
  *
  */
 void Esp32NetMgr::handle_save_ssid(){
-  ConfWifi conf_data;
   String ssid = web_svr.arg("ssid");
   String ssid_pw = web_svr.arg("passwd");
   
   log_i("save_ssid> |%s|%s|", ssid.c_str(), ssid_pw.c_str());
 
-  conf_data.ssid = ssid;
-  conf_data.ssid.trim();
-  conf_data.ssid_pw = ssid_pw;
-  conf_data.ssid_pw.trim();
-  conf_data.print();
+  confData->ssid = ssid;
+  confData->ssid.trim();
+  confData->ssid_pw = ssid_pw;
+  confData->ssid_pw.trim();
+  confData->print();
  
-  conf_data.save();
+  confData->save();
 
   // 自動転送
   web_svr.sendHeader("Location", String("/"), true);
