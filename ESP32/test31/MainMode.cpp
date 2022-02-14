@@ -49,22 +49,23 @@ Mode_t MainMode::re_cb(Esp32RotaryEncoderInfo_t *ri) {
 void MainMode::display(Display_t *disp) {
   int x, y;
 
+  //disp->drawRect(0,0, DISPLAY_W, DISPLAY_H, WHITE);
   disp->setTextWrap(false);
   disp->setTextColor(WHITE, BLACK);
   
   // frame
-  disp->drawFastHLine(0, 25, DISPLAY_W - 1, WHITE);
-  disp->drawFastHLine(0, 53, DISPLAY_W - 1, WHITE);
+  disp->drawFastHLine(0, 25, DISPLAY_W, WHITE);
+  disp->drawFastHLine(0, 54, DISPLAY_W, WHITE);
 
   // Temp, Hum, Pres, Thi
   x = 0;
   y = 0;
   this->drawTemp(disp, x, y, common_data->bme_info->temp);
 
-  x += 62;
+  x += 50;
   this->drawHum(disp, x, y, common_data->bme_info->hum);
 
-  x -= 6;
+  x -= 2;
   y += DISPLAY_CH_H * 2;
   this->drawPres(disp, x, y, common_data->bme_info->pres);
 
@@ -96,44 +97,51 @@ void MainMode::display(Display_t *disp) {
  *
  */
 void MainMode::drawTemp(Display_t *disp, int x, int y, float temp) {
-  disp->setCursor(x + DISPLAY_CH_W * 3 * 2, y);
+  disp->setFont(NULL);
   disp->setTextSize(1);
+  disp->setCursor(x + 24, y + 14);
+  disp->printf(".");
+  disp->setCursor(x + 26, y);
   disp->printf("%cC", (char)247);
 
   if ( isnan(temp) ) {
     return;
   }
 
-  disp->setCursor(x, y + 1);
-  disp->setTextSize(3);
-  disp->printf("%2d", int(temp));
-
-  disp->setCursor(x + DISPLAY_CH_W * 2 * 3 - 3, y + DISPLAY_CH_H * 2);
+  disp->setFont(&FreeSansBold12pt7b);
   disp->setTextSize(1);
-  disp->printf(".");
-  
-  disp->setCursor(x + DISPLAY_CH_W * 2 * 3 + 3, y + DISPLAY_CH_H);
-  disp->setTextSize(2);
+  disp->setCursor(x - 1, y + 20);
+  disp->printf("%2d", int(temp));
+  disp->setFont(NULL);
+
+  disp->setFont(&FreeSansBold9pt7b);
+  disp->setTextSize(1);
+  disp->setCursor(x + 29, y + 20);
   char buf[5];
   sprintf(buf, "%4.1f", temp);
   disp->printf("%c", buf[3]);
+  disp->setFont(NULL);
 } // MainMode::drawTemp()
 
 /**
  *
  */
 void MainMode::drawHum(Display_t *disp, int x, int y, float hum) {
-  disp->setCursor(x + DISPLAY_CH_W * 2 * 2 + 1, y + DISPLAY_CH_H - 1);
+  disp->setFont(NULL);
   disp->setTextSize(1);
+  disp->setCursor(x + 23, y + 6);
   disp->printf("%%");  
 
   if ( isnan(hum) ) {
     return;
   }
 
-  disp->setCursor(x, y);
-  disp->setTextSize(2);
+  disp->setFont(&FreeSansBold9pt7b);
+  disp->setTextSize(1);
+  int h = 12;
+  disp->setCursor(x, y + h);
   disp->printf("%2.0f", hum);
+  disp->setFont(NULL);
 } // MainMode::drawHum()
 
 /**
@@ -156,7 +164,8 @@ void MainMode::drawPres(Display_t *disp, int x, int y, float pres) {
  *
  */
 void MainMode::drawThi(Display_t *disp, int x, int y, float thi) {
-  disp->setCursor(x, y);
+  disp->setFont(NULL);
+  disp->setCursor(x + 1, y);
   disp->setTextSize(1);
   disp->printf("THI");
 
@@ -164,25 +173,99 @@ void MainMode::drawThi(Display_t *disp, int x, int y, float thi) {
     return;
   }
 
-  disp->setCursor(x, y + DISPLAY_CH_H + 1);
-  disp->setTextSize(2);
+  disp->setFont(&FreeSerifBold9pt7b);
+  disp->setTextSize(1);
+  int h = 12;
+  disp->setCursor(x, y + DISPLAY_CH_H +  h + 1);
   disp->printf("%2.0f", thi);
+
+  disp->setFont(NULL);
 } // MainMode::drawThi()
 
 /**
  *
  */
 void MainMode::drawWiFi(Display_t *disp, int x, int y, Esp32NetMgrInfo_t *ni) {
-  disp->setCursor(x, y);
+  disp->setFont(NULL);
   disp->setTextSize(1);
+  disp->setCursor(x, y);
   if ( ni->mode == NETMGR_MODE_WIFI_ON ) {
     disp->printf("W:%s", ni->ssid.c_str());
   } else if ( ni->mode == NETMGR_MODE_AP_INIT || ni->mode == NETMGR_MODE_AP_LOOP ) {
     disp->printf("A:%s", ni->ap_ssid.c_str());
   } else {
     disp->printf("==> %s ..", ni->ssid.c_str());
-  }  
+  }
 } // MainMode::drawWiFi()
+
+/**
+ *
+ */
+void MainMode::drawDateTime(Display_t *disp, int x, int y, struct tm *ti) {
+  int w = 9;
+  int h = 12;
+  int mon_x = x;
+  int mon_y = y;
+  int hour_x = mon_x + w * 4 + 12;
+  int hour_y = mon_y;
+  int sec_x = hour_x - 12;
+  int sec_y = y + h + 4;
+
+  int x1 = mon_x + w * 2;
+  int y1 = mon_y + h - 2;
+  int x2 = x1 + 3;
+  int y2 = y1 - h + 4;
+  disp->drawLine(x1, y1, x2, y2, WHITE);
+
+  if ( millis() % 1000 >= 500 ) {
+    disp->setFont(NULL);
+    disp->setTextSize(2);
+    disp->setCursor(hour_x + w * 2, hour_y);
+    disp->printf(":");
+  }
+
+  disp->drawRect(sec_x, sec_y, 61, 5, WHITE);
+  for (int x1=sec_x; x1 <= sec_x+60; x1 += 10) {
+    disp->drawFastVLine(x1, sec_y, 3, WHITE);
+  }
+  
+  if ( ti->tm_year + 1900 < 2000 ) {
+    return;
+  }
+
+  char wday_str[4];
+  strftime(wday_str, sizeof(wday_str), "%a", ti);
+  
+  x = mon_x;
+  y = mon_y;
+  disp->setFont(&FreeSans9pt7b);
+  disp->setTextSize(1);
+  disp->setCursor(mon_x, mon_y + h);
+  disp->printf("%2d\n", ti->tm_mon + 1);
+
+  x += w * 2 + 4;
+  disp->setCursor(x, y + h);
+  disp->printf("%-2d", ti->tm_mday);
+
+  x -= 8;
+  y += h + 3;
+  disp->setFont(NULL);
+  disp->setTextSize(1);
+  disp->setCursor(x, y);
+  disp->printf("%s", wday_str);
+
+  x = hour_x;
+  y = hour_y;
+  disp->setFont(&FreeSansBold9pt7b);
+  disp->setTextSize(1);
+  disp->setCursor(x, y + h);
+  disp->printf("%02d", ti->tm_hour);
+
+  disp->setCursor(x + w * 2 + 7, y + h);
+  disp->printf("%02d", ti->tm_min);
+
+  disp->fillRect(sec_x+1, sec_y, ti->tm_sec, 4, WHITE);
+} // MainMode::drawDateTime()
 
 /**
  *
@@ -211,75 +294,12 @@ void MainMode::drawNtp(Display_t *disp, int x, int y,
 
   x = DISPLAY_W - DISPLAY_CH_W * 3;
   y = 27;
-  disp->setCursor(x, y);
+  disp->setFont(NULL);
   disp->setTextSize(1);
+  disp->setCursor(x, y);
   disp->printf("NTP");
-  disp->setCursor(x + DISPLAY_CH_W, y + DISPLAY_CH_H - 1);
+
   disp->setTextSize(2);
+  disp->setCursor(x + DISPLAY_CH_W / 2, y + DISPLAY_CH_H);
   disp->printf("%s", ntp_stat_str.c_str());
 } // MainMode::drawNtp()  
-
-/**
- *
- */
-void MainMode::drawDateTime(Display_t *disp, int x, int y, struct tm *ti) {
-  int mon_x = x - 2;
-  int mon_y = y;
-  int hour_x = mon_x + DISPLAY_CH_W * 2 * 5 - 1;
-  int hour_y = mon_y;
-  int sec_x = x + 52;
-  int sec_y = y + 17;
-
-
-  int x1 = mon_x + DISPLAY_CH_W * 2 * 2;
-  int y1 = mon_y + DISPLAY_CH_H * 2 - 4;
-  int x2 = x1 + DISPLAY_CH_W - 2;
-  int y2 = y1 - DISPLAY_CH_H * 2 + 6;
-  disp->drawLine(x1, y1, x2, y2, WHITE);
-
-  if ( millis() % 1000 >= 500 ) {
-    disp->setCursor(hour_x + DISPLAY_CH_W * 2 * 2 - 4, hour_y);
-    disp->setTextSize(2);
-    disp->printf(":");
-  }
-
-  disp->drawRect(sec_x, sec_y, 61, 5, WHITE);
-  for (int x1=sec_x; x1 <= sec_x+60; x1 += 10) {
-    disp->drawFastVLine(x1, sec_y, 3, WHITE);
-  }
-  
-  if ( ti->tm_year + 1900 < 2000 ) {
-    return;
-  }
-
-  char wday_str[4];
-  strftime(wday_str, sizeof(wday_str), "%a", ti);
-  
-  x = mon_x;
-  y = mon_y;
-  disp->setCursor(mon_x, mon_y);
-  disp->setTextSize(2);
-  disp->printf("%2d\n", ti->tm_mon + 1);
-
-  x += DISPLAY_CH_W * (2 * 2 + 1);
-  disp->setCursor(x, y);
-  disp->setTextSize(2);
-  disp->printf("%-2d", ti->tm_mday);
-
-  x -= 10;
-  y += DISPLAY_CH_H * 2;
-  disp->setCursor(x, y);
-  disp->setTextSize(1);
-  disp->printf("%s", wday_str);
-
-  x = hour_x;
-  y = hour_y;
-  disp->setCursor(x, y);
-  disp->setTextSize(2);
-  disp->printf("%02d", ti->tm_hour);
-
-  disp->setCursor(x + DISPLAY_CH_W * 2 * 2 + 4, y);
-  disp->printf("%02d", ti->tm_min);
-
-  disp->fillRect(sec_x+1, sec_y, ti->tm_sec, 4, WHITE);
-} // MainMode::drawDateTime()

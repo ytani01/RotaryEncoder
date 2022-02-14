@@ -3,6 +3,8 @@
  */
 #include "ScanSsidMode.h"
 
+static int count = 0;
+
 /** constructor
  *
  */
@@ -20,6 +22,8 @@ bool ScanSsidMode::enter(Mode_t prev_mode) {
   log_i("%s", this->get_name().c_str());
 
   WiFi.scanNetworks(true, true);
+  count = 0;
+  
   return true;
 } // ScanSsidMode::enter()
 
@@ -93,17 +97,16 @@ Mode_t ScanSsidMode::re_cb(Esp32RotaryEncoderInfo_t *ri) {
 void ScanSsidMode::display(Display_t *disp) {
   int16_t ret = WiFi.scanComplete();
 
-  static int count = 0;
   if ( ret < 0 ) {
+    disp->setFont(&FreeSans12pt7b);
     disp->setTextSize(1);
-    disp->setCursor(5, 20);
-    disp->setTextWrap(false);
-    disp->printf("Scanning .", ret);
-    for (int i=0; i < count; i++) {
-      disp->printf(".");
-    }
-    count = (count + 1) % 4;
-    delay(150);
+    disp->setCursor(10, 34);
+    disp->printf("Scanning", ret);
+
+    disp->fillRect(0, 43, count, 4, WHITE);
+
+    count = (count + 1) % 128;
+    delay(100);
     return;
   }
 
@@ -113,12 +116,13 @@ void ScanSsidMode::display(Display_t *disp) {
         log_i("SSID \"%s\": ignored", WiFi.SSID(i).c_str());
         continue;
       }
-      String ent_title = WiFi.SSID(i) + ":" + WiFi.RSSI(i);
+      String ent_title = " " + WiFi.SSID(i) + " ";
       String ent_text = WiFi.SSID(i);
 
       this->ment.push_back(new OledMenuEnt(ent_title, ent_text.c_str()));
       this->ssidMenu->addEnt(this->ment.back());
     } // for(i)
+    return;
   }
 
   this->ssidMenu->display(disp);

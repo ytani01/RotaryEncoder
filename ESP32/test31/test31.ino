@@ -22,8 +22,9 @@
 #include "Esp32NetMgrTask.h"
 #include "Esp32NtpTask.h"
 
-#include "ConfBase.h"
+#include "ConfFps.h"
 
+ConfFps *confFps;
 static bool dispFps = true;
 
 // Modes
@@ -241,7 +242,7 @@ void obBtn_cb(Esp32ButtonInfo_t *btn_info) {
  *
  */
 void re_cb(Esp32RotaryEncoderInfo_t *re_info) {
-  log_i("%s", Esp32RotaryEncoder::info2String(re_info).c_str());
+  log_d("%s", Esp32RotaryEncoder::info2String(re_info).c_str());
 
   /**
    * XXX
@@ -280,6 +281,9 @@ void menu_cb(String text) {
     } else {
       dispFps = true;
     }
+    log_i("dispFps=%d,%d,%d", dispFps, true, false);
+    confFps->disp_fps = dispFps;
+    confFps->save();
     change_mode(MODE_MAIN);
     return;
   }
@@ -314,17 +318,10 @@ void setup() {
   Serial.println("===== start =====");
   log_i("portTICK_PERIOD_MS=%d", portTICK_PERIOD_MS);
 
-  // XXX test
-  ConfBase *f1 = new ConfBase("/test");
-  int ret;
-  ret = f1->save();
-  log_i("f1->save(): %d", ret);
-  ret = f1->load();
-  log_i("f1->load(): %d", ret);
+  confFps = new ConfFps();
+  confFps->load();
+  dispFps = confFps->disp_fps;
 
-  f1 = new ConfBase("/wifi.txt");
-  f1->load();
-  
   // init commonData
   commonData.netmgr_info = &netMgrInfo;
   commonData.ntp_info = &ntpInfo;
@@ -426,19 +423,31 @@ void loop() {
   int d_ms = cur_ms - prev_ms;
   prev_ms = cur_ms;
 
+  /*
+   * loop
+   */
+  Mode[_curMode]->loop(cur_ms);
+
+  /*
+   * display
+   */
   Disp->clearDisplay();
   
   if ( commonData.msg.length() > 0 ) {
     log_i("msg:\"%s\"", commonData.msg.c_str());
 
     Disp->fillRect(0, 0, DISPLAY_W, DISPLAY_H, WHITE);
-    Disp->setCursor(0, 10);
-    Disp->setTextSize(1);
     Disp->setTextColor(BLACK, WHITE);
-    Disp->setTextWrap(true);
-    Disp->printf("%s", commonData.msg.c_str());
-    Disp->display();
 
+    Disp->setFont(NULL);
+    Disp->setTextSize(1);
+
+    Disp->setCursor(0, 10);
+    Disp->setTextWrap(true);
+
+    Disp->printf("%s", commonData.msg.c_str());
+
+    Disp->display();
     delay(1500);
     commonData.msg = "";
     return;
@@ -446,8 +455,6 @@ void loop() {
 
   Mode[_curMode]->display(Disp);
 
-  Disp->setTextColor(WHITE, BLACK);
-  
   // fps
   if ( dispFps ) {
     float fps = 0.0;
@@ -463,13 +470,16 @@ void loop() {
       }
     }
 
-    int x, y;
-    x = DISPLAY_W - DISPLAY_CH_W * 7;
-    y = DISPLAY_H - DISPLAY_CH_H - 4;
-    Disp->fillRect(x - 1, y - 1, DISPLAY_CH_W * 7, DISPLAY_CH_H + 1, BLACK);
-    Disp->setCursor(x, y);
+    int w = 28;
+    int h = 7;
+    int x = DISPLAY_W - w;
+    int y = DISPLAY_H - h - 3;
+    Disp->setFont(&Picopixel);
     Disp->setTextSize(1);
-    Disp->printf("%.1ffps", min_fps);
+    Disp->fillRect(x, y, w, h, BLACK);
+    Disp->setCursor(x + 2, y + 5);
+    Disp->printf("%4.1fFPS", min_fps);
+    Disp->setFont(NULL);
   } // if (dispFps);
   
   Disp->display();

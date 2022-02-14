@@ -43,6 +43,13 @@ bool ModeBase::exit() {
 } // ModeBase::resume()
 
 /**
+ * 
+ */
+void ModeBase::loop(unsigned long cur_ms) {
+  return;
+} // ModeBase::resume()
+
+/**
  *
  */
 Mode_t ModeBase::reBtn_cb(Esp32ButtonInfo_t *bi) {

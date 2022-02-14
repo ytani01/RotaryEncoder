@@ -228,20 +228,22 @@ void OledMenu::cursor_down() {
  */
 void OledMenu::display(Display_t *disp) {
   //disp->clearDisplay();
-  disp->setCursor(0,0);
   disp->setTextWrap(false);
   
-  disp->setTextSize(MENU_TITLE_TEXT_SIZE);
+  disp->setFont(&FreeSans9pt7b);
+  disp->setTextSize(1);
+  int h = 12;
+  disp->setCursor(0, h);
   disp->printf("%s\n", this->title_str());
   
-  disp->drawFastHLine(0, DISPLAY_CH_H * MENU_TITLE_TEXT_SIZE - 1,
-                      DISPLAY_W, WHITE);
+  disp->drawFastHLine(0, h + 3, DISPLAY_W, WHITE);
   
-  disp->setTextSize(this->menu_ent_text_size);
-  int disp_ent_n
-    = (DISPLAY_H - (DISPLAY_CH_H * MENU_TITLE_TEXT_SIZE))
-    / (DISPLAY_CH_H * this->menu_ent_text_size);
 
+  disp->setFont(NULL);
+  disp->setTextSize(this->menu_ent_text_size);
+  disp->setCursor(0, h + 5);
+  int disp_ent_n
+    = (DISPLAY_H - h - 5) / (DISPLAY_CH_H * this->menu_ent_text_size);
   for (int i=this->disp_top_ent;
        i <= this->disp_top_ent+disp_ent_n;
        i++) {
@@ -253,7 +255,7 @@ void OledMenu::display(Display_t *disp) {
     if ( i == this->cur_ent ) {
       disp->setTextColor(BLACK, WHITE);
     }
-    disp->printf("%-16s\n", this->ent[i].title_str());
+    disp->printf("%s\n", this->ent[i].title_str());
     disp->setTextColor(WHITE, BLACK);
   } // for (i)
   

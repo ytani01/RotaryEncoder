@@ -7,6 +7,16 @@
 #include <vector>
 // #include <stack> // XXX
 #include <esp32-hal-log.h>
+//#include <Arduino.h>
+#include <Adafruit_GFX.h>
+#include <Fonts/FreeSans12pt7b.h>
+#include <Fonts/FreeSans9pt7b.h>
+#include <Fonts/FreeSansBold12pt7b.h>
+#include <Fonts/FreeSansBold9pt7b.h>
+#include <Fonts/FreeSerifBold12pt7b.h>
+#include <Fonts/FreeSerifBold9pt7b.h>
+#include <Fonts/Picopixel.h>
+//#include <Fonts/Org_01.h>
 
 #include "Esp32NetMgrTask.h"
 #include "Esp32NtpTask.h"

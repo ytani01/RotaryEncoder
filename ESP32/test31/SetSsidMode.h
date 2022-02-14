@@ -12,7 +12,15 @@
  */
 class SetSsidMode: public ModeBase {
  public:
+  static constexpr char *CH
+  = (char *)"\x11\x10\x04 0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!\"#$%&\'()*+,-./:;<=>?/^_~`\\";
+
+  int ch_i = 0; // 選択中の文字のインデックス
+  int cursor_i = 0; // 入力欄でのカーソルの位置
+
   ConfSsid *confSsid;
+  String ssid;
+  String pw;
 
   SetSsidMode(String name, CommonData_t *common_data);
 

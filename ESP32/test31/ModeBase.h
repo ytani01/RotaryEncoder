@@ -24,6 +24,7 @@ public:
   virtual void setup();
   virtual bool enter(Mode_t prev_mode);
   virtual bool exit();
+  virtual void loop(unsigned long cur_ms);
 
   virtual Mode_t reBtn_cb(Esp32ButtonInfo_t *bi);
   virtual Mode_t obBtn_cb(Esp32ButtonInfo_t *bi);
