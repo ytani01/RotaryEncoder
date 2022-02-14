@@ -78,8 +78,9 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
       break;
     }
 
+    WiFi.disconnect();
+    delay(500); // XXX 書き込み直後にもちゃんと接続するように(効果ない???)
     WiFi.begin(ssid.c_str(), ssid_pw.c_str());
-    delay(100);
     this->_loop_count = 0;
     this->cur_mode = NETMGR_MODE_TRY_WIFI;
 
@@ -97,6 +98,8 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
             WL_STATUS_T_STR[wl_stat], wl_stat,
             WiFi.localIP().toString().c_str());
 
+      WiFi.persistent(false);
+      this->ip_addr = WiFi.localIP();
       this->net_is_available = true;
       this->cur_mode = NETMGR_MODE_WIFI_ON;
       break;
@@ -121,7 +124,7 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
     // log_i("%s", this->ModeStr[this->cur_mode]);
     log_i("cur_mode=%s", ESP32_NETMGR_MODE_STR[this->cur_mode]);
 
-    WiFi.disconnect(true);
+    WiFi.disconnect(true); // 重要:以前の接続情報を削除
     WiFi.mode(WIFI_OFF);
     delay(100);
 

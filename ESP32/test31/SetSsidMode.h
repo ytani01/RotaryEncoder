@@ -13,7 +13,10 @@
 class SetSsidMode: public ModeBase {
  public:
   static constexpr char *CH
-  = (char *)"\x11\x10\x04 0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!\"#$%&\'()*+,-./:;<=>?/^_~`\\";
+  = (char *)"\x04 0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!\"#$%&\'()*+,-./:;<=>?/^_~`\\\x11";
+
+  static constexpr char CH_ENTER = 0x04;
+  static constexpr char CH_BS = 0x11;
 
   int ch_i = 0; // 選択中の文字のインデックス
   int cursor_i = 0; // 入力欄でのカーソルの位置

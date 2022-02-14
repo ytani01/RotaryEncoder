@@ -56,6 +56,7 @@ public:
 
   uint8_t mac_addr[6];
   String cur_ssid = "";
+  IPAddress ip_addr;
 
   boolean net_is_available = false;;
 

@@ -42,35 +42,48 @@ bool SetSsidMode::enter(Mode_t prev_mode) {
  *
  */
 Mode_t SetSsidMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
-  if ( bi->click_count > 2 ) {
-    return MODE_MAIN;
-  }
-  if ( bi->click_count == 0 ) {
+  char ch = SetSsidMode::CH[this->ch_i];
+  
+  if ( bi->click_count > 0 ) {
+    // モードを抜けるときだけ、クリックカウントで判断
+    if ( ch == SetSsidMode::CH_ENTER ) {
+      this->confSsid->ssid = this->ssid;
+      this->confSsid->ssid_pw = this->pw;
+      this->confSsid->save();
+      
+      common_data->msg = "restart_wifi";
+      return MODE_MAIN;
+    }
     return MODE_N;
   }
 
+  if ( bi->push_count == 0 ) {
+    return MODE_N;
+  }
+  if ( bi->value == Esp32Button::OFF ) {
+    return MODE_N;
+  }
+  
   /*
-   * click_count == 1
+   * value:ON, push_count:1, click_count:0, long_pressed:false
    */
-  log_i("ch_i=%d(%c) cursor_i=%d",
-        this->ch_i, SetSsidMode::CH[this->ch_i], this->cursor_i);
+  log_i("ch_i=%d(%c) cursor_i=%d", this->ch_i, ch, this->cursor_i);
 
-  switch ( SetSsidMode::CH[this->ch_i] ) {
-  case 0x04:
-    return MODE_MAIN;
+  switch ( ch ) {
+  case SetSsidMode::CH_ENTER:
+    break;
 
-  case 0x11:
+  case SetSsidMode::CH_BS:
     if ( this->cursor_i == 0 ) {
       break;
     }
+    this->pw.remove(this->pw.length() - 1);
     this->cursor_i--;
     break;
 
   default:
+    this->pw += String(SetSsidMode::CH[this->ch_i]);
     this->cursor_i++;
-    if ( this->cursor_i > this->pw.length() ) {
-      this->cursor_i = this->pw.length();
-    }
     break;
   } // switch(ch)
   return MODE_N;
@@ -81,10 +94,10 @@ Mode_t SetSsidMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
  */
 Mode_t SetSsidMode::re_cb(Esp32RotaryEncoderInfo_t *ri) {
   int ch_len = strlen(SetSsidMode::CH);
-  if ( ri->d_angle > 0 ) {
+  if ( ri->d_angle < 0 ) {
     this->ch_i = (this->ch_i - 1 + ch_len) % ch_len;
   }
-  if ( ri->d_angle < 0 ) {
+  if ( ri->d_angle > 0 ) {
     this->ch_i = (this->ch_i + 1 + ch_len) % ch_len;
   }
 
@@ -122,7 +135,7 @@ void SetSsidMode::display(Display_t *disp) {
   disp->drawFastHLine(x + 2, y, 22, BLACK);
 
   disp->setCursor(x + 2 + 2, y + 2);
-  disp->printf("%s\n", this->ssid.c_str());
+  disp->printf("%s", this->ssid.c_str());
 
   // Password
   y += DISPLAY_CH_H + 4;
@@ -136,12 +149,20 @@ void SetSsidMode::display(Display_t *disp) {
   disp->setCursor(x + 2 + 2, y + 2);
   if ( this->pw.length() > 0 ) {
     disp->printf("%s", this->pw.c_str());
-  } else {
-    disp->printf("88 dummy 88");
   }
   int x_ch = x + this->cursor_i * DISPLAY_CH_W + 2 + 2;
   int y_ch = y + 2;
-  disp->fillRect(x_ch, y_ch, DISPLAY_CH_W, DISPLAY_CH_H, WHITE);
+  char ch = this->pw.charAt(this->cursor_i);
+
+  // cursor
+  if ( millis() % 1000 >= 500 ) {
+    // disp->drawRect(x_ch, y_ch, DISPLAY_CH_W, DISPLAY_CH_H, WHITE);
+  } else {
+    disp->fillRect(x_ch, y_ch, DISPLAY_CH_W, DISPLAY_CH_H, WHITE);
+  }
+  if ( ch ) {
+    disp->drawChar(x_ch, y_ch, this->pw.charAt(this->cursor_i), BLACK, WHITE, 1);
+  }
 
   /*
    * char list
@@ -155,7 +176,7 @@ void SetSsidMode::display(Display_t *disp) {
   for (int i=0; i < (ch_n * 2 + 1); i++) {
     int ch_i = (ch_i0 + i + ch_len) % ch_len;
     if ( ch_i == this->ch_i ) {
-      disp->fillRect(x - 1, y - 1, DISPLAY_CH_W + 1, DISPLAY_CH_H + 1, WHITE);
+      disp->drawRect(x - 1, y - 1, DISPLAY_CH_W + 1, DISPLAY_CH_H + 1, WHITE);
       disp->drawChar(x, y, SetSsidMode::CH[ch_i], BLACK, WHITE, 1);
     } else {
       disp->drawChar(x, y, SetSsidMode::CH[ch_i], WHITE, BLACK, 1);

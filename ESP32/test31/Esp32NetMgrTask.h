@@ -10,6 +10,7 @@
 typedef struct {
   Esp32NetMgrMode_t mode;
   uint8_t mac_addr[6];
+  IPAddress ip_addr;
   String new_ssid;
   String ssid;
   String ap_ssid;

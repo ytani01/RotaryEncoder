@@ -190,11 +190,28 @@ void MainMode::drawWiFi(Display_t *disp, int x, int y, Esp32NetMgrInfo_t *ni) {
   disp->setTextSize(1);
   disp->setCursor(x, y);
   if ( ni->mode == NETMGR_MODE_WIFI_ON ) {
-    disp->printf("W:%s", ni->ssid.c_str());
+    disp->printf("%s", ni->ssid.c_str());
+    disp->setFont(&Picopixel);
+    disp->printf(" %s", ni->ip_addr.toString().c_str());
+    disp->setFont(NULL);
   } else if ( ni->mode == NETMGR_MODE_AP_INIT || ni->mode == NETMGR_MODE_AP_LOOP ) {
     disp->printf("A:%s", ni->ap_ssid.c_str());
-  } else {
-    disp->printf("==> %s ..", ni->ssid.c_str());
+  } else if ( ni->mode != NETMGR_MODE_WIFI_OFF ) {
+    int ms = millis() % 1200;
+    int tick = 200;
+    if ( ms / tick == 0 ) {
+      disp->printf(">  %s", ni->ssid.c_str());
+    } else if ( ms / tick == 1 ) {
+      disp->printf("=> %s", ni->ssid.c_str());
+    } else if ( ms / tick == 2 ) {
+      disp->printf("==>%s", ni->ssid.c_str());
+    } else if ( ms / tick == 3 ) {
+      disp->printf(" ==%s", ni->ssid.c_str());
+    } else if ( ms / tick == 4 ) {
+      disp->printf("  =%s", ni->ssid.c_str());
+    } else {
+      disp->printf("   %s", ni->ssid.c_str());
+    }
   }
 } // MainMode::drawWiFi()
 

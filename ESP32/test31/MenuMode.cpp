@@ -23,23 +23,23 @@ void MenuMode::setup() {
   this->wifiMenu = new OledMenu("WiFi");
   this->systemMenu = new OledMenu("System");
 
-  OledMenuEnt *ment_mode_main = new OledMenuEnt("<< Exit Menu", MODE_MAIN);
-  OledMenuEnt *ment_mode_sto = new OledMenuEnt(" * Temp Offset", MODE_SET_TEMP_OFFSET);
-  OledMenuEnt *ment_mode_scan_ssid = new OledMenuEnt(" * Scan SSID", MODE_SCAN_SSID);
+  OledMenuEnt *ment_mode_main = new OledMenuEnt("<< Exit Menu ", MODE_MAIN);
+  OledMenuEnt *ment_mode_sto = new OledMenuEnt(" * Temp Offset ", MODE_SET_TEMP_OFFSET);
+  OledMenuEnt *ment_mode_scan_ssid = new OledMenuEnt(" = SSID and Password ", MODE_SCAN_SSID);
 
-  OledMenuEnt *ment_menu_top = new OledMenuEnt(" < Top Menu", topMenu);
-  OledMenuEnt *ment_menu_clock = new OledMenuEnt(" > Clock", clockMenu);
-  OledMenuEnt *ment_menu_thermometer = new OledMenuEnt(" > Thermometer", thermometerMenu);
-  OledMenuEnt *ment_menu_wifi = new OledMenuEnt(" > WiFi", wifiMenu);
-  OledMenuEnt *ment_menu_system = new OledMenuEnt(" > System", systemMenu);
+  OledMenuEnt *ment_menu_top = new OledMenuEnt(" < Top Menu ", topMenu);
+  OledMenuEnt *ment_menu_clock = new OledMenuEnt(" > Clock ", clockMenu);
+  OledMenuEnt *ment_menu_thermometer = new OledMenuEnt(" > Thermometer ", thermometerMenu);
+  OledMenuEnt *ment_menu_wifi = new OledMenuEnt(" > WiFi ", wifiMenu);
+  OledMenuEnt *ment_menu_system = new OledMenuEnt(" > System ", systemMenu);
 
-  OledMenuEnt *ment_text_clear_ssid = new OledMenuEnt("!! clear SSID", "clear_ssid");
-  OledMenuEnt *ment_text_restart_wifi = new OledMenuEnt(" @ restart WiFi", "restart_wifi");
-  OledMenuEnt *ment_text_reboot = new OledMenuEnt(" @ reboot", "reboot");  
-  OledMenuEnt *ment_text_dispfps = new OledMenuEnt(" i ON/OFF FPS", "disp_fps");  
+  OledMenuEnt *ment_text_clear_ssid = new OledMenuEnt("!! clear SSID ", "clear_ssid");
+  OledMenuEnt *ment_text_restart_wifi = new OledMenuEnt(" @ restart WiFi ", "restart_wifi");
+  OledMenuEnt *ment_text_reboot = new OledMenuEnt(" @ reboot ", "reboot");  
+  OledMenuEnt *ment_text_dispfps = new OledMenuEnt(" i ON/OFF FPS ", "disp_fps");  
 
 
-  OledMenuEnt *ment_line = new OledMenuEnt("----------------");
+  OledMenuEnt *ment_line = new OledMenuEnt("--------------------");
 
   this->topMenu->addEnt(ment_mode_main);
   this->topMenu->addEnt(ment_line);

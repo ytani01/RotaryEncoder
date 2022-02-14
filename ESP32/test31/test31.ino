@@ -83,7 +83,7 @@ constexpr uint8_t LED_BRIGHTNESS_EXT1 = 40;
 CRGB leds_ext1[LEDS_N_EXT1];
 
 // WiFi
-const String AP_SSID_HDR = "test";
+const String AP_SSID_HDR = "iot";
 Esp32NetMgrTask *netMgrTask = NULL;
 Esp32NetMgrInfo_t netMgrInfo;
 
@@ -190,7 +190,7 @@ void timer1_cb() {
         Esp32NtpTask::get_time_str(), d_tick);
 } // timer1_cb()
 
-/**
+/** callback
  *
  */
 void reBtn_cb(Esp32ButtonInfo_t *btn_info) {
@@ -203,10 +203,12 @@ void reBtn_cb(Esp32ButtonInfo_t *btn_info) {
     ch_hsv(128, 255, 255);
   }
 
+#if 0
   if ( btn_info->click_count >= 4 ) {
     do_restart();
     return;
   }
+#endif
 
   Mode_t dst_mode = Mode[_curMode]->reBtn_cb(btn_info);
   if ( dst_mode != MODE_N && dst_mode != _curMode ) {
@@ -214,7 +216,7 @@ void reBtn_cb(Esp32ButtonInfo_t *btn_info) {
   }
 } // reBtn_cb()
 
-/**
+/** callback
  *
  */
 void obBtn_cb(Esp32ButtonInfo_t *btn_info) {
@@ -238,7 +240,7 @@ void obBtn_cb(Esp32ButtonInfo_t *btn_info) {
   }
 } // obBtn_cb()
 
-/**
+/** callback
  *
  */
 void re_cb(Esp32RotaryEncoderInfo_t *re_info) {
@@ -269,7 +271,7 @@ void re_cb(Esp32RotaryEncoderInfo_t *re_info) {
   }
 } // re_cb()
 
-/**
+/** callback
  *
  */
 void menu_cb(String text) {
@@ -300,7 +302,8 @@ void menu_cb(String text) {
   }
 
   if ( text == "restart_wifi" ) {
-    netMgrTask->restart_wifi();
+    //    netMgrTask->restart_wifi();
+    commonData.msg = "restart_wifi";
     change_mode(MODE_MAIN);
     return;
   }
@@ -436,6 +439,10 @@ void loop() {
   if ( commonData.msg.length() > 0 ) {
     log_i("msg:\"%s\"", commonData.msg.c_str());
 
+    if ( commonData.msg == "restart_wifi" ) {
+      netMgrTask->restart_wifi();
+    }
+    
     Disp->fillRect(0, 0, DISPLAY_W, DISPLAY_H, WHITE);
     Disp->setTextColor(BLACK, WHITE);
 
@@ -445,11 +452,12 @@ void loop() {
     Disp->setCursor(0, 10);
     Disp->setTextWrap(true);
 
-    Disp->printf("%s", commonData.msg.c_str());
+    Disp->printf(" %s", commonData.msg.c_str());
 
     Disp->display();
-    delay(1500);
     commonData.msg = "";
+    delay(1500);
+
     return;
   }
 
