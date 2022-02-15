@@ -105,6 +105,7 @@ String ConfBase::read_line() {
  *
  */
 String ConfBase::write_line(String line) {
+  log_i("line=%s", line);
   if ( ! this->file.available() ) {
     return "";
   }

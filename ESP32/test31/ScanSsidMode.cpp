@@ -101,11 +101,16 @@ void ScanSsidMode::display(Display_t *disp) {
     disp->setFont(&FreeSans12pt7b);
     disp->setTextSize(1);
     disp->setCursor(10, 34);
-    disp->printf("Scanning", ret);
+    disp->printf("Scanning");
 
     disp->fillRect(0, 43, count, 4, WHITE);
-
     count = (count + 1) % 128;
+
+    disp->setFont(NULL);
+    disp->setTextSize(1);
+    disp->setCursor(10,0);
+    disp->printf("ret=%d", ret);
+    
     delay(100);
     return;
   }

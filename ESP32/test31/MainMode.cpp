@@ -55,7 +55,7 @@ void MainMode::display(Display_t *disp) {
   
   // frame
   disp->drawFastHLine(0, 25, DISPLAY_W, WHITE);
-  disp->drawFastHLine(0, 54, DISPLAY_W, WHITE);
+  disp->drawFastHLine(0, 52, DISPLAY_W, WHITE);
 
   // Temp, Hum, Pres, Thi
   x = 0;

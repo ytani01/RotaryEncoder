@@ -174,7 +174,7 @@ void timer1_cb() {
 
   commonData.bme_info = Bme->get();
   float temp_offset = Bme->get_temp_offset();
-  log_i("%s: Bme->get(): %.2f(%.1f), %.1f, %.1f, %.1f",
+  log_d("%s: Bme->get(): %.2f(%.1f), %.1f, %.1f, %.1f",
         Esp32NtpTask::get_time_str(),
         commonData.bme_info->temp, temp_offset,
         commonData.bme_info->hum,
