@@ -149,14 +149,14 @@ void do_restart() {
   
   //ESP.restart();
   ESP.deepSleep(100);
-  delay(100);
+  delay(500);
 } // do_restart()
 
 /**
  *
  */
 void ntp_cb(Esp32NtpTaskInfo_t *ntp_info) {
-  log_i("sntp_stat=%s(%d)",
+  log_d("sntp_stat=%s(%d)",
         SNTP_SYNC_STATUS_STR[ntp_info->sntp_stat], ntp_info->sntp_stat);
   
   ntpInfo = *ntp_info;
@@ -448,15 +448,13 @@ void loop() {
 
     Disp->setFont(NULL);
     Disp->setTextSize(1);
-
     Disp->setCursor(0, 10);
     Disp->setTextWrap(true);
-
     Disp->printf(" %s", commonData.msg.c_str());
 
     Disp->display();
     commonData.msg = "";
-    delay(1500);
+    delay(1000);
 
     return;
   }

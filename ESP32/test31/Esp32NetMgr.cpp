@@ -78,12 +78,16 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
       break;
     }
 
-    WiFi.disconnect();
-    delay(500); // XXX 書き込み直後にもちゃんと接続するように(効果ない???)
+    // XXX 以下重要？
+    // XXX これでも、reboot一回おきに接続に失敗する!!??
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect(true, true);
+    WiFi.mode(WIFI_OFF);
+    delay(100);
+
     WiFi.begin(ssid.c_str(), ssid_pw.c_str());
     this->_loop_count = 0;
     this->cur_mode = NETMGR_MODE_TRY_WIFI;
-
     break;
 
   case NETMGR_MODE_TRY_WIFI:
@@ -98,7 +102,7 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
             WL_STATUS_T_STR[wl_stat], wl_stat,
             WiFi.localIP().toString().c_str());
 
-      WiFi.persistent(false);
+      //WiFi.persistent(false);
       this->ip_addr = WiFi.localIP();
       this->net_is_available = true;
       this->cur_mode = NETMGR_MODE_WIFI_ON;
@@ -112,11 +116,20 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
       break;
     }
 
-    log_i("%s %d/%d wl_stat=%s(%d)",
+    log_w("%s %d/%d wl_stat=%s(%d)",
           ESP32_NETMGR_MODE_STR[this->cur_mode],
           this->_loop_count, this->try_count_max,
           WL_STATUS_T_STR[wl_stat], wl_stat);
 
+#if 0
+    if ( wl_stat == WL_NO_SSID_AVAIL ) {
+      WiFi.disconnect(true);
+      WiFi.mode(WIFI_OFF);
+      delay(1000);
+      esp_wifi_restore();
+      this->cur_mode = NETMGR_MODE_START;
+    }
+#endif
     delay(TRY_INTERVAL);
     break;
 
@@ -223,7 +236,6 @@ void Esp32NetMgr::save_ssid(String ssid, String ssid_pw) {
 
   confSsid->ssid = ssid;
   confSsid->ssid_pw = ssid_pw;
-  //confSsid->print();
  
   confSsid->save();
 } // Esp32NetMgr::save_ssid()
@@ -256,9 +268,9 @@ void Esp32NetMgr::_restart() {
   this->restart_flag = false;
   this->cur_mode = NETMGR_MODE_START;
 
-  WiFi.disconnect(true);
-  WiFi.mode(WIFI_OFF);
-  delay(100);
+  // WiFi.disconnect(true);
+  // WiFi.mode(WIFI_OFF);
+  // delay(100);
 } // Esp32NetMgr::restart()
 
 /**
@@ -504,11 +516,7 @@ void Esp32NetMgr::handle_save_ssid(){
   log_i("save_ssid> |%s|%s|", ssid.c_str(), ssid_pw.c_str());
 
   confSsid->ssid = ssid;
-  //  confSsid->ssid.trim();
   confSsid->ssid_pw = ssid_pw;
-  //  confSsid->ssid_pw.trim();
-  //  confSsid->print();
- 
   confSsid->save();
 
   // 自動転送

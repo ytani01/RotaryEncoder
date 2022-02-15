@@ -13,10 +13,10 @@ class ConfA: public ConfBase {
   };
 
   virtual int load() {
-    if ( this->open_read() < 0 ) {
+    if ( ! this->open_read() ) {
       this->data1 = "";
       this->data2 = "";
-      return -1;
+      return 0;
     }
     this->data1 = this->read_line();
     this->data2 = this->read_line();
@@ -25,8 +25,8 @@ class ConfA: public ConfBase {
   };
 
   virtual int save() {
-    if ( this->open_write() < 0 ) {
-      return -1;
+    if ( ! this->open_write() ) {
+      return 0;
     }
     this->write_line(this->data1);
     this->write_line(this->data2);
@@ -77,8 +77,8 @@ class ConfBase {
   File file;
   int line_count;
 
-  int open_read();
-  int open_write();
+  bool open_read();
+  bool open_write();
   void close();
   String read_line();
   String write_line(String line);

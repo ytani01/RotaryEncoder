@@ -28,6 +28,7 @@ bool SetSsidMode::enter(Mode_t prev_mode) {
   this->pw = "";
 
   confSsid->load();
+  log_i("SSID|%s|%s|", this->ssid, confSsid->ssid);
   if ( this->ssid == confSsid->ssid ) {
     this->pw = confSsid->ssid_pw;
   }

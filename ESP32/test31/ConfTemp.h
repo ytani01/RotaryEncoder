@@ -11,7 +11,7 @@
  */
 class ConfTemp: public ConfBase {
  public:
-  static constexpr char *FILE_NAME = (char *)"/temp1";
+  static constexpr char *FILE_NAME = (char *)"/temp.conf";
 
   float temp_offset;
 

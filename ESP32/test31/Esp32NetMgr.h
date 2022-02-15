@@ -5,6 +5,7 @@
 #define _ESP32_NETMGR_H_
 
 #include <esp_system.h>
+#include <esp_wifi.h>
 #include <WiFi.h>
 #include <WebServer.h>
 #include <DNSServer.h>

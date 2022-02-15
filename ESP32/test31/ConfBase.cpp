@@ -19,7 +19,7 @@ ConfBase::ConfBase(String file_name) {
  */
 int ConfBase::load() {
   // test code
-  if ( this->open_read() < 0 ) {
+  if ( ! this->open_read() ) {
     return -1;
   }
 
@@ -37,7 +37,7 @@ int ConfBase::load() {
  */
 int ConfBase::save() {
   // test code
-  if ( this->open_write() < 0 ) {
+  if ( ! this->open_write() ) {
     return -1;
   }
 
@@ -46,38 +46,37 @@ int ConfBase::save() {
   this->write_line("test3");
   this->file.close();
   
-  delay(100);
   return this->line_count;
 } // ConfBase::save()
   
 /** protected
  *
  */
-int ConfBase::open_read() {
+bool ConfBase::open_read() {
   log_i("%s", this->file_name.c_str());
 
-  this->file = SPIFFS.open(this->file_name.c_str(), "r");
+  this->file = SPIFFS.open(this->file_name, "r");
   if ( ! this->file ) {
     log_e("%s: open failed", file_name.c_str());
-    return -1;
+    return false;
   }
   this->line_count = 0;
-  return this->file.available();
+  return true;
 } // ConfBase::open_read()
 
 /** protected
  *
  */
-int ConfBase::open_write() {
+bool ConfBase::open_write() {
   log_i("%s", this->file_name.c_str());
 
-  this->file = SPIFFS.open(this->file_name.c_str(), "w");
+  this->file = SPIFFS.open(this->file_name, "w");
   if ( ! this->file ) {
     log_e("%s: open failed", file_name.c_str());
-    return -1;
+    return false;
   }
   this->line_count = 0;
-  return this->file.available();
+  return true;
 } // ConfBase::open_write()
 
 /** protected
@@ -91,13 +90,16 @@ void ConfBase::close() {
  *
  */
 String ConfBase::read_line() {
-  if ( ! this->file.available() ) {
+  int ret = this->file.available();
+  if ( ret <= 0 ) {
+    log_w("ret=%d: EOF?", ret);
     return "";
   }
 
   String line = this->file.readStringUntil('\n');
-  line.trim();
+  line.trim(); // XXX Important !!
   this->line_count++;
+  log_i("%5d|%s|", line_count, line.c_str());
   return line;
 } // ConfBase::read_line()
 
@@ -105,13 +107,9 @@ String ConfBase::read_line() {
  *
  */
 String ConfBase::write_line(String line) {
-  log_i("line=%s", line);
-  if ( ! this->file.available() ) {
-    return "";
-  }
-
-  line.trim();
+  line.trim(); // XXX Important !!
   this->file.println(line);
   this->line_count++;
+  log_i("%5d|%s|", line_count, line.c_str());
   return line;
 } // ConfBase::write_line()
