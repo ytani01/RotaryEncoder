@@ -227,7 +227,6 @@ void OledMenu::cursor_down() {
  *
  */
 void OledMenu::display(Display_t *disp) {
-  //disp->clearDisplay();
   disp->setTextWrap(false);
   
   disp->setFont(&FreeSans9pt7b);

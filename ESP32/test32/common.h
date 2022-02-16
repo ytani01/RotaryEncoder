@@ -18,9 +18,9 @@
 #include <Fonts/Picopixel.h>
 //#include <Fonts/Org_01.h>
 
-#include "Esp32NetMgrTask.h"
-#include "Esp32NtpTask.h"
-#include "Esp32Bme280.h"
+#include "NetMgrTask.h"
+#include "NtpTask.h"
+#include "Bme280.h"
 
 typedef enum {
               MODE_MAIN,
@@ -39,8 +39,8 @@ typedef struct {
   String msg;
   Mode_t cur_mode;
   // std::stack<Mode_t> mode_stack; // XXX
-  Esp32NetMgrInfo_t *netmgr_info;
-  Esp32NtpTaskInfo_t *ntp_info;
-  Esp32Bme280Info_t *bme_info;
+  NetMgrInfo_t *netmgr_info;
+  NtpTaskInfo_t *ntp_info;
+  Bme280Info_t *bme_info;
 } CommonData_t;
 #endif // _COMMON_H_

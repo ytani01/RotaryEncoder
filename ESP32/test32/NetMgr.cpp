@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2021 Yoichi Tanibayashi
  */
-#include "Esp32NetMgr.h"
+#include "NetMgr.h"
 
 static ConfSsid *confSsid;
 /**
  * Initialize static variables
  */
-String Esp32NetMgr::myName = "Esp32NetMgr";
-unsigned int Esp32NetMgr::ssidN = 0;
-SSIDent Esp32NetMgr::ssidEnt[Esp32NetMgr::SSID_N_MAX];
-WebServer Esp32NetMgr::web_svr(WEBSVR_PORT);
+String NetMgr::myName = "NetMgr";
+unsigned int NetMgr::ssidN = 0;
+SSIDent NetMgr::ssidEnt[NetMgr::SSID_N_MAX];
+WebServer NetMgr::web_svr(WEBSVR_PORT);
 
 /** constructor
  *
  */
-Esp32NetMgr::Esp32NetMgr(String ap_ssid_hdr, unsigned int try_count_max) {
+NetMgr::NetMgr(String ap_ssid_hdr, unsigned int try_count_max) {
   if ( ap_ssid_hdr.length() > 0 ) {
     this->ap_ssid_hdr = ap_ssid_hdr;
   }
@@ -41,20 +41,20 @@ Esp32NetMgr::Esp32NetMgr(String ap_ssid_hdr, unsigned int try_count_max) {
                                this->ap_netmask_int[3]);
 
   confSsid = new ConfSsid;
-} // Esp32NetMgr::Esp32NetMgr()
+} // NetMgr::NetMgr()
 
 /**
  *
  */
-Esp32NetMgrMode_t Esp32NetMgr::loop() {
-  static Esp32NetMgrMode_t prev_mode = NETMGR_MODE_NULL;
+NetMgrMode_t NetMgr::loop() {
+  static NetMgrMode_t prev_mode = NETMGR_MODE_NULL;
   static String ssid = "";
-  static String ssid_pw = "";
+  static String pw = "";
 
   if ( this->cur_mode != prev_mode ) {
     log_i("cur_mode: %s(%d) ==> %s(%d)",
-          ESP32_NETMGR_MODE_STR[prev_mode], prev_mode,
-          ESP32_NETMGR_MODE_STR[this->cur_mode], this->cur_mode);
+          NETMGR_MODE_STR[prev_mode], prev_mode,
+          NETMGR_MODE_STR[this->cur_mode], this->cur_mode);
     prev_mode = this->cur_mode;
   }
   this->_loop_count++;
@@ -69,14 +69,14 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
     log_i("NETMGR_MODE_START");
 
     confSsid->load();
-    ssid = confSsid->ssid;
-    ssid_pw = confSsid->ssid_pw;
-    log_i("|%s|%s|", ssid.c_str(), ssid_pw.c_str());
-
-    if ( ssid == "" ) {
+    if ( confSsid->ssid.size() == 0 ) {
       this->cur_mode = NETMGR_MODE_AP_INIT;
       break;
     }
+    
+    ssid = confSsid->ssid[0];
+    pw = confSsid->pw[0];
+    log_i("|%s|%s|", ssid.c_str(), pw.c_str());
 
     // XXX 以下重要？
     // XXX これでも、reboot一回おきに接続に失敗する!!??
@@ -84,8 +84,12 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
     WiFi.disconnect(true, true);
     WiFi.mode(WIFI_OFF);
     delay(100);
+    NetMgr::async_scan_ssid_start();
+    NetMgr::ssidN = NetMgr::async_scan_ssid_wait(NetMgr::ssidEnt);
+    log_i("ssidN=%d", NetMgr::ssidN);
+    delay(2000);
 
-    WiFi.begin(ssid.c_str(), ssid_pw.c_str());
+    WiFi.begin(ssid.c_str(), pw.c_str());
     this->_loop_count = 0;
     this->cur_mode = NETMGR_MODE_TRY_WIFI;
     break;
@@ -117,7 +121,7 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
     }
 
     log_w("%s %d/%d wl_stat=%s(%d)",
-          ESP32_NETMGR_MODE_STR[this->cur_mode],
+          NETMGR_MODE_STR[this->cur_mode],
           this->_loop_count, this->try_count_max,
           WL_STATUS_T_STR[wl_stat], wl_stat);
 
@@ -135,7 +139,7 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
 
   case NETMGR_MODE_AP_INIT:
     // log_i("%s", this->ModeStr[this->cur_mode]);
-    log_i("cur_mode=%s", ESP32_NETMGR_MODE_STR[this->cur_mode]);
+    log_i("cur_mode=%s", NETMGR_MODE_STR[this->cur_mode]);
 
     WiFi.disconnect(true); // 重要:以前の接続情報を削除
     WiFi.mode(WIFI_OFF);
@@ -162,16 +166,16 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
     this->dns_svr.start(DNS_PORT, "*", this->ap_ip);
     log_i("DNS server[%d] started", DNS_PORT);
 
-    Esp32NetMgr::async_scan_ssid_start();
+    NetMgr::async_scan_ssid_start();
 
     web_svr.enableDelay(false); // Important!!
-    web_svr.on("/", Esp32NetMgr::handle_top);
-    web_svr.on("/select_ssid", Esp32NetMgr::handle_select_ssid);
-    web_svr.on("/save_ssid", Esp32NetMgr::handle_save_ssid);
-    web_svr.on("/scan_ssid", Esp32NetMgr::handle_do_scan);
-    web_svr.on("/confirm_reboot", Esp32NetMgr::handle_confirm_reboot);
-    web_svr.on("/do_reboot", Esp32NetMgr::handle_do_reboot);
-    web_svr.onNotFound(Esp32NetMgr::handle_top);
+    web_svr.on("/", NetMgr::handle_top);
+    web_svr.on("/select_ssid", NetMgr::handle_select_ssid);
+    web_svr.on("/save_ssid", NetMgr::handle_save_ssid);
+    web_svr.on("/scan_ssid", NetMgr::handle_do_scan);
+    web_svr.on("/confirm_reboot", NetMgr::handle_confirm_reboot);
+    web_svr.on("/do_reboot", NetMgr::handle_do_reboot);
+    web_svr.onNotFound(NetMgr::handle_top);
     web_svr.begin();
     log_i("Web server[%d] started", WEBSVR_PORT);
 
@@ -221,62 +225,59 @@ Esp32NetMgrMode_t Esp32NetMgr::loop() {
   } else {
     this->cur_ssid = "";
   }
-  //this->cur_ssid = ssid;
 
-  //delete conf_data;
-  //delay(1);
   return this->cur_mode;
-} // Esp32NetMgr::loop()
+} // NetMgr::loop()
 
 /** public
  *
  */
-void Esp32NetMgr::save_ssid(String ssid, String ssid_pw) {
-  log_i("save_ssid> |%s|%s|", ssid.c_str(), ssid_pw.c_str());
+void NetMgr::save_ssid(String ssid, String pw) {
+  log_i("save_ssid> |%s|%s|", ssid.c_str(), pw.c_str());
 
-  confSsid->ssid = ssid;
-  confSsid->ssid_pw = ssid_pw;
+  confSsid->ssid[0] = ssid;
+  confSsid->pw[0] = pw;
  
   confSsid->save();
-} // Esp32NetMgr::save_ssid()
+} // NetMgr::save_ssid()
 
 /**
  *
  */
-String Esp32NetMgr::get_mac_addr_String() {
+String NetMgr::get_mac_addr_String() {
   char buf[13];
   sprintf(buf, "%02X%02X%02X%02X%02X%02X",
           this->mac_addr[0], this->mac_addr[1], this->mac_addr[2],
           this->mac_addr[3], this->mac_addr[4], this->mac_addr[5]);
 
   return String(buf);
-} // Esp32NetMgr::get_mac_addr_String()
+} // NetMgr::get_mac_addr_String()
 
 /**
  *
  */
-void Esp32NetMgr::restart() {
-  log_i("cur_mode=%s", ESP32_NETMGR_MODE_STR[this->cur_mode]);
+void NetMgr::restart() {
+  log_i("cur_mode=%s", NETMGR_MODE_STR[this->cur_mode]);
   this->restart_flag = true;
-} // Esp32NetMgr::restart()
+} // NetMgr::restart()
 
 /** protected
  *
  */
-void Esp32NetMgr::_restart() {
-  log_i("cur_mode=%s", ESP32_NETMGR_MODE_STR[this->cur_mode]);
+void NetMgr::_restart() {
+  log_i("cur_mode=%s", NETMGR_MODE_STR[this->cur_mode]);
   this->restart_flag = false;
   this->cur_mode = NETMGR_MODE_START;
 
   // WiFi.disconnect(true);
   // WiFi.mode(WIFI_OFF);
   // delay(100);
-} // Esp32NetMgr::restart()
+} // NetMgr::restart()
 
 /**
  *
  */
-String Esp32NetMgr::html_header(String title) {
+String NetMgr::html_header(String title) {
   String html = "";
   html += "<!DOCTYPE html>";
   html += "<html>";
@@ -328,37 +329,37 @@ String Esp32NetMgr::html_header(String title) {
   html += "<body style='background: linear-gradient(to right, #9FF, #5DD);'>";
   html += "<br />";
   html += "<div class='myname'>";
-  html += Esp32NetMgr::myName;
+  html += NetMgr::myName;
   html += "</div>";
   html += "<div style='font-size:x-large; color:#00F; background-color: #DDD;'>";
   html += title;
   html += "</div>";
   html += "<hr>";
   return html;
-} // Esp32NetMgr::handle_header()
+} // NetMgr::handle_header()
 
 /**
  *
  */
-String Esp32NetMgr::html_footer() {
+String NetMgr::html_footer() {
   String html = "";
   html += "</body>";
   html += "</html>\n";
   return html;
-} // Esp32NetMgr::html_footer();
+} // NetMgr::html_footer();
 
 /**
  *
  */
-void Esp32NetMgr::async_scan_ssid_start() {
-  log_i("Esp32NetMgr::async_scan_ssid_start> ..");
-  WiFi.scanNetworks(true);
-} // Esp32NetMgr::async_scan_ssid_start()
+void NetMgr::async_scan_ssid_start() {
+  log_i("NetMgr::async_scan_ssid_start> ..");
+  WiFi.scanNetworks(true, true);
+} // NetMgr::async_scan_ssid_start()
 
 /**
  *
  */
-unsigned int Esp32NetMgr::async_scan_ssid_wait(SSIDent ssid_ent[]) {
+unsigned int NetMgr::async_scan_ssid_wait(SSIDent ssid_ent[]) {
   int16_t ret;
 
   while ( (ret = WiFi.scanComplete()) == WIFI_SCAN_RUNNING ) {
@@ -370,33 +371,35 @@ unsigned int Esp32NetMgr::async_scan_ssid_wait(SSIDent ssid_ent[]) {
     return 0;
   }
 
-  if ( ret > Esp32NetMgr::SSID_N_MAX ) {
-    ret = Esp32NetMgr::SSID_N_MAX;
+  if ( ret > NetMgr::SSID_N_MAX ) {
+    ret = NetMgr::SSID_N_MAX;
   }
 
   for (int i=0; i < ret; i++) {
     ssid_ent[i].set(WiFi.SSID(i), WiFi.RSSI(i), WiFi.encryptionType(i));
   } // for()
 
+  WiFi.scanDelete();
+
   return ret;
-} // Esp32NetMgr::async_scan_ssid_wait()
+} // NetMgr::async_scan_ssid_wait()
 
 /**
  *
  */
-unsigned int Esp32NetMgr::scan_ssid(SSIDent ssid_ent[]) {
-  log_i("Esp32NetMgr::scan_ssid> scan start ..");
+unsigned int NetMgr::scan_ssid(SSIDent ssid_ent[]) {
+  log_i("NetMgr::scan_ssid> scan start ..");
 
   int ssid_n = WiFi.scanNetworks();
 
-  log_i("Esp32NetMgr::scan_ssid> %d SSIDs found", ssid_n);
+  log_i("NetMgr::scan_ssid> %d SSIDs found", ssid_n);
 
   if (ssid_n <= 0) {
     return 0;
   }
 
-  if ( ssid_n > Esp32NetMgr::SSID_N_MAX ) {
-    ssid_n = Esp32NetMgr::SSID_N_MAX;
+  if ( ssid_n > NetMgr::SSID_N_MAX ) {
+    ssid_n = NetMgr::SSID_N_MAX;
   }
 
   for (int i=0; i < ssid_n; i++) {
@@ -404,21 +407,21 @@ unsigned int Esp32NetMgr::scan_ssid(SSIDent ssid_ent[]) {
   } // for()
 
   return ssid_n;
-} // Esp32NetMgr::ssid_scan()
+} // NetMgr::ssid_scan()
 
 /**
  *
  */
-void Esp32NetMgr::handle_top() {
-  String   ssid, ssid_pw;
+void NetMgr::handle_top() {
+  String   ssid, pw;
 
   confSsid->load();
-  ssid = confSsid->ssid;
-  ssid_pw = confSsid->ssid_pw;
+  ssid = confSsid->ssid[0];
+  pw = confSsid->pw[0];
   
-  log_i("ssid=%s, ssid_pw=%s", ssid.c_str(), ssid_pw.c_str());
+  log_i("ssid=%s, pw=%s", ssid.c_str(), pw.c_str());
 
-  String html = Esp32NetMgr::html_header("Current settings");
+  String html = NetMgr::html_header("Current settings");
   html += "<span style='font-size: large;'>";
   html += "SSID: ";
   html += "</span>";
@@ -429,55 +432,55 @@ void Esp32NetMgr::handle_top() {
   html += "<a href='/select_ssid'>Change</a>\n";
   html += "or\n";
   html += "<a href='/confirm_reboot'>OK</a>\n";
-  html += Esp32NetMgr::html_footer();
+  html += NetMgr::html_footer();
   web_svr.send(200, "text/html", html);
-} // Esp32NetMgr::handle_top()
+} // NetMgr::handle_top()
 
 /**
  *
  */
-void Esp32NetMgr::handle_select_ssid() {
-  String   ssid, ssid_pw;
+void NetMgr::handle_select_ssid() {
+  String   ssid, pw;
   
 
   confSsid->load();
-  ssid = confSsid->ssid;
-  ssid_pw = confSsid->ssid_pw;
+  ssid = confSsid->ssid[0];
+  pw = confSsid->pw[0];
   
-  Esp32NetMgr::ssidN = Esp32NetMgr::async_scan_ssid_wait(Esp32NetMgr::ssidEnt);
-  log_i("Esp32NetMgr::ssidN=%s", String(Esp32NetMgr::ssidN));
-  if (Esp32NetMgr::ssidN == 0) {
-    log_i("Esp32NetMgr::handle_select_ssid> rescan SSID");
-    Esp32NetMgr::async_scan_ssid_start();
-    Esp32NetMgr::ssidN = Esp32NetMgr::async_scan_ssid_wait(Esp32NetMgr::ssidEnt);
+  NetMgr::ssidN = NetMgr::async_scan_ssid_wait(NetMgr::ssidEnt);
+  log_i("NetMgr::ssidN=%s", String(NetMgr::ssidN));
+  if (NetMgr::ssidN == 0) {
+    log_i("NetMgr::handle_select_ssid> rescan SSID");
+    NetMgr::async_scan_ssid_start();
+    NetMgr::ssidN = NetMgr::async_scan_ssid_wait(NetMgr::ssidEnt);
   }
 
-  for (int i=0; i < Esp32NetMgr::ssidN; i++) {
+  for (int i=0; i < NetMgr::ssidN; i++) {
     log_i("[%2d]%4ddBm %s (%s)", i,
-          Esp32NetMgr::ssidEnt[i].dbm(),
-          Esp32NetMgr::ssidEnt[i].ssid().c_str(),
-          Esp32NetMgr::ssidEnt[i].encType().c_str());
+          NetMgr::ssidEnt[i].dbm(),
+          NetMgr::ssidEnt[i].ssid().c_str(),
+          NetMgr::ssidEnt[i].encType().c_str());
   } // for(i)
 
-  String html = Esp32NetMgr::html_header("Please change settings and save");
+  String html = NetMgr::html_header("Please change settings and save");
 
   html += "<form action='/save_ssid' method='GET'>";
   html += "<div class='ssid'>";
   html += "SSID ";
   html += "<select name='ssid' id='ssid' style='font-size:large;'>";
 
-  for(int i=0; i < Esp32NetMgr::ssidN; i++){
-    html += "<option value=" + Esp32NetMgr::ssidEnt[i].ssid();
-    if ( Esp32NetMgr::ssidEnt[i].ssid() == ssid ) {
+  for(int i=0; i < NetMgr::ssidN; i++){
+    html += "<option value=" + NetMgr::ssidEnt[i].ssid();
+    if ( NetMgr::ssidEnt[i].ssid() == ssid ) {
       html += " selected";
     }
     html += ">";
-    html += Esp32NetMgr::ssidEnt[i].ssid();
+    html += NetMgr::ssidEnt[i].ssid();
     /*
     html += " (";
-    html += String(Esp32NetMgr::ssidEnt[i].dbm());
+    html += String(NetMgr::ssidEnt[i].dbm());
     html += ", ";
-    html += Esp32NetMgr::ssidEnt[i].encType();
+    html += NetMgr::ssidEnt[i].encType();
     html += ")";
     */
     html += "</option>\n";
@@ -490,7 +493,7 @@ void Esp32NetMgr::handle_select_ssid() {
   html += "<span style='font-size: xx-large'>";
   html += "<input type='password'";
   html += " name='passwd'";
-  html += " value='" + ssid_pw + "'";
+  html += " value='" + pw + "'";
   html += " />";
   html += "</span>";
   html += "</div>\n";
@@ -501,66 +504,66 @@ void Esp32NetMgr::handle_select_ssid() {
   html += "<a href='/'>Cancel</a>\n";
 
   html += "</form>";
-  html += Esp32NetMgr::html_footer();
+  html += NetMgr::html_footer();
 
   web_svr.send(200, "text/html", html);
-} // Esp32NetMgr::handle_select_ssid()
+} // NetMgr::handle_select_ssid()
 
 /**
  *
  */
-void Esp32NetMgr::handle_save_ssid(){
+void NetMgr::handle_save_ssid(){
   String ssid = web_svr.arg("ssid");
-  String ssid_pw = web_svr.arg("passwd");
+  String pw = web_svr.arg("passwd");
   
-  log_i("save_ssid> |%s|%s|", ssid.c_str(), ssid_pw.c_str());
+  log_i("save_ssid> |%s|%s|", ssid.c_str(), pw.c_str());
 
-  confSsid->ssid = ssid;
-  confSsid->ssid_pw = ssid_pw;
+  confSsid->ssid[0] = ssid;
+  confSsid->pw[0] = pw;
   confSsid->save();
 
   // 自動転送
   web_svr.sendHeader("Location", String("/"), true);
   web_svr.send(302, "text/plain", "");
-} // Esp32NetMgr::handle_save_ssid()
+} // NetMgr::handle_save_ssid()
 
 /**
  *
  */
-void Esp32NetMgr::handle_confirm_reboot() {
-  String html = Esp32NetMgr::html_header("Reboot confirmation");
+void NetMgr::handle_confirm_reboot() {
+  String html = NetMgr::html_header("Reboot confirmation");
   html += "<p>Are you sure to reboot ";
-  html += Esp32NetMgr::myName;
+  html += NetMgr::myName;
   html += " ?</p>\n";
   html += "<a href='/do_reboot'>Yes</a>";
   html += " or ";
   html += "<a href='/'>No</a>";
-  html += Esp32NetMgr::html_footer();
+  html += NetMgr::html_footer();
   web_svr.send(200, "text/html", html.c_str());
-} // Esp32NetMgr::handle_confirm_reboot()
+} // NetMgr::handle_confirm_reboot()
 
 /**
  *
  */
-void Esp32NetMgr::handle_do_scan() {
-  Esp32NetMgr::async_scan_ssid_start();
+void NetMgr::handle_do_scan() {
+  NetMgr::async_scan_ssid_start();
 
   // 自動転送
   web_svr.sendHeader("Location", String("/select_ssid"), true);
   web_svr.send(302, "text/plain", "");
-} // Esp32NetMgr::handle_do_rescan()
+} // NetMgr::handle_do_rescan()
 
 /**
  *
  */
-void Esp32NetMgr::handle_do_reboot() {
-  String html = Esp32NetMgr::html_header("Rebooting ..");
+void NetMgr::handle_do_reboot() {
+  String html = NetMgr::html_header("Rebooting ..");
   html += "Please reconnect WiFi ..";
   html += "<hr />";
-  html += Esp32NetMgr::html_footer();
+  html += NetMgr::html_footer();
   web_svr.send(200, "text/html", html.c_str());
 
   log_i("reboot esp32 ..");
   delay(2000);
   ESP.restart();
-} // Esp32NetMgr::handle_do_reboot()
+} // NetMgr::handle_do_reboot()

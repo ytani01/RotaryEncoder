@@ -13,9 +13,9 @@ class MainMode: public ModeBase {
  public:
   MainMode(String name, CommonData_t *common_data);
 
-  virtual Mode_t reBtn_cb(Esp32ButtonInfo_t *bi);
-  virtual Mode_t obBtn_cb(Esp32ButtonInfo_t *bi);
-  virtual Mode_t re_cb(Esp32RotaryEncoderInfo_t *ri);
+  virtual Mode_t reBtn_cb(ButtonInfo_t *bi);
+  virtual Mode_t obBtn_cb(ButtonInfo_t *bi);
+  virtual Mode_t re_cb(RotaryEncoderInfo_t *ri);
   virtual void display(Display_t *disp);
 
  protected:
@@ -24,10 +24,11 @@ class MainMode: public ModeBase {
   void drawPres(Display_t *disp, int x, int y, float pres);
   void drawThi(Display_t *disp, int x, int y, float thi);
 
-  void drawWiFi(Display_t *disp, int x, int y, Esp32NetMgrInfo_t *ni);
+  void drawWiFi(Display_t *disp, int x, int y,
+                NetMgrInfo_t *ni);
   void drawNtp(Display_t *disp, int x, int y,
-               Esp32NtpTaskInfo_t *ntp_info,
-               Esp32NetMgrInfo_t *netmgr_info);
+               NtpTaskInfo_t *ntp_info,
+               NetMgrInfo_t *netmgr_info);
   void drawDateTime(Display_t *disp, int x, int y, struct tm *ti);
 }; // class MainMode
 

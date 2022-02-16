@@ -1,8 +1,8 @@
 /**
  * Copyright (c) 2021 Yoichi Tanibayashi
  */
-#ifndef _ESP32_NETMGR_H_
-#define _ESP32_NETMGR_H_
+#ifndef _NETMGR_H_
+#define _NETMGR_H_
 
 #include <esp_system.h>
 #include <esp_wifi.h>
@@ -23,21 +23,19 @@ typedef enum {
               NETMGR_MODE_WIFI_ON,
               NETMGR_MODE_WIFI_OFF,
               NETMGR_MODE_N
-} Esp32NetMgrMode_t;
-static const char *ESP32_NETMGR_MODE_STR[] = {"NULL", "START", "TRY_WIFI",
-                                              "AP_INIT", "AP_LOOP",
-                                              "SCANNING_SSID",
-                                              "WIFI_ON", "WIFI_OFF"};
+} NetMgrMode_t;
+static const char *NETMGR_MODE_STR[]
+= {"NULL", "START", "TRY_WIFI", "AP_INIT", "AP_LOOP",
+   "SCANNING_SSID", "WIFI_ON", "WIFI_OFF"};
 
-static const char *WL_STATUS_T_STR[] = {"IDLE_STATUS", "NO_SSID_AVAIL",
-                                        "SCAN_COMPLETED", "CONNECTED",
-                                        "CONNECT_FAILED", "CONNECTION_LOST",
-                                        "DISCONNECTED"};
+static const char *WL_STATUS_T_STR[]
+= {"IDLE_STATUS", "NO_SSID_AVAIL", "SCAN_COMPLETED", "CONNECTED",
+   "CONNECT_FAILED", "CONNECTION_LOST", "DISCONNECTED"};
 
 /**
  *
  */
-class Esp32NetMgr {
+class NetMgr {
 public:
   static const unsigned int TRY_INTERVAL  = 500; // ms
   static const unsigned int DEF_TRY_COUNT_MAX = 16;
@@ -47,7 +45,7 @@ public:
   static const int DNS_PORT    = 53;
   static const int WEBSVR_PORT = 80;
 
-  Esp32NetMgrMode_t cur_mode = NETMGR_MODE_START;
+  NetMgrMode_t cur_mode = NETMGR_MODE_START;
 
   static String myName;
   static unsigned int ssidN;
@@ -61,7 +59,7 @@ public:
 
   boolean net_is_available = false;;
 
-  String ap_ssid_hdr = "ESP32_AP_";
+  String ap_ssid_hdr = "AP_";
   String ap_ssid = ap_ssid_hdr;
   String ap_ssid_pw  = "xxxxxxxx"; // unused
 
@@ -72,8 +70,8 @@ public:
   IPAddress ap_netmask;  // initialize in constructor
   DNSServer dns_svr;
 
-  Esp32NetMgr(String ap_ssid_hdr, unsigned int try_count_max=DEF_TRY_COUNT_MAX);
-  Esp32NetMgrMode_t loop();
+  NetMgr(String ap_ssid_hdr, unsigned int try_count_max=DEF_TRY_COUNT_MAX);
+  NetMgrMode_t loop();
 
   void save_ssid(String ssid, String pw);
   void restart();
@@ -103,4 +101,4 @@ protected:
   static void handle_do_reboot();
 };
 
-#endif // _ESP32_NETMGR_H_
+#endif // _NETMGR_H_

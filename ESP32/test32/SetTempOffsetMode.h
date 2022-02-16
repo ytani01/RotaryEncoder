@@ -15,8 +15,8 @@ class SetTempOffsetMode: public ModeBase {
   SetTempOffsetMode(String name, CommonData_t *common_data);
 
   virtual void setup();
-  virtual Mode_t reBtn_cb(Esp32ButtonInfo_t *bi);
-  virtual Mode_t re_cb(Esp32RotaryEncoderInfo_t *ri);
+  virtual Mode_t reBtn_cb(ButtonInfo_t *bi);
+  virtual Mode_t re_cb(RotaryEncoderInfo_t *ri);
   virtual void display(Display_t *disp);
 
  protected:

@@ -24,7 +24,7 @@ void SetTempOffsetMode::setup() {
 /** virtual
  *
  */
-Mode_t SetTempOffsetMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
+Mode_t SetTempOffsetMode::reBtn_cb(ButtonInfo_t *bi) {
   if ( bi->click_count == 0 ) {
     return MODE_N;
   }
@@ -39,7 +39,7 @@ Mode_t SetTempOffsetMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
 /** virtual
  *
  */
-Mode_t SetTempOffsetMode::re_cb(Esp32RotaryEncoderInfo_t *ri) {
+Mode_t SetTempOffsetMode::re_cb(RotaryEncoderInfo_t *ri) {
   if ( ri->d_angle == 0 ) {
     return MODE_N;
   }

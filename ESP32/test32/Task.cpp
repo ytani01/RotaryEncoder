@@ -1,18 +1,18 @@
 /**
  * Copyright (c) 2022 Yoichi Tanibayashi
  */
-#include "Esp32Task.h"
+#include "Task.h"
 
 /**
  *
  */
-Esp32Task::Esp32Task(String name,
+Task::Task(String name,
                      uint32_t stack_size,
                      UBaseType_t priority,
                      UBaseType_t core) {
   String nameString = name;
-  if ( nameString.length() > ESP32_TASK_NAME_SIZE ) {
-    nameString = nameString.substring(0, ESP32_TASK_NAME_SIZE);
+  if ( nameString.length() > TASK_NAME_SIZE ) {
+    nameString = nameString.substring(0, TASK_NAME_SIZE);
   }
   log_d("nameString=%s", nameString.c_str());
   strcpy(this->conf.name, nameString.c_str());
@@ -25,13 +25,13 @@ Esp32Task::Esp32Task(String name,
   this->_active = false;
   
   delay(100); // XXX これがないと、危ない(!?)
-} // Esp32Task::Esp32Task()
+} // Task::Task()
 
 /**
  *
  */
-void Esp32Task::start() {
-  BaseType_t ret = xTaskCreateUniversal(Esp32Task::call_task_main,
+void Task::start() {
+  BaseType_t ret = xTaskCreateUniversal(Task::call_task_main,
                                         this->conf.name,
                                         this->conf.stack_size,
                                         this,
@@ -50,43 +50,43 @@ void Esp32Task::start() {
   }
   delay(100);
   return;
-} // Esp32Task::start()
+} // Task::start()
 
 /**
  *
  */
-bool Esp32Task::is_active() {
+bool Task::is_active() {
   return this->_active;
 }
 
 /**
  *
  */
-void Esp32Task::setup() {
+void Task::setup() {
   log_d("");
-} // Esp32Task::setup()
+} // Task::setup()
 
 /**
  *
  */
-void Esp32Task::loop() {
+void Task::loop() {
   log_d("");
   delay(1000);
-} // Esp32Task::loop()
+} // Task::loop()
 
 /**
  * TaskFunctionは、staticでなければならいので、
  * static関数を定義して、その引数に``this``を渡して、
  * task_main()を呼び出す
  */
-void Esp32Task::call_task_main(void *this_instance) {
-  static_cast<Esp32Task *>(this_instance)->__task_main();
-} // Esp32Task::call_task_main()
+void Task::call_task_main(void *this_instance) {
+  static_cast<Task *>(this_instance)->__task_main();
+} // Task::call_task_main()
 
 /**
  *
  */
-void Esp32Task::__task_main() {
+void Task::__task_main() {
   this->_active = false;
   this->setup();
   delay(1);
@@ -98,4 +98,4 @@ void Esp32Task::__task_main() {
   } // main loop
   this->_active = false;
   vTaskDelete(NULL);
-} // Esp32Task::task_main()
+} // Task::task_main()

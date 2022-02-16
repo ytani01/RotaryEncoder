@@ -29,8 +29,8 @@ bool SetSsidMode::enter(Mode_t prev_mode) {
 
   confSsid->load();
   log_i("SSID|%s|%s|", this->ssid, confSsid->ssid);
-  if ( this->ssid == confSsid->ssid ) {
-    this->pw = confSsid->ssid_pw;
+  if ( this->ssid == confSsid->ssid[0] ) {
+    this->pw = confSsid->pw[0];
   }
   log_i("|ssid|pw| : |%s|%s|", this->ssid.c_str(), this->pw.c_str());
 
@@ -42,14 +42,14 @@ bool SetSsidMode::enter(Mode_t prev_mode) {
 /** virtual
  *
  */
-Mode_t SetSsidMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
+Mode_t SetSsidMode::reBtn_cb(ButtonInfo_t *bi) {
   char ch = SetSsidMode::CH[this->ch_i];
   
   if ( bi->click_count > 0 ) {
     // モードを抜けるときだけ、クリックカウントで判断
     if ( ch == SetSsidMode::CH_ENTER ) {
-      this->confSsid->ssid = this->ssid;
-      this->confSsid->ssid_pw = this->pw;
+      this->confSsid->ssid[0] = this->ssid;
+      this->confSsid->pw[0] = this->pw;
       this->confSsid->save();
       
       common_data->msg = "restart_wifi";
@@ -61,7 +61,7 @@ Mode_t SetSsidMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
   if ( bi->push_count == 0 ) {
     return MODE_N;
   }
-  if ( bi->value == Esp32Button::OFF ) {
+  if ( bi->value == Button::OFF ) {
     return MODE_N;
   }
   
@@ -93,7 +93,7 @@ Mode_t SetSsidMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
 /** virtual
  *
  */
-Mode_t SetSsidMode::re_cb(Esp32RotaryEncoderInfo_t *ri) {
+Mode_t SetSsidMode::re_cb(RotaryEncoderInfo_t *ri) {
   int ch_len = strlen(SetSsidMode::CH);
   if ( ri->d_angle < 0 ) {
     this->ch_i = (this->ch_i - 1 + ch_len) % ch_len;

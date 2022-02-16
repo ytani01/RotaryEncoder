@@ -4,6 +4,7 @@
 #ifndef _CONF_SSID_H_
 #define _CONF_SSID_H_
 
+#include <vector>
 #include "ConfBase.h"
 
 /**
@@ -13,7 +14,8 @@ class ConfSsid: public ConfBase {
  public:
   static constexpr char *FILE_NAME = (char *)"/ssid";
 
-  String ssid, ssid_pw;
+  std::vector<String> ssid;
+  std::vector<String> pw;
 
   ConfSsid();
   virtual int load();

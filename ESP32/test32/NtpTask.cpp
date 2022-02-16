@@ -1,19 +1,19 @@
 /**
  * Copyright (c) 2022 Yoichi Tanibayashi
  */
-#include "Esp32NtpTask.h"
+#include "NtpTask.h"
 
 /**
  * defulat callback
  */
-static void _ntp_cb(Esp32NtpTaskInfo_t *ntp_info) {
+static void _ntp_cb(NtpTaskInfo_t *ntp_info) {
   log_i("ntp_info.sntp_stat=%d", ntp_info->sntp_stat);
 } // _ntp_cb()
 
 /** static function
  *
  */
-char* Esp32NtpTask::get_time_str() {
+char* NtpTask::get_time_str() {
   struct tm ti; // time info
   const String day_str[] = {"Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"};
   static char buf[4+1+2+1+2 +1+3+1 +1 +2+1+2+1+2 +1];
@@ -21,14 +21,14 @@ char* Esp32NtpTask::get_time_str() {
   getLocalTime(&ti);
   strftime(buf, sizeof(buf), "%Y-%m-%d(%a) %H:%M:%S", &ti);
   return buf;
-} // Esp32NetMgrTask::get_time_str()
+} // NetMgrTask::get_time_str()
 
 /** constructor
  *
  */
-Esp32NtpTask::Esp32NtpTask(String ntp_svr[], Esp32NetMgrTask **pNetMgrTask,
-                           void (*cb)(Esp32NtpTaskInfo_t *ntp_info))
-  : Esp32Task("NTP_task") {
+NtpTask::NtpTask(String ntp_svr[], NetMgrTask **pNetMgrTask,
+                           void (*cb)(NtpTaskInfo_t *ntp_info))
+  : Task("NTP_task") {
 
   this->ntp_svr = ntp_svr;
   this->pNetMgrTask = pNetMgrTask;
@@ -38,38 +38,38 @@ Esp32NtpTask::Esp32NtpTask(String ntp_svr[], Esp32NetMgrTask **pNetMgrTask,
   }
 
   this->info.sntp_stat = SNTP_SYNC_STATUS_RESET;
-} // Esp32NtpTask::Esp32NtpTask
+} // NtpTask::NtpTask
 
 /**
  *
  */
-void *Esp32NtpTask::get_info() {
+void *NtpTask::get_info() {
   return (void *)&(this->info);
-} // Esp32NtpTask::get_info()
+} // NtpTask::get_info()
 
 /**
  *
  */
-void Esp32NtpTask::setup() {
+void NtpTask::setup() {
   log_d("%s", this->conf.name);
 
   setenv("TZ", "JST-9", 1);
   tzset();
   sntp_set_sync_mode(SNTP_SYNC_MODE_SMOOTH);
-} // Esp32NtpTask::setup()
+} // NtpTask::setup()
 
 /**
  *
  */
-void Esp32NtpTask::loop() {
+void NtpTask::loop() {
   bool wifi_available = false;
   unsigned long interval = INTERVAL_NO_WIFI;
 
-  Esp32NetMgrTask *netMgrTask = *(this->pNetMgrTask);
+  NetMgrTask *netMgrTask = *(this->pNetMgrTask);
   if ( netMgrTask != NULL ) {
-    Esp32NetMgr *netMgr = netMgrTask->netMgr;
+    NetMgr *netMgr = netMgrTask->netMgr;
     if ( netMgr != NULL ) {
-      Esp32NetMgrMode_t netMgrMode = netMgr->cur_mode;
+      NetMgrMode_t netMgrMode = netMgr->cur_mode;
       if ( netMgrMode == NETMGR_MODE_WIFI_ON ) {
         wifi_available = true;
       }
@@ -121,4 +121,4 @@ void Esp32NtpTask::loop() {
 
   this->_cb(&(this->info));
   delay(interval);
-} // Esp32NtpTask::loop()
+} // NtpTask::loop()

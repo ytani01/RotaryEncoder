@@ -93,7 +93,7 @@ bool MenuMode::enter(Mode_t prev_mode) {
 /**
  * @return  destination mode
  */
-Mode_t MenuMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
+Mode_t MenuMode::reBtn_cb(ButtonInfo_t *bi) {
   Mode_t dst_mode = MODE_N;
 
   if ( bi->click_count == 0 ) {
@@ -147,7 +147,7 @@ Mode_t MenuMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
 /**
  *
  */
-Mode_t MenuMode::obBtn_cb(Esp32ButtonInfo_t *bi) {
+Mode_t MenuMode::obBtn_cb(ButtonInfo_t *bi) {
   if ( bi->click_count > 0 ) {
     common_data->msg = " Onboard Btn\n";
     common_data->msg += " click:" + String(bi->click_count);
@@ -158,7 +158,7 @@ Mode_t MenuMode::obBtn_cb(Esp32ButtonInfo_t *bi) {
 /**
  *
  */
-Mode_t MenuMode::re_cb(Esp32RotaryEncoderInfo_t *ri) {
+Mode_t MenuMode::re_cb(RotaryEncoderInfo_t *ri) {
   if ( ri->d_angle < 0 ) {
     this->curMenu->cursor_down();
     return MODE_N;

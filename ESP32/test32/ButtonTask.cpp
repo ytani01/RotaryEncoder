@@ -1,27 +1,27 @@
 /**
  * Copyright (c) 2022 Yoichi Tanibayashi
  */
-#include "Esp32ButtonTask.h"
+#include "ButtonTask.h"
 
 static QueueHandle_t outQue = (QueueHandle_t)NULL; // for static function
 
 /**
  *
  */
-Esp32ButtonTask::Esp32ButtonTask(String btn_name, uint8_t pin,
+ButtonTask::ButtonTask(String btn_name, uint8_t pin,
                                  uint32_t stack_size,
                                  UBaseType_t priority,
                                  UBaseType_t core):
-  Esp32Task(btn_name + "Task", stack_size, priority, core) {
+  Task(btn_name + "Task", stack_size, priority, core) {
 
   this->btn_name = btn_name;
   this->pin = pin;
 
-  this->btn = new Esp32Button(this->btn_name, this->pin, this->intr_hdr);
+  this->btn = new Button(this->btn_name, this->pin, this->intr_hdr);
 
   if ( outQue == NULL ) {
-    this->_out_que = xQueueCreate(Esp32ButtonTask::Q_SIZE,
-                                  sizeof(Esp32ButtonInfo_t));
+    this->_out_que = xQueueCreate(ButtonTask::Q_SIZE,
+                                  sizeof(ButtonInfo_t));
     if ( this->_out_que == NULL ) {
       log_e("create out_que: failed .. HALT");
       while (true) { // HALT
@@ -34,19 +34,19 @@ Esp32ButtonTask::Esp32ButtonTask(String btn_name, uint8_t pin,
     this->_out_que = outQue;
     log_i("reuse Que: %X", outQue);
   }
-} // Esp32ButtonTask::Esp32ButtonTask
+} // ButtonTask::ButtonTask
 
 /**
  *
  */
-void Esp32ButtonTask::setup() {
+void ButtonTask::setup() {
   log_d("%s", this->btn_name.c_str());
-} // Esp32ButtonTask::setup()
+} // ButtonTask::setup()
 
 /**
  *
  */
-void Esp32ButtonTask::loop() {
+void ButtonTask::loop() {
   if ( this->btn->get() ) {
     portBASE_TYPE ret = xQueueSend(outQue,
                                    (void *)&(this->btn->info), 10);
@@ -57,22 +57,22 @@ void Esp32ButtonTask::loop() {
     }
   }
   delay(10);
-} // Esp32ButtonTask::loop()
+} // ButtonTask::loop()
 
 /** [static]
  *
  */
-void IRAM_ATTR Esp32ButtonTask::intr_hdr(void *btn_obj) {
+void IRAM_ATTR ButtonTask::intr_hdr(void *btn_obj) {
   // check debounce
   static unsigned long __prev_ms = 0;
   unsigned long __cur_ms = millis();
-  if ( __cur_ms - __prev_ms < Esp32Button::DEBOUNCE ) {
+  if ( __cur_ms - __prev_ms < Button::DEBOUNCE ) {
     return;
   }
   __prev_ms = __cur_ms;
 
   // update button status
-  Esp32Button *btn = static_cast<Esp32Button *>(btn_obj);
+  Button *btn = static_cast<Button *>(btn_obj);
   if ( ! btn->get() ) {
     return;
   }
@@ -94,44 +94,44 @@ void IRAM_ATTR Esp32ButtonTask::intr_hdr(void *btn_obj) {
     isr_log_d("portYIELD_FROM_ISR()");
     portYIELD_FROM_ISR();
   }
-} // Esp32ButtonTask::intr_hdr()
+} // ButtonTask::intr_hdr()
 
 /**
  *
  */
-portBASE_TYPE Esp32ButtonTask::get(Esp32ButtonInfo_t *btn_info) {
+portBASE_TYPE ButtonTask::get(ButtonInfo_t *btn_info) {
   portBASE_TYPE ret = xQueuePeek(outQue, (void *)btn_info, 1000);
   if ( ret == pdPASS ) {
     if ( String(btn_info->name) == this->btn_name ) {
       ret = xQueueReceive(outQue, (void *)btn_info, 0);
       log_d("%s:que > %s", this->btn_name.c_str(),
-            Esp32Button::info2String(btn_info).c_str());
+            Button::info2String(btn_info).c_str());
     } else {
       log_d("%s:que >X %s", this->btn_name.c_str(), 
-            Esp32Button::info2String(btn_info).c_str());
+            Button::info2String(btn_info).c_str());
       ret = pdFALSE;
       delay(2);
     }
   }
   return ret;
-} // Esp32ButtonTask::get()
+} // ButtonTask::get()
 
 /**
  * defulat callback
  */
-static void _button_cb(Esp32ButtonInfo_t *btn_info) {
-  log_i("%s", Esp32Button::info2String(btn_info).c_str());
+static void _button_cb(ButtonInfo_t *btn_info) {
+  log_i("%s", Button::info2String(btn_info).c_str());
 } // _button_cb()
 
 /**
  *
  */
-Esp32ButtonWatcher::Esp32ButtonWatcher(String btn_name, uint8_t pin,
-                                       void (*cb)(Esp32ButtonInfo_t *btn_info),
+ButtonWatcher::ButtonWatcher(String btn_name, uint8_t pin,
+                                       void (*cb)(ButtonInfo_t *btn_info),
                                        uint32_t stack_size,
                                        UBaseType_t priority,
                                        UBaseType_t core):
-  Esp32Task(btn_name + "Watcher", stack_size, priority, core) {
+  Task(btn_name + "Watcher", stack_size, priority, core) {
 
   this->_btn_name = btn_name;
   this->_pin = pin;
@@ -145,37 +145,37 @@ Esp32ButtonWatcher::Esp32ButtonWatcher(String btn_name, uint8_t pin,
   }
 
   this->_btn_task=NULL;
-} // Esp32ButtonWatcher::Esp32ButtonWatcher()
+} // ButtonWatcher::ButtonWatcher()
 
 /**
  *
  */
-Esp32ButtonInfo_t *Esp32ButtonWatcher::get_btn_info() {
+ButtonInfo_t *ButtonWatcher::get_btn_info() {
   return &(this->_btn_task->btn->info);
-} // Esp32ButtonWatcher::get_btn_info()
+} // ButtonWatcher::get_btn_info()
 
 /**
  *
  */
-void Esp32ButtonWatcher::setup() {
-  this->_btn_task = new Esp32ButtonTask(this->_btn_name, this->_pin,
+void ButtonWatcher::setup() {
+  this->_btn_task = new ButtonTask(this->_btn_name, this->_pin,
                                         this->_stack_size,
                                         this->_priority,
                                         this->_core);
   this->_btn_task->start();
-} // Esp32ButtonWatcher::setup()
+} // ButtonWatcher::setup()
 
 /**
  *
  */
-void Esp32ButtonWatcher::loop() {
+void ButtonWatcher::loop() {
   if ( this->_btn_task == NULL ) {
     return;
   }
   
-  Esp32ButtonInfo_t btn_info;
+  ButtonInfo_t btn_info;
   portBASE_TYPE ret = this->_btn_task->get(&btn_info);
   if ( ret == pdPASS ) {
       (*(this->_cb))(&btn_info);
   }
-} // Esp32ButtonWatcher::loop()
+} // ButtonWatcher::loop()

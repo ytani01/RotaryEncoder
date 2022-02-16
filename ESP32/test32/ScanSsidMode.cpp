@@ -51,7 +51,7 @@ bool ScanSsidMode::exit() {
 /**
  *
  */
-Mode_t ScanSsidMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
+Mode_t ScanSsidMode::reBtn_cb(ButtonInfo_t *bi) {
   if ( bi->click_count > 1 ) {
     return MODE_MAIN;
   }
@@ -79,7 +79,7 @@ Mode_t ScanSsidMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
 /**
  *
  */
-Mode_t ScanSsidMode::re_cb(Esp32RotaryEncoderInfo_t *ri) {
+Mode_t ScanSsidMode::re_cb(RotaryEncoderInfo_t *ri) {
   if ( ri->d_angle > 0 ) {
     this->ssidMenu->cursor_up();
     return MODE_N;

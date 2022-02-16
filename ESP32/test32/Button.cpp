@@ -1,20 +1,20 @@
 /**
  * Copyright (c) 2021 Yoichi Tanibayashi
  */
-#include "Esp32Button.h"
+#include "Button.h"
 
 /**
  *
  */
-Esp32Button::Esp32Button(String name, uint8_t pin, void (*intr_hdr)(void *btn)) {
-  if ( name.length() > ESP32_BUTTON_NAME_SIZE ) {
-    strcpy(this->info.name, name.substring(0, ESP32_BUTTON_NAME_SIZE).c_str());
+Button::Button(String name, uint8_t pin, void (*intr_hdr)(void *btn)) {
+  if ( name.length() > BUTTON_NAME_SIZE ) {
+    strcpy(this->info.name, name.substring(0, BUTTON_NAME_SIZE).c_str());
   } else {
     strcpy(this->info.name, name.c_str());
   }
   this->info.pin = pin;
-  this->info.value = Esp32Button::OFF;
-  this->info.prev_value = Esp32Button::OFF;
+  this->info.value = Button::OFF;
+  this->info.prev_value = Button::OFF;
   this->info.press_start = 0;
   this->info.first_press_start = 0;
   this->info.push_count = 0;
@@ -31,14 +31,14 @@ Esp32Button::Esp32Button(String name, uint8_t pin, void (*intr_hdr)(void *btn)) 
     log_i("%s: intrPin=%d", this->info.name, intrPin);
     attachInterruptArg(intrPin, intr_hdr, this, CHANGE);
   }
-} // Esp32Button::Esp32Button()
+} // Button::Button()
 
 /**
  * return:
  *	true	changed
  *	false	to be ignored
  */
-boolean Esp32Button::get() {
+boolean Button::get() {
   unsigned long cur_msec = millis();
   boolean 	ret = false;
 
@@ -51,7 +51,7 @@ boolean Esp32Button::get() {
   this->info.value = digitalRead(this->info.pin);
   this->info.click_count = 0;
 
-  if ( this->info.value == Esp32Button::OFF ) {
+  if ( this->info.value == Button::OFF ) {
     if ( this->info.push_count > 0 ){
       if ( cur_msec - this->info.first_press_start > CLICK_MSEC ) {
         // click count is detected
@@ -67,7 +67,7 @@ boolean Esp32Button::get() {
     this->info.long_pressed = false;
     this->info.repeat_count = 0;
 
-    if ( this->info.prev_value == Esp32Button::ON) {
+    if ( this->info.prev_value == Button::ON) {
       // Released now !
       // log_i("[%s] released", this->info.name);
       return true;
@@ -76,8 +76,8 @@ boolean Esp32Button::get() {
     return ret;
   }
 
-  // this->info.value == Esp32Button::ON
-  if ( this->info.prev_value == Esp32Button::OFF ) {
+  // this->info.value == Button::ON
+  if ( this->info.prev_value == Button::OFF ) {
     // Pushed now !
     this->info.press_start = cur_msec;
     this->info.push_count++;
@@ -111,75 +111,75 @@ boolean Esp32Button::get() {
 
   // if ( ret ) log_i("[%s] ret=%d", this->info.name, ret);
   return ret;
-} // Esp32Button::get()
+} // Button::get()
 
 /**
  *
  */
-void Esp32Button::enable() {
+void Button::enable() {
   this->info.active = true;
-} // Esp32Button::enable()
+} // Button::enable()
 
 /**
  *
  */
-void Esp32Button::disable() {
+void Button::disable() {
   this->info.active = false;
-} // Esp32Button::disable()
+} // Button::disable()
 
 /**
  *
  */
-boolean Esp32Button::is_active() {
+boolean Button::is_active() {
   return this->info.active;
-} // Esp32Button::is_active()
+} // Button::is_active()
 
 /**
  *
  */
-String Esp32Button::get_name() {
+String Button::get_name() {
   return String(this->info.name);
-} // Esp32Button::get_name()
+} // Button::get_name()
 
 /**
  *
  */
-boolean Esp32Button::get_value() {
+boolean Button::get_value() {
   return this->info.value;
-} // Esp32Button::get_value()
+} // Button::get_value()
 
 /**
  *
  */
-Esp32ButtonCount_t Esp32Button::get_push_count() {
+ButtonCount_t Button::get_push_count() {
   return this->info.push_count;
-} // Esp32Button::get_push_count()
+} // Button::get_push_count()
 
 /**
  *
  */
-Esp32ButtonCount_t Esp32Button::get_click_count() {
+ButtonCount_t Button::get_click_count() {
   return this->info.click_count;
-} // Esp32Button::get_click_count()
+} // Button::get_click_count()
 
 /**
  *
  */
-boolean Esp32Button::is_long_pressed() {
+boolean Button::is_long_pressed() {
   return this->info.long_pressed;
-} // Esp32Button::is_long_pressed()
+} // Button::is_long_pressed()
 
 /**
  *
  */
-Esp32ButtonCount_t Esp32Button::get_repeat_count() {
+ButtonCount_t Button::get_repeat_count() {
   return this->info.repeat_count;
-} // Esp32Button::get_repeat_count()
+} // Button::get_repeat_count()
 
 /** [static]
  *
  */
-String Esp32Button::info2String(Esp32ButtonInfo_t *info, bool interrupted) {
+String Button::info2String(ButtonInfo_t *info, bool interrupted) {
   char buf[128];
   String intrString = interrupted ? "!" : " ";
   String valueString = info->value ? "H(OFF)" : "L(ON )";
@@ -192,11 +192,11 @@ String Esp32Button::info2String(Esp32ButtonInfo_t *info, bool interrupted) {
           longPressedString.c_str(), info->repeat_count);
 
   return String(buf);
-} // Esp32Button::info2String()
+} // Button::info2String()
 
 /**
  *
  */
-String Esp32Button::toString(bool interrupted) {
-  return Esp32Button::info2String(&(this->info), interrupted);
-} // Esp32Button::toString()
+String Button::toString(bool interrupted) {
+  return Button::info2String(&(this->info), interrupted);
+} // Button::toString()

@@ -14,7 +14,7 @@ MainMode::MainMode(String name, CommonData_t *common_data)
 /**
  *
  */
-Mode_t MainMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
+Mode_t MainMode::reBtn_cb(ButtonInfo_t *bi) {
   if ( bi->click_count > 0 ) {
     return MODE_MENU;
   }
@@ -24,7 +24,7 @@ Mode_t MainMode::reBtn_cb(Esp32ButtonInfo_t *bi) {
 /**
  *
  */
-Mode_t MainMode::obBtn_cb(Esp32ButtonInfo_t *bi) {
+Mode_t MainMode::obBtn_cb(ButtonInfo_t *bi) {
   if ( bi->click_count > 0 ) {
     common_data->msg = " Onboard Btn\n";
     common_data->msg += " click:" + String(bi->click_count);
@@ -35,7 +35,7 @@ Mode_t MainMode::obBtn_cb(Esp32ButtonInfo_t *bi) {
 /**
  *
  */
-Mode_t MainMode::re_cb(Esp32RotaryEncoderInfo_t *ri) {
+Mode_t MainMode::re_cb(RotaryEncoderInfo_t *ri) {
   if ( ri->d_angle != 0 ) {
     return MODE_MENU;
   }
@@ -185,7 +185,7 @@ void MainMode::drawThi(Display_t *disp, int x, int y, float thi) {
 /**
  *
  */
-void MainMode::drawWiFi(Display_t *disp, int x, int y, Esp32NetMgrInfo_t *ni) {
+void MainMode::drawWiFi(Display_t *disp, int x, int y, NetMgrInfo_t *ni) {
   disp->setFont(NULL);
   disp->setTextSize(1);
   disp->setCursor(x, y);
@@ -282,8 +282,8 @@ void MainMode::drawDateTime(Display_t *disp, int x, int y, struct tm *ti) {
  *
  */
 void MainMode::drawNtp(Display_t *disp, int x, int y,
-                       Esp32NtpTaskInfo_t *ntp_info,
-                       Esp32NetMgrInfo_t *netmgr_info) {
+                       NtpTaskInfo_t *ntp_info,
+                       NetMgrInfo_t *netmgr_info) {
   String ntp_stat_str = "?";
 
   switch ( ntp_info->sntp_stat ) {

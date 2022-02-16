@@ -6,8 +6,8 @@
 
 #include <esp32-hal-log.h>
 #include "common.h"
-#include "Esp32Button.h"
-#include "Esp32RotaryEncoder.h"
+#include "Button.h"
+#include "RotaryEncoder.h"
 #include "Display.h"
 
 #define _cur_mode this->common_data->cur_mode
@@ -26,9 +26,9 @@ public:
   virtual bool exit();
   virtual void loop(unsigned long cur_ms);
 
-  virtual Mode_t reBtn_cb(Esp32ButtonInfo_t *bi);
-  virtual Mode_t obBtn_cb(Esp32ButtonInfo_t *bi);
-  virtual Mode_t re_cb(Esp32RotaryEncoderInfo_t *ri);
+  virtual Mode_t reBtn_cb(ButtonInfo_t *bi);
+  virtual Mode_t obBtn_cb(ButtonInfo_t *bi);
+  virtual Mode_t re_cb(RotaryEncoderInfo_t *ri);
   virtual void display(Display_t *disp);
 
 protected:

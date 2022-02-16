@@ -52,7 +52,7 @@ void ModeBase::loop(unsigned long cur_ms) {
 /**
  *
  */
-Mode_t ModeBase::reBtn_cb(Esp32ButtonInfo_t *bi) {
+Mode_t ModeBase::reBtn_cb(ButtonInfo_t *bi) {
   log_i("%s", this->name.c_str());
   return MODE_N;
 } // ModeBase::reBtn_cb()
@@ -60,7 +60,7 @@ Mode_t ModeBase::reBtn_cb(Esp32ButtonInfo_t *bi) {
 /**
  *
  */
-Mode_t ModeBase::obBtn_cb(Esp32ButtonInfo_t *bi) {
+Mode_t ModeBase::obBtn_cb(ButtonInfo_t *bi) {
   log_i("");
   return MODE_N;
 } // ModeBase::obBtn_cb()
@@ -68,7 +68,7 @@ Mode_t ModeBase::obBtn_cb(Esp32ButtonInfo_t *bi) {
 /**
  *
  */
-Mode_t ModeBase::re_cb(Esp32RotaryEncoderInfo_t *ri) {
+Mode_t ModeBase::re_cb(RotaryEncoderInfo_t *ri) {
   log_i("");
   return MODE_N;
 } // ModeBase::re_cb()

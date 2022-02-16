@@ -17,10 +17,10 @@
 #include "ScanSsidMode.h"
 #include "SetSsidMode.h"
 
-#include "Esp32ButtonTask.h"
-#include "Esp32RotaryEncoderTask.h"
-#include "Esp32NetMgrTask.h"
-#include "Esp32NtpTask.h"
+#include "ButtonTask.h"
+#include "RotaryEncoderTask.h"
+#include "NetMgrTask.h"
+#include "NtpTask.h"
 
 #include "ConfFps.h"
 
@@ -47,13 +47,13 @@ Display_t *Disp;
 // Buttons
 constexpr uint8_t PIN_BTN_RE = 26;
 const String RE_BTN_NAME = "RotaryEncoderBtn";
-Esp32ButtonWatcher *reBtnWatcher = NULL;
-Esp32ButtonInfo_t reBtnInfo;
+ButtonWatcher *reBtnWatcher = NULL;
+ButtonInfo_t reBtnInfo;
 
 constexpr uint8_t PIN_BTN_ONBOARD = 39;
 const String ONBOARD_BTN_NAME = "OnBoardBtn";
-Esp32ButtonWatcher *obBtnWatcher = NULL;
-Esp32ButtonInfo_t obBtnInfo;
+ButtonWatcher *obBtnWatcher = NULL;
+ButtonInfo_t obBtnInfo;
 
 // Rotary Encoder
 const String RE_NAME = "RotaryEncoder1";
@@ -68,8 +68,8 @@ constexpr int16_t RE_ANGLE_MAX = 20;
 constexpr pcnt_ctrl_mode_t RE_LCTRL_MODE = PCNT_MODE_DISABLE;
 
 constexpr pcnt_unit_t PCNT_UNIT = PCNT_UNIT_0;
-Esp32RotaryEncoderWatcher *reWatcher = NULL;
-Esp32RotaryEncoderInfo_t reInfo;
+RotaryEncoderWatcher *reWatcher = NULL;
+RotaryEncoderInfo_t reInfo;
 
 // NeoPixel
 constexpr uint8_t PIN_NEOPIXEL_ONBOARD = 27;
@@ -84,18 +84,18 @@ CRGB leds_ext1[LEDS_N_EXT1];
 
 // WiFi
 const String AP_SSID_HDR = "iot";
-Esp32NetMgrTask *netMgrTask = NULL;
-Esp32NetMgrInfo_t netMgrInfo;
+NetMgrTask *netMgrTask = NULL;
+NetMgrInfo_t netMgrInfo;
 
 // NTP
 const String NTP_SVR[] = {"ntp.nict.jp", "pool.ntp.org", "time.google.com"};
-Esp32NtpTask *ntpTask = NULL;
-Esp32NtpTaskInfo_t ntpInfo;
+NtpTask *ntpTask = NULL;
+NtpTaskInfo_t ntpInfo;
 
 // BME280
 constexpr uint8_t BME280_ADDR = 0x76;
 constexpr float TEMP_OFFSET = -1.0;
-Esp32Bme280 *Bme;
+Bme280 *Bme;
 
 // Timer
 constexpr TickType_t TIMER_INTERVAL = 10 * 1000; // tick == ms (?)
@@ -155,7 +155,7 @@ void do_restart() {
 /**
  *
  */
-void ntp_cb(Esp32NtpTaskInfo_t *ntp_info) {
+void ntp_cb(NtpTaskInfo_t *ntp_info) {
   log_d("sntp_stat=%s(%d)",
         SNTP_SYNC_STATUS_STR[ntp_info->sntp_stat], ntp_info->sntp_stat);
   
@@ -170,12 +170,12 @@ void ntp_cb(Esp32NtpTaskInfo_t *ntp_info) {
 void timer1_cb() {
   TickType_t tick1 = xTaskGetTickCount();
   log_d("[%s] timer test: start(priority=%d)",
-        Esp32NtpTask::get_time_str(), uxTaskPriorityGet(NULL));
+        NtpTask::get_time_str(), uxTaskPriorityGet(NULL));
 
   commonData.bme_info = Bme->get();
   float temp_offset = Bme->get_temp_offset();
   log_d("%s: Bme->get(): %.2f(%.1f), %.1f, %.1f, %.1f",
-        Esp32NtpTask::get_time_str(),
+        NtpTask::get_time_str(),
         commonData.bme_info->temp, temp_offset,
         commonData.bme_info->hum,
         commonData.bme_info->pres,
@@ -187,14 +187,14 @@ void timer1_cb() {
   TickType_t d_tick = tick2 - tick1;
   log_d("%d %d", tick1, tick2);
   log_d("[%s] timer test: end(d_tick=%d)",
-        Esp32NtpTask::get_time_str(), d_tick);
+        NtpTask::get_time_str(), d_tick);
 } // timer1_cb()
 
 /** callback
  *
  */
-void reBtn_cb(Esp32ButtonInfo_t *btn_info) {
-  log_i("%s", Esp32Button::info2String(btn_info).c_str());
+void reBtn_cb(ButtonInfo_t *btn_info) {
+  log_i("%s", Button::info2String(btn_info).c_str());
   reBtnInfo = *btn_info;
 
   if ( btn_info->push_count > 0 ) {
@@ -219,8 +219,8 @@ void reBtn_cb(Esp32ButtonInfo_t *btn_info) {
 /** callback
  *
  */
-void obBtn_cb(Esp32ButtonInfo_t *btn_info) {
-  log_i("%s", Esp32Button::info2String(btn_info).c_str());
+void obBtn_cb(ButtonInfo_t *btn_info) {
+  log_i("%s", Button::info2String(btn_info).c_str());
   obBtnInfo = *btn_info;
 
   if ( btn_info->push_count > 0 ) {
@@ -243,8 +243,8 @@ void obBtn_cb(Esp32ButtonInfo_t *btn_info) {
 /** callback
  *
  */
-void re_cb(Esp32RotaryEncoderInfo_t *re_info) {
-  log_d("%s", Esp32RotaryEncoder::info2String(re_info).c_str());
+void re_cb(RotaryEncoderInfo_t *re_info) {
+  log_d("%s", RotaryEncoder::info2String(re_info).c_str());
 
   /**
    * XXX
@@ -255,7 +255,7 @@ void re_cb(Esp32RotaryEncoderInfo_t *re_info) {
     log_w("d_angle=%d: ignored", re_info->d_angle);
 
     // XXX angleを戻す
-    Esp32RotaryEncoderInfo_t *re_info_src = reWatcher->get_re_info_src();
+    RotaryEncoderInfo_t *re_info_src = reWatcher->get_re_info_src();
     re_info_src->angle -= re_info->d_angle;
     return;
   }
@@ -330,7 +330,7 @@ void setup() {
   commonData.ntp_info = &ntpInfo;
 
   // BME280
-  Bme = new Esp32Bme280(BME280_ADDR, TEMP_OFFSET);
+  Bme = new Bme280(BME280_ADDR, TEMP_OFFSET);
   commonData.bme_info = Bme->get();
   float temp_offset = Bme->get_temp_offset();
   log_i("%.1f(%.1f), %.1f, %.1f, %.1f",
@@ -362,28 +362,26 @@ void setup() {
   // Tasks
   unsigned long task_interval = 10;
 
-  ntpTask = new Esp32NtpTask((String *)NTP_SVR, &netMgrTask, ntp_cb);
+  ntpTask = new NtpTask((String *)NTP_SVR, &netMgrTask, ntp_cb);
   ntpTask->start();
   delay(task_interval);
 
-  netMgrTask = new Esp32NetMgrTask("NetMgr", AP_SSID_HDR, &netMgrInfo);
+  netMgrTask = new NetMgrTask("NetMgr", AP_SSID_HDR, &netMgrInfo);
   netMgrTask->start();
   delay(task_interval);
 
-  reBtnWatcher = new Esp32ButtonWatcher(RE_BTN_NAME, PIN_BTN_RE,
-                                        reBtn_cb);
+  reBtnWatcher = new ButtonWatcher(RE_BTN_NAME, PIN_BTN_RE, reBtn_cb);
   reBtnWatcher->start();
   delay(task_interval);
 
-  obBtnWatcher = new Esp32ButtonWatcher(ONBOARD_BTN_NAME, PIN_BTN_ONBOARD,
-                                        obBtn_cb);
+  obBtnWatcher = new ButtonWatcher(ONBOARD_BTN_NAME, PIN_BTN_ONBOARD, obBtn_cb);
   obBtnWatcher->start();
   delay(task_interval);
 
-  reWatcher = new Esp32RotaryEncoderWatcher(RE_NAME,
-                                            PIN_PULSE_DT, PIN_PULSE_CLK,
-                                            RE_ANGLE_MAX, RE_LCTRL_MODE,
-                                            re_cb);
+  reWatcher = new RotaryEncoderWatcher(RE_NAME,
+                                       PIN_PULSE_DT, PIN_PULSE_CLK,
+                                       RE_ANGLE_MAX, RE_LCTRL_MODE,
+                                       re_cb);
   reWatcher->start();
   delay(task_interval);
 
