@@ -18,22 +18,21 @@ int ConfSsid::load() {
   if ( this->open_read() < 0 ) {
     return -1;
   }
+  this->ent.clear();
 
-  this->ssid.clear();
-  this->ssid.shrink_to_fit();
-  this->pw.clear();
-  this->pw.shrink_to_fit();
-
-  int i=0;
   while ( this->file.available() ) {
-    this->ssid.push_back(this->read_line());
-    this->pw.push_back(this->read_line());
-    log_i("|%s|%s|%d",
-          this->ssid[i].c_str(), this->pw[i].c_str(), this->ssid.size());
-    i++;
-  }
+    String ssid = this->read_line();
+    String pw = this->read_line();
+    log_i("load|%s|%s|", ssid.c_str(), pw.c_str());
+
+    this->ent[ssid.c_str()] = pw.c_str();
+  } // while(this->file.available())
+
   this->close();
 
+  for (auto it=this->ent.begin(); it != ent.end(); it++) {
+    log_i("ent|%s|%s|", (it->first).c_str(), (it->second).c_str());
+  }
   return this->line_count;
 } // ConfSsid::load()
 
@@ -45,10 +44,17 @@ int ConfSsid::save() {
     return -1;
   }
 
-  for (int i=0; i < this->ssid.size(); i++) {
-    this->write_line(this->ssid[i]);
-    this->write_line(this->pw[i]);
-    log_i("%d|%s|%s|", i, this->ssid[i], this->pw[i]);
+  for (auto it=this->ent.begin(); it != ent.end(); it++) {
+    String ssid = (it->first).c_str();
+    String pw = (it->second).c_str();
+    if ( pw.length() == 0 ) {
+      log_w("|%s|%s| .. ignored", ssid.c_str(), pw.c_str());
+      continue;
+    }
+    log_i("|%s|%s|", ssid.c_str(), pw.c_str());
+    
+    this->write_line(ssid);
+    this->write_line(pw);
   }
   this->close();
 

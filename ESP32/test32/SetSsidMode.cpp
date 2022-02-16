@@ -25,14 +25,10 @@ void SetSsidMode::setup() {
  */
 bool SetSsidMode::enter(Mode_t prev_mode) {
   this->ssid = common_data->netmgr_info->new_ssid;
-  this->pw = "";
 
   confSsid->load();
-  log_i("SSID|%s|%s|", this->ssid, confSsid->ssid);
-  if ( this->ssid == confSsid->ssid[0] ) {
-    this->pw = confSsid->pw[0];
-  }
-  log_i("|ssid|pw| : |%s|%s|", this->ssid.c_str(), this->pw.c_str());
+  this->pw = confSsid->ent[this->ssid.c_str()].c_str();
+  log_i("|%s|%s|", this->ssid.c_str(), this->pw.c_str());
 
   this->cursor_i = this->pw.length();
   
@@ -48,8 +44,7 @@ Mode_t SetSsidMode::reBtn_cb(ButtonInfo_t *bi) {
   if ( bi->click_count > 0 ) {
     // モードを抜けるときだけ、クリックカウントで判断
     if ( ch == SetSsidMode::CH_ENTER ) {
-      this->confSsid->ssid[0] = this->ssid;
-      this->confSsid->pw[0] = this->pw;
+      this->confSsid->ent[this->ssid.c_str()] = this->pw.c_str();
       this->confSsid->save();
       
       common_data->msg = "restart_wifi";

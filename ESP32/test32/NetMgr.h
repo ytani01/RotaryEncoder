@@ -40,7 +40,7 @@ public:
   static const unsigned int TRY_INTERVAL  = 500; // ms
   static const unsigned int DEF_TRY_COUNT_MAX = 16;
   
-  static const unsigned int SSID_N_MAX = 50;
+  static const unsigned int SSID_N_MAX = 40;
   
   static const int DNS_PORT    = 53;
   static const int WEBSVR_PORT = 80;
@@ -86,9 +86,8 @@ protected:
 
   void _restart();
 
-  static unsigned int scan_ssid(SSIDent ssid_ent[]);
   static void         async_scan_ssid_start();
-  static unsigned int async_scan_ssid_wait(SSIDent ssid_ent[]);
+  static unsigned int async_scan_ssid_wait();
 
   static String html_header(String title);
   static String html_footer();

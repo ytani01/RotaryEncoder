@@ -3,6 +3,9 @@
  */
 #include "NetMgr.h"
 
+#undef CONFIG_LOG_MAXIMUM_LEVEL
+#define CONFIG_LOG_MAXIMUM_LEVEL 5
+
 static ConfSsid *confSsid;
 /**
  * Initialize static variables
@@ -61,6 +64,8 @@ NetMgrMode_t NetMgr::loop() {
 
   wl_status_t wl_stat = WiFi.status();
   
+  int ent_size = 0;
+
   switch (this->cur_mode) {
   case NETMGR_MODE_NULL:
     break;
@@ -69,26 +74,65 @@ NetMgrMode_t NetMgr::loop() {
     log_i("NETMGR_MODE_START");
 
     confSsid->load();
-    if ( confSsid->ssid.size() == 0 ) {
+    ent_size = confSsid->ent.size();
+    if ( ent_size == 0 ) {
+      log_w("ent_size=%d", ent_size);
       this->cur_mode = NETMGR_MODE_AP_INIT;
       break;
     }
     
-    ssid = confSsid->ssid[0];
-    pw = confSsid->pw[0];
-    log_i("|%s|%s|", ssid.c_str(), pw.c_str());
+    /*
+     * XXX 以下重要？
+     * XXX これでも、reboot一回おきに接続に失敗する!!??
+     */
+    //WiFi.mode(WIFI_AP);
+    //delay(5000);
 
-    // XXX 以下重要？
-    // XXX これでも、reboot一回おきに接続に失敗する!!??
-    WiFi.mode(WIFI_STA);
     WiFi.disconnect(true, true);
-    WiFi.mode(WIFI_OFF);
-    delay(100);
-    NetMgr::async_scan_ssid_start();
-    NetMgr::ssidN = NetMgr::async_scan_ssid_wait(NetMgr::ssidEnt);
-    log_i("ssidN=%d", NetMgr::ssidN);
-    delay(2000);
+    log_i("disconnect");
+    delay(200);
 
+    WiFi.mode(WIFI_OFF);
+    log_i("WIFI_OFF");
+    delay(200);
+
+    //eps_wifi_restore();
+    //log_i("esp_wifi_restore()");
+    //delay(5000);
+    
+    // scan SSIDs
+    NetMgr::async_scan_ssid_start();
+    NetMgr::ssidN = NetMgr::async_scan_ssid_wait();
+    log_i("ssidN=%d", NetMgr::ssidN);
+    if ( ssidN == 0 ) {
+      NetMgr::async_scan_ssid_start();
+      NetMgr::ssidN = NetMgr::async_scan_ssid_wait();
+    }
+    if ( ssidN == 0 ) {
+      log_w("ssidN=%d: no SSID !?");
+      this->cur_mode = NETMGR_MODE_AP_INIT;
+      break;
+    }
+
+    ssid = "";
+    for (int i=0; i < NetMgr::ssidN; i++) {
+      auto itr = confSsid->ent.find(NetMgr::ssidEnt[i].ssid().c_str());
+      if ( itr != confSsid->ent.end() )  {
+        ssid = (itr->first).c_str();
+        pw = (itr->second).c_str();
+        break;
+      } // for(itr)
+      if ( ssid != "" ) {
+        break;
+      }
+    } // for(i)
+    log_i("found:|%s|%s|", ssid.c_str(), pw.c_str());
+
+    if ( ssid == "" ) {
+      this->cur_mode = NETMGR_MODE_AP_INIT;
+      break;
+    }
+      
     WiFi.begin(ssid.c_str(), pw.c_str());
     this->_loop_count = 0;
     this->cur_mode = NETMGR_MODE_TRY_WIFI;
@@ -235,9 +279,7 @@ NetMgrMode_t NetMgr::loop() {
 void NetMgr::save_ssid(String ssid, String pw) {
   log_i("save_ssid> |%s|%s|", ssid.c_str(), pw.c_str());
 
-  confSsid->ssid[0] = ssid;
-  confSsid->pw[0] = pw;
- 
+  confSsid->ent[ssid.c_str()] = pw.c_str();
   confSsid->save();
 } // NetMgr::save_ssid()
 
@@ -352,19 +394,19 @@ String NetMgr::html_footer() {
  *
  */
 void NetMgr::async_scan_ssid_start() {
-  log_i("NetMgr::async_scan_ssid_start> ..");
   WiFi.scanNetworks(true, true);
+  log_i("");
 } // NetMgr::async_scan_ssid_start()
 
 /**
  *
  */
-unsigned int NetMgr::async_scan_ssid_wait(SSIDent ssid_ent[]) {
+unsigned int NetMgr::async_scan_ssid_wait() {
   int16_t ret;
 
   while ( (ret = WiFi.scanComplete()) == WIFI_SCAN_RUNNING ) {
     log_i("scanning.. ret=%d", ret);
-    delay(500);
+    delay(1000);
   }
   if ( ret == WIFI_SCAN_FAILED ) {
     log_e("SSID scan faild: ret=%d", ret);
@@ -376,7 +418,7 @@ unsigned int NetMgr::async_scan_ssid_wait(SSIDent ssid_ent[]) {
   }
 
   for (int i=0; i < ret; i++) {
-    ssid_ent[i].set(WiFi.SSID(i), WiFi.RSSI(i), WiFi.encryptionType(i));
+    NetMgr::ssidEnt[i].set(WiFi.SSID(i), WiFi.RSSI(i), WiFi.encryptionType(i));
   } // for()
 
   WiFi.scanDelete();
@@ -387,38 +429,12 @@ unsigned int NetMgr::async_scan_ssid_wait(SSIDent ssid_ent[]) {
 /**
  *
  */
-unsigned int NetMgr::scan_ssid(SSIDent ssid_ent[]) {
-  log_i("NetMgr::scan_ssid> scan start ..");
-
-  int ssid_n = WiFi.scanNetworks();
-
-  log_i("NetMgr::scan_ssid> %d SSIDs found", ssid_n);
-
-  if (ssid_n <= 0) {
-    return 0;
-  }
-
-  if ( ssid_n > NetMgr::SSID_N_MAX ) {
-    ssid_n = NetMgr::SSID_N_MAX;
-  }
-
-  for (int i=0; i < ssid_n; i++) {
-    ssid_ent[i].set(WiFi.SSID(i), WiFi.RSSI(i), WiFi.encryptionType(i));
-  } // for()
-
-  return ssid_n;
-} // NetMgr::ssid_scan()
-
-/**
- *
- */
 void NetMgr::handle_top() {
   String   ssid, pw;
 
-  confSsid->load();
-  ssid = confSsid->ssid[0];
-  pw = confSsid->pw[0];
-  
+  // confSsid->load();
+  ssid = "";
+  pw = "";
   log_i("ssid=%s, pw=%s", ssid.c_str(), pw.c_str());
 
   String html = NetMgr::html_header("Current settings");
@@ -443,16 +459,16 @@ void NetMgr::handle_select_ssid() {
   String   ssid, pw;
   
 
-  confSsid->load();
-  ssid = confSsid->ssid[0];
-  pw = confSsid->pw[0];
+  //confSsid->load();
+  ssid = "";
+  pw = "";
   
-  NetMgr::ssidN = NetMgr::async_scan_ssid_wait(NetMgr::ssidEnt);
-  log_i("NetMgr::ssidN=%s", String(NetMgr::ssidN));
+  NetMgr::ssidN = NetMgr::async_scan_ssid_wait();
+  log_i("ssidN=%s", String(NetMgr::ssidN));
   if (NetMgr::ssidN == 0) {
-    log_i("NetMgr::handle_select_ssid> rescan SSID");
+    log_i("rescan SSID..");
     NetMgr::async_scan_ssid_start();
-    NetMgr::ssidN = NetMgr::async_scan_ssid_wait(NetMgr::ssidEnt);
+    NetMgr::ssidN = NetMgr::async_scan_ssid_wait();
   }
 
   for (int i=0; i < NetMgr::ssidN; i++) {
@@ -518,8 +534,7 @@ void NetMgr::handle_save_ssid(){
   
   log_i("save_ssid> |%s|%s|", ssid.c_str(), pw.c_str());
 
-  confSsid->ssid[0] = ssid;
-  confSsid->pw[0] = pw;
+  confSsid->ent[ssid.c_str()] = pw.c_str();
   confSsid->save();
 
   // 自動転送
