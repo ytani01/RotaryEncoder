@@ -186,27 +186,54 @@ void MainMode::drawThi(Display_t *disp, int x, int y, float thi) {
  *
  */
 void MainMode::drawWiFi(Display_t *disp, int x, int y, NetMgrInfo_t *ni) {
+  int cur_ms = millis();
+  
   disp->setFont(NULL);
   disp->setTextSize(1);
   disp->setCursor(x, y);
-  if ( ni->mode == NETMGR_MODE_WIFI_ON ) {
+
+  int interval, ms;
+  switch ( ni->mode ) {
+  case NETMGR_MODE_START:
+    interval = 500;
+    ms = cur_ms % interval;
+    if ( ms < interval * 7 / 10 ) {
+      disp->printf("Starting WiFi");
+    }
+    break;
+
+  case NETMGR_MODE_TRY_WIFI:
+    interval = 500;
+    ms = cur_ms % interval;
+    if ( ms < interval * 7 / 10 ) {
+      disp->printf("%s", ni->ssid.c_str());
+    }
+    break;
+
+  case NETMGR_MODE_WIFI_ON:
     disp->printf("%s", ni->ssid.c_str());
     disp->setFont(&Picopixel);
     disp->printf(" %s", ni->ip_addr.toString().c_str());
     disp->setFont(NULL);
-  } else if ( ni->mode == NETMGR_MODE_AP_INIT || ni->mode == NETMGR_MODE_AP_LOOP ) {
-    int tick = 3000;
-    int ms = millis() % tick;
-    if ( ms < tick * 95 / 100 ) {
+    break;
+
+  case NETMGR_MODE_AP_INIT:
+  case NETMGR_MODE_AP_LOOP:
+    interval = 3000;
+    ms = cur_ms % interval;
+    if ( ms < interval * 95 / 100 ) {
       disp->printf("[ %s ]", ni->ap_ssid.c_str());
     }
-  } else if ( ni->mode != NETMGR_MODE_WIFI_OFF ) {
-    int tick = 500;
-    int ms = millis() % tick;
-    if ( ms < tick * 5 / 10 ) {
+    break;
+
+  case NETMGR_MODE_WIFI_OFF:
+    interval = 500;
+    ms = millis() % interval;
+    if ( ms < interval * 5 / 10 ) {
       disp->printf("%s", ni->ssid.c_str());
     }
-  }
+    break;
+  } // switch(ni->mode)
 } // MainMode::drawWiFi()
 
 /**

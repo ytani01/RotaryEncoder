@@ -53,6 +53,7 @@ NetMgrMode_t NetMgr::loop() {
   static NetMgrMode_t prev_mode = NETMGR_MODE_NULL;
   static String ssid = "";
   static String pw = "";
+  static int retry_count = 1;
 
   if ( this->cur_mode != prev_mode ) {
     log_i("cur_mode: %s(%d) ==> %s(%d)",
@@ -82,37 +83,44 @@ NetMgrMode_t NetMgr::loop() {
     }
     
     /*
-     * XXX 以下重要？
+     * XXX 以下、悪あがき
      * XXX これでも、reboot一回おきに接続に失敗する!!??
      */
-    //WiFi.mode(WIFI_AP);
-    //delay(5000);
+    WiFi.mode(WIFI_AP);
+    delay(500);
 
     WiFi.disconnect(true, true);
     log_i("disconnect");
-    delay(200);
+    delay(500);
 
     WiFi.mode(WIFI_OFF);
     log_i("WIFI_OFF");
-    delay(200);
+    delay(500);
 
     //eps_wifi_restore();
     //log_i("esp_wifi_restore()");
     //delay(5000);
     
     // scan SSIDs
-    NetMgr::async_scan_ssid_start();
-    NetMgr::ssidN = NetMgr::async_scan_ssid_wait();
+    log_i("scan SSID ..");
+    NetMgr::ssidN = WiFi.scanNetworks(false, true, false, 200);
     log_i("ssidN=%d", NetMgr::ssidN);
-    if ( ssidN == 0 ) {
-      NetMgr::async_scan_ssid_start();
-      NetMgr::ssidN = NetMgr::async_scan_ssid_wait();
+    delay(10);
+    if ( ssidN <= 0 ) {
+      log_i("retry: scan SSID ..");
+      WiFi.scanDelete();
+      NetMgr::ssidN = WiFi.scanNetworks(false, true, false, 200);
+      log_i("ssidN=%d", NetMgr::ssidN);
+      delay(10);
     }
-    if ( ssidN == 0 ) {
-      log_w("ssidN=%d: no SSID !?");
+    if ( ssidN <= 0 ) {
       this->cur_mode = NETMGR_MODE_AP_INIT;
       break;
     }
+    for (int i=0; i < NetMgr::ssidN; i++) {
+      NetMgr::ssidEnt[i].set(WiFi.SSID(i), WiFi.RSSI(i), WiFi.encryptionType(i));
+    } // for()
+    WiFi.scanDelete();
 
     ssid = "";
     for (int i=0; i < NetMgr::ssidN; i++) {
@@ -134,6 +142,7 @@ NetMgrMode_t NetMgr::loop() {
     }
       
     WiFi.begin(ssid.c_str(), pw.c_str());
+
     this->_loop_count = 0;
     this->cur_mode = NETMGR_MODE_TRY_WIFI;
     break;
@@ -158,8 +167,14 @@ NetMgrMode_t NetMgr::loop() {
     }
 
     if (this->_loop_count > this->try_count_max) {
+      if ( retry_count ) {
+        log_w("Retry ..");
+        this->cur_mode = NETMGR_MODE_START;
+        retry_count--;
+        break;
+      }
+      
       log_w(" WiFi faild");
-
       this->cur_mode = NETMGR_MODE_AP_INIT;
       break;
     }
@@ -228,6 +243,8 @@ NetMgrMode_t NetMgr::loop() {
     break;
 
   case NETMGR_MODE_AP_LOOP:
+    retry_count = 1;
+
     this->dns_svr.processNextRequest();
     web_svr.handleClient();
 
@@ -238,6 +255,8 @@ NetMgrMode_t NetMgr::loop() {
     break;
 
   case NETMGR_MODE_WIFI_ON:
+    retry_count = 1;
+
     if ( wl_stat != WL_CONNECTED ) {
       log_w("wl_stat=%s(%d)", WL_STATUS_T_STR[wl_stat], wl_stat);
       this->cur_mode = NETMGR_MODE_START;
