@@ -66,19 +66,19 @@ class MqttTask: public Task {
         bool ret;
 
         topic = this->topic_root + "/temp";
-        sprintf(buf, "%.1f", common_data->bme_info->temp);
+        sprintf(buf, "%.2f", common_data->bme_info->temp);
         ret = this->mqtt_client->publish(topic.c_str(), buf);
         log_i("publish(%s:%s): ret=%s",
               topic.c_str(), buf, ret ? "true" : "false");
 
         topic = this->topic_root + "/hum";
-        sprintf(buf, "%.1f", common_data->bme_info->hum);
+        sprintf(buf, "%.2f", common_data->bme_info->hum);
         ret = this->mqtt_client->publish(topic.c_str(), buf);
         log_i("publish(%s:%s): ret=%s",
               topic.c_str(), buf, ret ? "true" : "false");
 
         topic = this->topic_root + "/pres";
-        sprintf(buf, "%.1f", common_data->bme_info->pres);
+        sprintf(buf, "%.2f", common_data->bme_info->pres);
         ret = this->mqtt_client->publish(topic.c_str(), buf);
         log_i("publish(%s:%s): ret=%s",
               topic.c_str(), buf, ret ? "true" : "false");
