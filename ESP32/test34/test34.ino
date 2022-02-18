@@ -21,6 +21,7 @@
 #include "RotaryEncoderTask.h"
 #include "NetMgrTask.h"
 #include "NtpTask.h"
+#include "MqttTask.h"
 
 #include "ConfFps.h"
 
@@ -91,6 +92,13 @@ NetMgrInfo_t netMgrInfo;
 const String NTP_SVR[] = {"ntp.nict.jp", "pool.ntp.org", "time.google.com"};
 NtpTask *ntpTask = NULL;
 NtpTaskInfo_t ntpInfo;
+
+// MQTT
+const String MQTT_SERVER = "mqtt.ytani.net";
+const int MQTT_PORT = 1883;
+const String MQTT_TOPIC_ROOT = "esp32"; // topic = MQTT_TOPIC_ROOT + "/" + RES_NAME
+const String MQTT_CLIENT_ID = "esp32client";
+MqttTask *mqttTask = NULL;
 
 // BME280
 constexpr uint8_t BME280_ADDR = 0x76;
@@ -383,6 +391,13 @@ void setup() {
                                        RE_ANGLE_MAX, RE_LCTRL_MODE,
                                        re_cb);
   reWatcher->start();
+  delay(task_interval);
+
+  mqttTask = new MqttTask(&commonData,
+                          MQTT_SERVER, MQTT_PORT,
+                          MQTT_TOPIC_ROOT,
+                          MQTT_CLIENT_ID);
+  mqttTask->start();
   delay(task_interval);
 
   // start timer1

@@ -33,7 +33,7 @@ public:
 
   // constructor
   NtpTask(String ntp_svr[], NetMgrTask **pNetMgrTask,
-               void (*cb)(NtpTaskInfo_t *ntp_info)=NULL);
+          void (*cb)(NtpTaskInfo_t *ntp_info)=NULL);
 
   void *get_info();
 

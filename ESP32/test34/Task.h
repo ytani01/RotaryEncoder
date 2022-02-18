@@ -15,6 +15,8 @@ class task1: public Task {
 #define _TASK_H_
 
 #include <Arduino.h>
+//#include <freertos/FreeRTOS.h>
+//#include <freertos/task.h>
 #include <esp32-hal-log.h>
 
 static const unsigned long TASK_NAME_SIZE = 64;
@@ -34,17 +36,17 @@ typedef struct {
  *
  */
 class Task {
- public:
+public:
   static const uint32_t STACK_SIZE_DEF = 4 * 1024; // bytes
   static const UBaseType_t PRIORITY_DEF = 2;
   static const UBaseType_t CORE_DEF = APP_CPU_NUM; // PRO_CPU_NUM|APP_CPU_NUM
-
+  
   TaskConf_t conf;
-
+  
   Task(String name="[NO_NAME_TASK]",
-            uint32_t stack_size=STACK_SIZE_DEF,
-            UBaseType_t priority=PRIORITY_DEF,
-            UBaseType_t core=CORE_DEF);
+       uint32_t stack_size=STACK_SIZE_DEF,
+       UBaseType_t priority=PRIORITY_DEF,
+       UBaseType_t core=CORE_DEF);
   void start();
   bool is_active();
 
