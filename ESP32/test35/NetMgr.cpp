@@ -72,7 +72,7 @@ NetMgrMode_t NetMgr::loop() {
     break;
     
   case NETMGR_MODE_START:
-    log_i("NETMGR_MODE_START");
+    log_i("NETMGR_MODE_START: retry_count=%d", retry_count);
 
     confSsid->load();
     ent_size = confSsid->ent.size();
@@ -184,19 +184,12 @@ NetMgrMode_t NetMgr::loop() {
           this->_loop_count, this->try_count_max,
           WL_STATUS_T_STR[wl_stat], wl_stat);
 
-#if 0
-    if ( wl_stat == WL_NO_SSID_AVAIL ) {
-      WiFi.disconnect(true);
-      WiFi.mode(WIFI_OFF);
-      delay(1000);
-      esp_wifi_restore();
-      this->cur_mode = NETMGR_MODE_START;
-    }
-#endif
     delay(TRY_INTERVAL);
     break;
 
   case NETMGR_MODE_AP_INIT:
+    retry_count = 1;
+
     // log_i("%s", this->ModeStr[this->cur_mode]);
     log_i("cur_mode=%s", NETMGR_MODE_STR[this->cur_mode]);
 
@@ -243,8 +236,6 @@ NetMgrMode_t NetMgr::loop() {
     break;
 
   case NETMGR_MODE_AP_LOOP:
-    retry_count = 1;
-
     this->dns_svr.processNextRequest();
     web_svr.handleClient();
 
@@ -270,6 +261,8 @@ NetMgrMode_t NetMgr::loop() {
     break;
 
   case NETMGR_MODE_WIFI_OFF:
+    retry_count = 1;
+
     if (wl_stat == WL_CONNECTED) {
       log_i("wl_stat=%s(%d)", WL_STATUS_T_STR[wl_stat], wl_stat);
       this->cur_mode = NETMGR_MODE_WIFI_ON;

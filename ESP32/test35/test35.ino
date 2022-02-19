@@ -29,7 +29,7 @@ ConfFps *confFps;
 static bool dispFps = true;
 
 // Modes
-#define _curMode commonData.cur_mode
+#define curMode commonData.cur_mode
 
 std::vector<ModeBase *> Mode;
 MainMode *mainMode;
@@ -116,19 +116,19 @@ OledMenu *menuTop, *menuSub;
  *
  */
 bool change_mode(Mode_t mode) {
-  if ( ! Mode[_curMode]->exit() ) {
-    log_e("%s:exit(): failed", MODE_T_STR[_curMode]);
+  if ( ! Mode[curMode]->exit() ) {
+    log_e("%s:exit(): failed", MODE_T_STR[curMode]);
     return false;
   }
 
-  if ( ! Mode[mode]->enter(_curMode) ) {
+  if ( ! Mode[mode]->enter(curMode) ) {
     log_e("%s:enter(): failed", MODE_T_STR[mode]);
   }
 
-  Mode_t prev_mode = _curMode;
-  _curMode = mode;
+  Mode_t prev_mode = curMode;
+  curMode = mode;
   log_i("mode: %s ==> %s",
-        MODE_T_STR[prev_mode], MODE_T_STR[_curMode]);
+        MODE_T_STR[prev_mode], MODE_T_STR[curMode]);
   return true;
 } // change_mode()
 
@@ -218,8 +218,8 @@ void reBtn_cb(ButtonInfo_t *btn_info) {
   }
 #endif
 
-  Mode_t dst_mode = Mode[_curMode]->reBtn_cb(btn_info);
-  if ( dst_mode != MODE_N && dst_mode != _curMode ) {
+  Mode_t dst_mode = Mode[curMode]->reBtn_cb(btn_info);
+  if ( dst_mode != MODE_N && dst_mode != curMode ) {
     change_mode(dst_mode);
   }
 } // reBtn_cb()
@@ -242,8 +242,8 @@ void obBtn_cb(ButtonInfo_t *btn_info) {
     return;
   }
 
-  Mode_t dst_mode = Mode[_curMode]->obBtn_cb(btn_info);
-  if ( dst_mode != MODE_N && dst_mode != _curMode ) {
+  Mode_t dst_mode = Mode[curMode]->obBtn_cb(btn_info);
+  if ( dst_mode != MODE_N && dst_mode != curMode ) {
     change_mode(dst_mode);
   }
 } // obBtn_cb()
@@ -273,8 +273,8 @@ void re_cb(RotaryEncoderInfo_t *re_info) {
     return;
   }
 
-  Mode_t dst_mode = Mode[_curMode]->re_cb(re_info);
-  if ( dst_mode != MODE_N && dst_mode != _curMode ) {
+  Mode_t dst_mode = Mode[curMode]->re_cb(re_info);
+  if ( dst_mode != MODE_N && dst_mode != curMode ) {
     change_mode(dst_mode);
   }
 } // re_cb()
@@ -442,7 +442,7 @@ void loop() {
   /*
    * loop
    */
-  Mode[_curMode]->loop(cur_ms);
+  Mode[curMode]->loop(cur_ms);
 
   /*
    * display
@@ -469,10 +469,11 @@ void loop() {
     commonData.msg = "";
     delay(1000);
 
+    change_mode(MODE_MAIN);
     return;
   }
 
-  Mode[_curMode]->display(Disp);
+  Mode[curMode]->display(Disp);
 
   // fps
   if ( dispFps ) {

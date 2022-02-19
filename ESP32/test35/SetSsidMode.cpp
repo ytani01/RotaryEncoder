@@ -9,7 +9,7 @@
 SetSsidMode::SetSsidMode(String name, CommonData_t *common_data)
   : ModeBase(name, common_data) {
 
-  log_i("CH=%s", SetSsidMode::CH);
+  log_i("CHARSET=%s", SetSsidMode::CHARSET);
 } // SetSsidMode::SetssidMode()
 
 /** virtual
@@ -17,7 +17,10 @@ SetSsidMode::SetSsidMode(String name, CommonData_t *common_data)
  */
 void SetSsidMode::setup() {
   this->confSsid = new ConfSsid();
-  
+  this->re_text = new RotaryEncoderText(this,
+                                        3, DISPLAY_H - DISPLAY_CH_H, 17,
+                                        SetSsidMode::CHARSET,
+                                        this->re_text_cb);
 } // SetSsidMode::setup()
 
 /** virtual
@@ -30,7 +33,10 @@ bool SetSsidMode::enter(Mode_t prev_mode) {
   this->pw = confSsid->ent[this->ssid.c_str()].c_str();
   log_i("|%s|%s|", this->ssid.c_str(), this->pw.c_str());
 
+  this->re_text->set_text(this->pw);
+
   this->cursor_i = this->pw.length();
+  this->ch_i = 0;
   
   return true;
 } // SetSsidMode::enter()
@@ -39,49 +45,7 @@ bool SetSsidMode::enter(Mode_t prev_mode) {
  *
  */
 Mode_t SetSsidMode::reBtn_cb(ButtonInfo_t *bi) {
-  char ch = SetSsidMode::CH[this->ch_i];
-  
-  if ( bi->click_count > 0 ) {
-    // モードを抜けるときだけ、クリックカウントで判断
-    if ( ch == SetSsidMode::CH_ENTER ) {
-      this->confSsid->ent[this->ssid.c_str()] = this->pw.c_str();
-      this->confSsid->save();
-      
-      common_data->msg = "restart_wifi";
-      return MODE_MAIN;
-    }
-    return MODE_N;
-  }
-
-  if ( bi->push_count == 0 ) {
-    return MODE_N;
-  }
-  if ( bi->value == Button::OFF ) {
-    return MODE_N;
-  }
-  
-  /*
-   * value:ON, push_count:1, click_count:0, long_pressed:false
-   */
-  log_i("ch_i=%d(%c) cursor_i=%d", this->ch_i, ch, this->cursor_i);
-
-  switch ( ch ) {
-  case SetSsidMode::CH_ENTER:
-    break;
-
-  case SetSsidMode::CH_BS:
-    if ( this->cursor_i == 0 ) {
-      break;
-    }
-    this->pw.remove(this->pw.length() - 1);
-    this->cursor_i--;
-    break;
-
-  default:
-    this->pw += String(SetSsidMode::CH[this->ch_i]);
-    this->cursor_i++;
-    break;
-  } // switch(ch)
+  this->re_text->reBtn_cb(bi);
   return MODE_N;
 } // SetSsidMode::reBtn_cb()
 
@@ -89,14 +53,7 @@ Mode_t SetSsidMode::reBtn_cb(ButtonInfo_t *bi) {
  *
  */
 Mode_t SetSsidMode::re_cb(RotaryEncoderInfo_t *ri) {
-  int ch_len = strlen(SetSsidMode::CH);
-  if ( ri->d_angle < 0 ) {
-    this->ch_i = (this->ch_i - 1 + ch_len) % ch_len;
-  }
-  if ( ri->d_angle > 0 ) {
-    this->ch_i = (this->ch_i + 1 + ch_len) % ch_len;
-  }
-
+  this->re_text->re_cb(ri);
   return MODE_N;
 } // SetSsidMode::re_cb()
 
@@ -159,25 +116,25 @@ void SetSsidMode::display(Display_t *disp) {
   if ( ch ) {
     disp->drawChar(x_ch, y_ch, this->pw.charAt(this->cursor_i), BLACK, WHITE, 1);
   }
-
-  /*
-   * char list
-   */
-  int ch_len = strlen(SetSsidMode::CH);
-  int ch_n = 8;
-  int ch_i0 = (this->ch_i - ch_n + ch_len) % ch_len;
-
-  x = 3;
-  y = DISPLAY_H - DISPLAY_CH_H;
-  for (int i=0; i < (ch_n * 2 + 1); i++) {
-    int ch_i = (ch_i0 + i + ch_len) % ch_len;
-    if ( ch_i == this->ch_i ) {
-      disp->drawRect(x - 1, y - 1, DISPLAY_CH_W + 1, DISPLAY_CH_H + 1, WHITE);
-      disp->drawChar(x, y, SetSsidMode::CH[ch_i], BLACK, WHITE, 1);
-    } else {
-      disp->drawChar(x, y, SetSsidMode::CH[ch_i], WHITE, BLACK, 1);
-    }
-    
-    x += DISPLAY_CH_W + 1;
-  } // for (i)
+  
+  this->re_text->display(disp);
 } // SetSsidMode::display()
+
+/** protected static
+ *
+ */
+void SetSsidMode::re_text_cb(char ch, String text, void *mode) {
+  log_i("ch=0x%02X, text|%s|", ch, text.c_str());
+
+  SetSsidMode *this_obj = static_cast<SetSsidMode *>(mode);
+
+  this_obj->pw = text;
+  this_obj->cursor_i = this_obj->pw.length();
+
+  if ( ch == RotaryEncoderText::CH_ENTER ) {
+    this_obj->confSsid->ent[this_obj->ssid.c_str()] = this_obj->pw.c_str();
+    this_obj->confSsid->save();
+      
+    this_obj->common_data->msg = "restart_wifi";
+  }
+} // SetSsidMode::re_text_cb()
