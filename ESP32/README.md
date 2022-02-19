@@ -10,29 +10,6 @@ ESP32用ロータリー・エンコーダー・ライブラリ
 
 ## Sample code
 
-```
-#include "Esp32RotaryEncoderWatcher.h"
-
-Esp32RotaryEncoderWatcher *reWatcher = NULL;
-
-void callback_fn(Esp32RotaryEncoderInfo_t *re_info) {
-  log_i("%s", Esp32RotaryEncoder::info2String(re_info).c_str());
-}
-
-void setup() {
-  reWatcher = Esp32RotaryEncoderWatcher("Name",
-                                        pin_dt, pin_dk,
-                                        angle_max,
-                                        lctrl_mode,
-                                        callback_fn);
-  reWatcher->start();
-}
-
-void loop() {
-  // do nothing
-}
-```
-
 
 ## Test Program
 
@@ -84,6 +61,9 @@ void task_net_mgr() {
 ```
 
 ## Reference
+
+* Character codes
+![](docs/charcode.png)
 
 * Algorithm to convert RGB to HSV and HSV to RGB in range 0-255 for both
 https://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both

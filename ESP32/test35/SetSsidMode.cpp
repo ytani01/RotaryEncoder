@@ -9,7 +9,6 @@
 SetSsidMode::SetSsidMode(String name, CommonData_t *common_data)
   : ModeBase(name, common_data) {
 
-  log_i("CHARSET=%s", SetSsidMode::CHARSET);
 } // SetSsidMode::SetssidMode()
 
 /** virtual
@@ -36,7 +35,6 @@ bool SetSsidMode::enter(Mode_t prev_mode) {
   this->re_text->set_text(this->pw);
 
   this->cursor_i = this->pw.length();
-  this->ch_i = 0;
   
   return true;
 } // SetSsidMode::enter()
@@ -54,6 +52,7 @@ Mode_t SetSsidMode::reBtn_cb(ButtonInfo_t *bi) {
  */
 Mode_t SetSsidMode::re_cb(RotaryEncoderInfo_t *ri) {
   this->re_text->re_cb(ri);
+  this->cur_ch = this->re_text->get_ch();
   return MODE_N;
 } // SetSsidMode::re_cb()
 
@@ -105,16 +104,14 @@ void SetSsidMode::display(Display_t *disp) {
   }
   int x_ch = x + this->cursor_i * DISPLAY_CH_W + 2 + 2;
   int y_ch = y + 2;
-  char ch = this->pw.charAt(this->cursor_i);
 
   // cursor
   if ( millis() % 1000 >= 500 ) {
     // disp->drawRect(x_ch, y_ch, DISPLAY_CH_W, DISPLAY_CH_H, WHITE);
+    disp->drawChar(x_ch, y_ch, this->cur_ch, WHITE, BLACK, 1);
   } else {
     disp->fillRect(x_ch, y_ch, DISPLAY_CH_W, DISPLAY_CH_H, WHITE);
-  }
-  if ( ch ) {
-    disp->drawChar(x_ch, y_ch, this->pw.charAt(this->cursor_i), BLACK, WHITE, 1);
+    disp->drawChar(x_ch, y_ch, this->cur_ch, BLACK, WHITE, 1);
   }
   
   this->re_text->display(disp);
@@ -128,6 +125,7 @@ void SetSsidMode::re_text_cb(char ch, String text, void *mode) {
 
   SetSsidMode *this_obj = static_cast<SetSsidMode *>(mode);
 
+  this_obj->cur_ch = ch;
   this_obj->pw = text;
   this_obj->cursor_i = this_obj->pw.length();
 
