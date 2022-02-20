@@ -57,7 +57,7 @@ void NetMgrTask::loop() {
   if ( mode == NETMGR_MODE_WIFI_ON ) {
       this->netmgr_info->ip_addr = this->netMgr->ip_addr;
       if ( prev_mode != mode ) {
-        log_i("ip_addr:%s", this->netmgr_info->ip_addr.toString().c_str());
+        log_d("ip_addr:%s", this->netmgr_info->ip_addr.toString().c_str());
       }
   }
 

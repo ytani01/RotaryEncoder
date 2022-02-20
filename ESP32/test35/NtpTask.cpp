@@ -96,13 +96,16 @@ void NtpTask::loop() {
    *   動機が完了すると「一度だけ」、SNTP_SYNC_STATUS_COMPLETE
    *   SNTP_SYNC_MODE_SMOOTHの同期中の場合は、SNTP_SYNC_STAUS_IN_PROGRESS)
    */
+  static sntp_sync_status_t prev_stat = SNTP_SYNC_STATUS_RESET;
   this->info.sntp_stat = sntp_get_sync_status();
   if ( this->info.sntp_stat == SNTP_SYNC_STATUS_COMPLETED ) {
     interval = INTERVAL_NORMAL;
-    log_i("%s: NTP sync done: sntp_stat=%s(%d), interval=%'d",
-          get_time_str(),
-          SNTP_SYNC_STATUS_STR[this->info.sntp_stat], this->info.sntp_stat,
-          interval);
+    if ( prev_stat != SNTP_SYNC_STATUS_COMPLETED ) {
+      log_i("%s: NTP sync done: sntp_stat=%s(%d), interval=%'d",
+            get_time_str(),
+            SNTP_SYNC_STATUS_STR[this->info.sntp_stat], this->info.sntp_stat,
+            interval);
+    }
 
   } else if ( this->info.sntp_stat == SNTP_SYNC_STATUS_IN_PROGRESS ) {
     interval = INTERVAL_PROGRESS;
@@ -120,5 +123,7 @@ void NtpTask::loop() {
   }
 
   this->_cb(&(this->info));
+
+  prev_stat = this->info.sntp_stat;
   delay(interval);
 } // NtpTask::loop()

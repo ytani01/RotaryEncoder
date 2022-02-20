@@ -53,7 +53,7 @@ NetMgrMode_t NetMgr::loop() {
   static NetMgrMode_t prev_mode = NETMGR_MODE_NULL;
   static String ssid = "";
   static String pw = "";
-  static int retry_count = 1;
+  static int retry_count = 2;
 
   if ( this->cur_mode != prev_mode ) {
     log_i("cur_mode: %s(%d) ==> %s(%d)",
@@ -105,13 +105,13 @@ NetMgrMode_t NetMgr::loop() {
     log_i("scan SSID ..");
     NetMgr::ssidN = WiFi.scanNetworks(false, true, false, 200);
     log_i("ssidN=%d", NetMgr::ssidN);
-    delay(10);
+
     if ( ssidN <= 0 ) {
+      delay(10);
       log_i("retry: scan SSID ..");
       WiFi.scanDelete();
       NetMgr::ssidN = WiFi.scanNetworks(false, true, false, 200);
       log_i("ssidN=%d", NetMgr::ssidN);
-      delay(10);
     }
     if ( ssidN <= 0 ) {
       this->cur_mode = NETMGR_MODE_AP_INIT;
@@ -125,18 +125,17 @@ NetMgrMode_t NetMgr::loop() {
     ssid = "";
     for (int i=0; i < NetMgr::ssidN; i++) {
       auto itr = confSsid->ent.find(NetMgr::ssidEnt[i].ssid().c_str());
+
       if ( itr != confSsid->ent.end() )  {
         ssid = (itr->first).c_str();
         pw = (itr->second).c_str();
+        log_i("found:|%s|%s|", ssid.c_str(), pw.c_str());
         break;
       } // for(itr)
-      if ( ssid != "" ) {
-        break;
-      }
     } // for(i)
-    log_i("found:|%s|%s|", ssid.c_str(), pw.c_str());
 
     if ( ssid == "" ) {
+      log_i("not found");
       this->cur_mode = NETMGR_MODE_AP_INIT;
       break;
     }
@@ -168,7 +167,7 @@ NetMgrMode_t NetMgr::loop() {
 
     if (this->_loop_count > this->try_count_max) {
       if ( retry_count ) {
-        log_w("Retry ..");
+        log_w("Retry .. (%d)", retry_count);
         this->cur_mode = NETMGR_MODE_START;
         retry_count--;
         break;
@@ -188,7 +187,7 @@ NetMgrMode_t NetMgr::loop() {
     break;
 
   case NETMGR_MODE_AP_INIT:
-    retry_count = 1;
+    retry_count = 2;
 
     // log_i("%s", this->ModeStr[this->cur_mode]);
     log_i("cur_mode=%s", NETMGR_MODE_STR[this->cur_mode]);
@@ -246,7 +245,7 @@ NetMgrMode_t NetMgr::loop() {
     break;
 
   case NETMGR_MODE_WIFI_ON:
-    retry_count = 1;
+    retry_count = 2;
 
     if ( wl_stat != WL_CONNECTED ) {
       log_w("wl_stat=%s(%d)", WL_STATUS_T_STR[wl_stat], wl_stat);
@@ -261,7 +260,7 @@ NetMgrMode_t NetMgr::loop() {
     break;
 
   case NETMGR_MODE_WIFI_OFF:
-    retry_count = 1;
+    retry_count = 2;
 
     if (wl_stat == WL_CONNECTED) {
       log_i("wl_stat=%s(%d)", WL_STATUS_T_STR[wl_stat], wl_stat);
