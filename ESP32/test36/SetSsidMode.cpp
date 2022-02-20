@@ -17,9 +17,10 @@ SetSsidMode::SetSsidMode(String name, CommonData_t *common_data)
 void SetSsidMode::setup() {
   this->confSsid = new ConfSsid();
   this->re_text = new RotaryEncoderText(this,
-                                        3, DISPLAY_H - DISPLAY_CH_H, 17,
+                                        3, DISPLAY_H - DISPLAY_CH_H, 13,
                                         SetSsidMode::CHARSET,
                                         this->re_text_cb);
+  this->re_text->enableCursor();
 } // SetSsidMode::setup()
 
 /** virtual
@@ -102,18 +103,10 @@ void SetSsidMode::display(Display_t *disp) {
   if ( this->pw.length() > 0 ) {
     disp->printf("%s", this->pw.c_str());
   }
-  int x_ch = x + this->cursor_i * DISPLAY_CH_W + 2 + 2;
-  int y_ch = y + 2;
+  int cursor_x = x + this->cursor_i * DISPLAY_CH_W + 2 + 2;
+  int cursor_y = y + 2;
 
-  // cursor
-  if ( millis() % 1000 >= 500 ) {
-    // disp->drawRect(x_ch, y_ch, DISPLAY_CH_W, DISPLAY_CH_H, WHITE);
-    disp->drawChar(x_ch, y_ch, this->cur_ch, WHITE, BLACK, 1);
-  } else {
-    disp->fillRect(x_ch, y_ch, DISPLAY_CH_W, DISPLAY_CH_H, WHITE);
-    disp->drawChar(x_ch, y_ch, this->cur_ch, BLACK, WHITE, 1);
-  }
-  
+  this->re_text->setCursor(cursor_x, cursor_y);
   this->re_text->display(disp);
 } // SetSsidMode::display()
 

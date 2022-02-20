@@ -16,7 +16,7 @@ class SetSsidMode;
 class SetSsidMode: public ModeBase {
  public:
   static constexpr char *CHARSET
-  = (char *)"\x04 0123456789.+-*/\xAE\x04 @ABCDEFGHIJKLMNOPQRSTUVWXYZ\xAE\x04 @abcdefghijklmnopqrstuvwxyz\xAE\x04 !\"#$%&\'()*+,-./:;<=>?/^_~`\\\xAE";
+  = (char *)"\x1F 0123456789.+-*/\x11\x1F @ABCDEFGHIJKLMNOPQRSTUVWXYZ\x11\x1F @abcdefghijklmnopqrstuvwxyz\x11\x1F !\"#$%&\'()*+,-./:;<=>?/^_~`\\\x11";
 
   int cursor_i = 0; // 入力欄でのカーソルの位置
   char cur_ch = ' ';

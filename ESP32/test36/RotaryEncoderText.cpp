@@ -44,6 +44,28 @@ void RotaryEncoderText::set_text(String text) {
   log_i("out_text|%s|", this->out_text.c_str());
 } // RotaryEncoderText::set_text()
 
+/**
+ *
+ */
+void RotaryEncoderText::enableCursor() {
+  this->cursor_sw = true;
+} // RotaryEncoderText::enableCursor()
+
+/**
+ *
+ */
+void RotaryEncoderText::disableCursor() {
+  this->cursor_sw = false;
+} // RotaryEncoderText::disableCursor()
+
+/**
+ *
+ */
+void RotaryEncoderText::setCursor(int x, int y) {
+  this->cursor_x = x;
+  this->cursor_y = y;
+} // RotaryEncoderText::setCursor()
+
 /** virtual
  *
  */
@@ -132,6 +154,22 @@ void RotaryEncoderText::display(Display_t *disp) {
 
     x += DISPLAY_CH_W + 1;
   } // for(i)
+
+  if ( ! this->cursor_sw ) {
+    return;
+  }
+
+  /*
+   * cursor
+   */
+  char ch = this->charset[this->ch_i];
+  if ( millis() % 1000 >= 500 ) {
+    disp->drawChar(this->cursor_x, this->cursor_y, ch, WHITE, BLACK, 1);
+  } else {
+    disp->fillRect(this->cursor_x - 1, this->cursor_y - 1,
+                   DISPLAY_CH_W + 1, DISPLAY_CH_H + 1, WHITE);
+    disp->drawChar(this->cursor_x, this->cursor_y, ch, BLACK, WHITE, 1);
+  } // if (millis()..)
 } // RotaryEncoderText::display()
 
 /** virtual
