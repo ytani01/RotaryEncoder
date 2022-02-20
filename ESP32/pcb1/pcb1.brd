@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="50" unitdist="mil" unit="mil" style="lines" multiple="1" display="no" altdistance="5" altunitdist="mil" altunit="mil"/>
+<grid distance="0.635" unitdist="mm" unit="mm" style="lines" multiple="4" display="yes" altdistance="5" altunitdist="mil" altunit="mil"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -43,8 +43,12 @@
 <layer number="47" name="Measures" color="7" fill="1" visible="no" active="yes"/>
 <layer number="48" name="Document" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="49" name="Reference" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
 <layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="53" name="tGND_GNDA" color="7" fill="9" visible="no" active="no"/>
+<layer number="54" name="bGND_GNDA" color="1" fill="9" visible="no" active="no"/>
+<layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
 <layer number="88" name="SimResults" color="9" fill="1" visible="no" active="no"/>
 <layer number="89" name="SimProbes" color="9" fill="1" visible="no" active="no"/>
 <layer number="90" name="Modules" color="5" fill="1" visible="no" active="no"/>
@@ -56,15 +60,187 @@
 <layer number="96" name="Values" color="7" fill="1" visible="no" active="no"/>
 <layer number="97" name="Info" color="7" fill="1" visible="no" active="no"/>
 <layer number="98" name="Guide" color="6" fill="1" visible="no" active="no"/>
+<layer number="100" name="Muster" color="7" fill="1" visible="no" active="no"/>
+<layer number="101" name="Patch_Top" color="12" fill="4" visible="yes" active="yes"/>
+<layer number="102" name="Vscore" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="103" name="tMap" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="104" name="Name" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="105" name="tPlate" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="106" name="bPlate" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="107" name="Crop" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="108" name="fp8" color="7" fill="1" visible="no" active="yes"/>
+<layer number="109" name="fp9" color="7" fill="1" visible="no" active="yes"/>
+<layer number="110" name="fp0" color="7" fill="1" visible="no" active="yes"/>
+<layer number="116" name="Patch_BOT" color="9" fill="4" visible="yes" active="yes"/>
+<layer number="121" name="_tsilk" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="122" name="_bsilk" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="123" name="tTestmark" color="7" fill="1" visible="no" active="yes"/>
+<layer number="124" name="bTestmark" color="7" fill="1" visible="no" active="yes"/>
+<layer number="125" name="_tNames" color="7" fill="1" visible="no" active="yes"/>
+<layer number="131" name="tAdjust" color="7" fill="1" visible="no" active="yes"/>
+<layer number="132" name="bAdjust" color="7" fill="1" visible="no" active="yes"/>
+<layer number="144" name="Drill_legend" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="151" name="HeatSink" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="199" name="Contour" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="200" name="200bmp" color="1" fill="10" visible="yes" active="yes"/>
+<layer number="201" name="201bmp" color="2" fill="10" visible="yes" active="yes"/>
+<layer number="202" name="202bmp" color="3" fill="10" visible="yes" active="yes"/>
+<layer number="203" name="203bmp" color="4" fill="10" visible="yes" active="yes"/>
+<layer number="204" name="204bmp" color="5" fill="10" visible="yes" active="yes"/>
+<layer number="205" name="205bmp" color="6" fill="10" visible="yes" active="yes"/>
+<layer number="206" name="206bmp" color="7" fill="10" visible="yes" active="yes"/>
+<layer number="207" name="207bmp" color="8" fill="10" visible="yes" active="yes"/>
+<layer number="208" name="208bmp" color="9" fill="10" visible="yes" active="yes"/>
+<layer number="209" name="209bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="210" name="210bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="211" name="211bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="212" name="212bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="213" name="213bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="214" name="214bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="215" name="215bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="216" name="216bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="217" name="217bmp" color="18" fill="1" visible="no" active="no"/>
+<layer number="218" name="218bmp" color="19" fill="1" visible="no" active="no"/>
+<layer number="219" name="219bmp" color="20" fill="1" visible="no" active="no"/>
+<layer number="220" name="220bmp" color="21" fill="1" visible="no" active="no"/>
+<layer number="221" name="221bmp" color="22" fill="1" visible="no" active="no"/>
+<layer number="222" name="222bmp" color="23" fill="1" visible="no" active="no"/>
+<layer number="223" name="223bmp" color="24" fill="1" visible="no" active="no"/>
+<layer number="224" name="224bmp" color="25" fill="1" visible="no" active="no"/>
+<layer number="250" name="Descript" color="3" fill="1" visible="no" active="no"/>
+<layer number="251" name="SMDround" color="12" fill="11" visible="no" active="no"/>
+<layer number="254" name="cooling" color="7" fill="1" visible="yes" active="yes"/>
 </layers>
 <board>
 <plain>
-<wire x1="0" y1="0" x2="100" y2="0" width="0" layer="20"/>
-<wire x1="100" y1="0" x2="100" y2="80" width="0" layer="20"/>
-<wire x1="100" y1="80" x2="0" y2="80" width="0" layer="20"/>
-<wire x1="0" y1="80" x2="0" y2="0" width="0" layer="20"/>
+<wire x1="0" y1="0" x2="68.885" y2="0" width="0" layer="20"/>
+<wire x1="68.885" y1="0" x2="68.885" y2="48.25" width="0" layer="20"/>
+<wire x1="68.885" y1="48.25" x2="0" y2="48.25" width="0" layer="20"/>
+<wire x1="0" y1="48.25" x2="0" y2="0" width="0" layer="20"/>
+<wire x1="22.86" y1="30.48" x2="50.8" y2="30.48" width="0.6096" layer="21"/>
+<wire x1="50.8" y1="30.48" x2="50.8" y2="2.54" width="0.6096" layer="21"/>
+<wire x1="50.8" y1="2.54" x2="22.86" y2="2.54" width="0.6096" layer="21"/>
+<wire x1="22.86" y1="2.54" x2="22.86" y2="30.48" width="0.6096" layer="21"/>
 </plain>
 <libraries>
+<library name="ytani1">
+<description>&lt;a href="https://github.com/ytani01/EagleLib-ytani/"&gt;https://github.com/ytani01/EagleLib-ytani/&lt;/a&gt;</description>
+<packages>
+<package name="PINHEAD-MA04-1" urn="urn:adsk.eagle:footprint:30941176/1">
+<description>&lt;b&gt;PIN HEADER&lt;/b&gt;</description>
+<wire x1="-4.445" y1="1.27" x2="-3.175" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="-3.175" y1="1.27" x2="-2.54" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="-2.54" y1="-0.635" x2="-3.175" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="-2.54" y1="0.635" x2="-1.905" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="-1.905" y1="1.27" x2="-0.635" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="1.27" x2="0" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="0" y1="-0.635" x2="-0.635" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="-1.27" x2="-1.905" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="-1.905" y1="-1.27" x2="-2.54" y2="-0.635" width="0.1524" layer="21"/>
+<wire x1="-5.08" y1="0.635" x2="-5.08" y2="-0.635" width="0.1524" layer="21"/>
+<wire x1="-4.445" y1="1.27" x2="-5.08" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="-5.08" y1="-0.635" x2="-4.445" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="-3.175" y1="-1.27" x2="-4.445" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="0" y1="0.635" x2="0.635" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="0.635" y1="1.27" x2="1.905" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="1.905" y1="1.27" x2="2.54" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="2.54" y1="-0.635" x2="1.905" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="1.905" y1="-1.27" x2="0.635" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="0.635" y1="-1.27" x2="0" y2="-0.635" width="0.1524" layer="21"/>
+<wire x1="3.175" y1="1.27" x2="4.445" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="4.445" y1="1.27" x2="5.08" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="5.08" y1="0.635" x2="5.08" y2="-0.635" width="0.1524" layer="21"/>
+<wire x1="5.08" y1="-0.635" x2="4.445" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="3.175" y1="1.27" x2="2.54" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="2.54" y1="-0.635" x2="3.175" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="4.445" y1="-1.27" x2="3.175" y2="-1.27" width="0.1524" layer="21"/>
+<pad name="1" x="-3.81" y="0" drill="0.9" diameter="1.5" rot="R90"/>
+<pad name="2" x="-1.27" y="0" drill="0.9" diameter="1.5" rot="R90"/>
+<pad name="3" x="1.27" y="0" drill="0.9" diameter="1.5" rot="R90"/>
+<pad name="4" x="3.81" y="0" drill="0.9" diameter="1.5" rot="R90"/>
+<text x="-5.08" y="1.651" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="0.635" y="1.651" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
+<rectangle x1="-1.524" y1="-0.254" x2="-1.016" y2="0.254" layer="51"/>
+<rectangle x1="-4.064" y1="-0.254" x2="-3.556" y2="0.254" layer="51"/>
+<rectangle x1="1.016" y1="-0.254" x2="1.524" y2="0.254" layer="51"/>
+<rectangle x1="3.556" y1="-0.254" x2="4.064" y2="0.254" layer="51"/>
+</package>
+<package name="PINHEAD-MA03-1" urn="urn:adsk.eagle:footprint:30941175/1">
+<description>&lt;b&gt;PIN HEADER&lt;/b&gt;</description>
+<wire x1="-1.905" y1="1.27" x2="-0.635" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="1.27" x2="0" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="0" y1="-0.635" x2="-0.635" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="0" y1="0.635" x2="0.635" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="0.635" y1="1.27" x2="1.905" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="1.905" y1="1.27" x2="2.54" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="2.54" y1="-0.635" x2="1.905" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="1.905" y1="-1.27" x2="0.635" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="0.635" y1="-1.27" x2="0" y2="-0.635" width="0.1524" layer="21"/>
+<wire x1="-2.54" y1="0.635" x2="-2.54" y2="-0.635" width="0.1524" layer="21"/>
+<wire x1="-1.905" y1="1.27" x2="-2.54" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="-2.54" y1="-0.635" x2="-1.905" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="-1.27" x2="-1.905" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="2.54" y1="0.635" x2="3.175" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="3.175" y1="1.27" x2="4.445" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="4.445" y1="1.27" x2="5.08" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="5.08" y1="-0.635" x2="4.445" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="4.445" y1="-1.27" x2="3.175" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="3.175" y1="-1.27" x2="2.54" y2="-0.635" width="0.1524" layer="21"/>
+<wire x1="5.08" y1="0.635" x2="5.08" y2="-0.635" width="0.1524" layer="21"/>
+<pad name="1" x="-1.27" y="0" drill="0.9" diameter="1.5" rot="R90"/>
+<pad name="2" x="1.27" y="0" drill="0.9" diameter="1.5" rot="R90"/>
+<pad name="3" x="3.81" y="0" drill="0.9" diameter="1.5" rot="R90"/>
+<text x="-2.54" y="1.651" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="-2.54" y="-2.921" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
+<rectangle x1="1.016" y1="-0.254" x2="1.524" y2="0.254" layer="51"/>
+<rectangle x1="-1.524" y1="-0.254" x2="-1.016" y2="0.254" layer="51"/>
+<rectangle x1="3.556" y1="-0.254" x2="4.064" y2="0.254" layer="51"/>
+</package>
+<package name="PINHEAD-MA02-1" urn="urn:adsk.eagle:footprint:30941174/1">
+<description>&lt;b&gt;PIN HEADER&lt;/b&gt;</description>
+<wire x1="-1.905" y1="1.27" x2="-0.635" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="1.27" x2="0" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="0" y1="-0.635" x2="-0.635" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="0" y1="0.635" x2="0.635" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="0.635" y1="1.27" x2="1.905" y2="1.27" width="0.1524" layer="21"/>
+<wire x1="1.905" y1="1.27" x2="2.54" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="2.54" y1="-0.635" x2="1.905" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="1.905" y1="-1.27" x2="0.635" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="0.635" y1="-1.27" x2="0" y2="-0.635" width="0.1524" layer="21"/>
+<wire x1="-2.54" y1="0.635" x2="-2.54" y2="-0.635" width="0.1524" layer="21"/>
+<wire x1="-1.905" y1="1.27" x2="-2.54" y2="0.635" width="0.1524" layer="21"/>
+<wire x1="-2.54" y1="-0.635" x2="-1.905" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="-0.635" y1="-1.27" x2="-1.905" y2="-1.27" width="0.1524" layer="21"/>
+<wire x1="2.54" y1="0.635" x2="2.54" y2="-0.635" width="0.1524" layer="21"/>
+<pad name="1" x="-1.27" y="0" drill="0.9" diameter="1.5" rot="R90"/>
+<pad name="2" x="1.27" y="0" drill="0.9" diameter="1.5" rot="R90"/>
+<text x="-2.54" y="1.651" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="-2.54" y="-2.921" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
+<rectangle x1="1.016" y1="-0.254" x2="1.524" y2="0.254" layer="51"/>
+<rectangle x1="-1.524" y1="-0.254" x2="-1.016" y2="0.254" layer="51"/>
+</package>
+</packages>
+<packages3d>
+<package3d name="MA04-1" urn="urn:adsk.eagle:package:30941192/1" type="box">
+<description>&lt;b&gt;PIN HEADER&lt;/b&gt;</description>
+<packageinstances>
+<packageinstance name="PINHEAD-MA04-1"/>
+</packageinstances>
+</package3d>
+<package3d name="MA03-1" urn="urn:adsk.eagle:package:30941191/1" type="box">
+<description>&lt;b&gt;PIN HEADER&lt;/b&gt;</description>
+<packageinstances>
+<packageinstance name="PINHEAD-MA03-1"/>
+</packageinstances>
+</package3d>
+<package3d name="PINHEAD-MA02-1" urn="urn:adsk.eagle:package:30941189/1" type="box">
+<description>&lt;b&gt;PIN HEADER&lt;/b&gt;</description>
+<packageinstances>
+<packageinstance name="PINHEAD-MA02-1"/>
+</packageinstances>
+</package3d>
+</packages3d>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -258,8 +434,209 @@ design rules under a new name.</description>
 </pass>
 </autorouter>
 <elements>
+<element name="OLED" library="ytani1" package="PINHEAD-MA04-1" package3d_urn="urn:adsk.eagle:package:30941192/1" value="" x="36.83" y="27.94" smashed="yes" rot="R180">
+<attribute name="MF" value="" x="36.83" y="27.94" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="" x="36.83" y="27.94" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="NAME" x="42.545" y="27.686" size="1.27" layer="25" ratio="10"/>
+<attribute name="OC_FARNELL" value="unknown" x="36.83" y="27.94" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="OC_NEWARK" value="unknown" x="36.83" y="27.94" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="POPULARITY" value="41" x="36.83" y="27.94" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="VALUE" x="36.195" y="26.289" size="1.27" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="BME280" library="ytani1" package="PINHEAD-MA04-1" package3d_urn="urn:adsk.eagle:package:30941192/1" value="" x="36.83" y="35.56" smashed="yes">
+<attribute name="MF" value="" x="36.83" y="35.56" size="1.778" layer="27" display="off"/>
+<attribute name="MPN" value="" x="36.83" y="35.56" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="42.545" y="35.306" size="1.27" layer="25" ratio="10"/>
+<attribute name="OC_FARNELL" value="unknown" x="36.83" y="35.56" size="1.778" layer="27" display="off"/>
+<attribute name="OC_NEWARK" value="unknown" x="36.83" y="35.56" size="1.778" layer="27" display="off"/>
+<attribute name="POPULARITY" value="41" x="36.83" y="35.56" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="37.465" y="37.211" size="1.27" layer="27" ratio="10"/>
+</element>
+<element name="SV4" library="ytani1" package="PINHEAD-MA03-1" package3d_urn="urn:adsk.eagle:package:30941191/1" value="" x="20.32" y="24.13" smashed="yes" rot="R90">
+<attribute name="MF" value="" x="20.32" y="24.13" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MPN" value="" x="20.32" y="24.13" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="NAME" x="18.669" y="21.59" size="1.27" layer="25" ratio="10" rot="R90"/>
+<attribute name="OC_FARNELL" value="unknown" x="20.32" y="24.13" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="OC_NEWARK" value="unknown" x="20.32" y="24.13" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="POPULARITY" value="48" x="20.32" y="24.13" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="VALUE" x="23.241" y="21.59" size="1.27" layer="27" ratio="10" rot="R90"/>
+</element>
+<element name="SV5" library="ytani1" package="PINHEAD-MA03-1" package3d_urn="urn:adsk.eagle:package:30941191/1" value="" x="20.32" y="16.51" smashed="yes" rot="R90">
+<attribute name="MF" value="" x="20.32" y="16.51" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MPN" value="" x="20.32" y="16.51" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="NAME" x="18.669" y="13.97" size="1.27" layer="25" ratio="10" rot="R90"/>
+<attribute name="OC_FARNELL" value="unknown" x="20.32" y="16.51" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="OC_NEWARK" value="unknown" x="20.32" y="16.51" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="POPULARITY" value="48" x="20.32" y="16.51" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="VALUE" x="23.241" y="13.97" size="1.27" layer="27" ratio="10" rot="R90"/>
+</element>
+<element name="SV6" library="ytani1" package="PINHEAD-MA03-1" package3d_urn="urn:adsk.eagle:package:30941191/1" value="" x="20.32" y="8.89" smashed="yes" rot="R90">
+<attribute name="MF" value="" x="20.32" y="8.89" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MPN" value="" x="20.32" y="8.89" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="NAME" x="18.669" y="6.35" size="1.27" layer="25" ratio="10" rot="R90"/>
+<attribute name="OC_FARNELL" value="unknown" x="20.32" y="8.89" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="OC_NEWARK" value="unknown" x="20.32" y="8.89" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="POPULARITY" value="48" x="20.32" y="8.89" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="VALUE" x="23.241" y="6.35" size="1.27" layer="27" ratio="10" rot="R90"/>
+</element>
+<element name="SV7" library="ytani1" package="PINHEAD-MA03-1" package3d_urn="urn:adsk.eagle:package:30941191/1" value="" x="5.08" y="26.67" smashed="yes" rot="R270">
+<attribute name="MF" value="" x="5.08" y="26.67" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="MPN" value="" x="5.08" y="26.67" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="NAME" x="6.731" y="29.21" size="1.27" layer="25" ratio="10" rot="R270"/>
+<attribute name="OC_FARNELL" value="unknown" x="5.08" y="26.67" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="OC_NEWARK" value="unknown" x="5.08" y="26.67" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="POPULARITY" value="48" x="5.08" y="26.67" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="VALUE" x="2.159" y="29.21" size="1.27" layer="27" ratio="10" rot="R270"/>
+</element>
+<element name="SV8" library="ytani1" package="PINHEAD-MA03-1" package3d_urn="urn:adsk.eagle:package:30941191/1" value="" x="5.08" y="19.05" smashed="yes" rot="R270">
+<attribute name="MF" value="" x="5.08" y="19.05" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="MPN" value="" x="5.08" y="19.05" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="NAME" x="6.731" y="21.59" size="1.27" layer="25" ratio="10" rot="R270"/>
+<attribute name="OC_FARNELL" value="unknown" x="5.08" y="19.05" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="OC_NEWARK" value="unknown" x="5.08" y="19.05" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="POPULARITY" value="48" x="5.08" y="19.05" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="VALUE" x="2.159" y="21.59" size="1.27" layer="27" ratio="10" rot="R270"/>
+</element>
+<element name="SV1" library="ytani1" package="PINHEAD-MA03-1" package3d_urn="urn:adsk.eagle:package:30941191/1" value="" x="64.77" y="33.02" smashed="yes" rot="R180">
+<attribute name="MF" value="" x="64.77" y="33.02" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="" x="64.77" y="33.02" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="NAME" x="62.865" y="31.369" size="1.27" layer="25" ratio="10" rot="R180"/>
+<attribute name="OC_FARNELL" value="unknown" x="64.77" y="33.02" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="OC_NEWARK" value="unknown" x="64.77" y="33.02" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="POPULARITY" value="48" x="64.77" y="33.02" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="VALUE" x="67.31" y="35.941" size="1.27" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="SV2" library="ytani1" package="PINHEAD-MA02-1" package3d_urn="urn:adsk.eagle:package:30941189/1" value="" x="57.15" y="33.02" smashed="yes" rot="R180">
+<attribute name="NAME" x="58.42" y="31.369" size="1.27" layer="25" ratio="10" rot="R180"/>
+<attribute name="VALUE" x="59.69" y="35.941" size="1.27" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="SV3" library="ytani1" package="PINHEAD-MA04-1" package3d_urn="urn:adsk.eagle:package:30941192/1" value="" x="12.7" y="27.94" smashed="yes" rot="R180">
+<attribute name="MF" value="" x="12.7" y="27.94" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MPN" value="" x="12.7" y="27.94" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="NAME" x="17.78" y="26.289" size="1.27" layer="25" ratio="10" rot="R180"/>
+<attribute name="OC_FARNELL" value="unknown" x="12.7" y="27.94" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="OC_NEWARK" value="unknown" x="12.7" y="27.94" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="POPULARITY" value="41" x="12.7" y="27.94" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="VALUE" x="12.065" y="26.289" size="1.27" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="SV9" library="ytani1" package="PINHEAD-MA02-1" package3d_urn="urn:adsk.eagle:package:30941189/1" value="" x="57.15" y="35.56" smashed="yes" rot="R180">
+<attribute name="NAME" x="59.69" y="33.909" size="1.27" layer="25" ratio="10" rot="R180"/>
+<attribute name="VALUE" x="59.69" y="38.481" size="1.27" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="SV10" library="ytani1" package="PINHEAD-MA03-1" package3d_urn="urn:adsk.eagle:package:30941191/1" value="" x="2.54" y="26.67" smashed="yes" rot="R270">
+<attribute name="MF" value="" x="2.54" y="26.67" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="MPN" value="" x="2.54" y="26.67" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="NAME" x="4.191" y="29.21" size="1.27" layer="25" ratio="10" rot="R270"/>
+<attribute name="OC_FARNELL" value="unknown" x="2.54" y="26.67" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="OC_NEWARK" value="unknown" x="2.54" y="26.67" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="POPULARITY" value="48" x="2.54" y="26.67" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="VALUE" x="-0.381" y="29.21" size="1.27" layer="27" ratio="10" rot="R270"/>
+</element>
+<element name="SV11" library="ytani1" package="PINHEAD-MA03-1" package3d_urn="urn:adsk.eagle:package:30941191/1" value="" x="2.54" y="19.05" smashed="yes" rot="R270">
+<attribute name="MF" value="" x="2.54" y="19.05" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="MPN" value="" x="2.54" y="19.05" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="NAME" x="4.191" y="21.59" size="1.27" layer="25" ratio="10" rot="R270"/>
+<attribute name="OC_FARNELL" value="unknown" x="2.54" y="19.05" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="OC_NEWARK" value="unknown" x="2.54" y="19.05" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="POPULARITY" value="48" x="2.54" y="19.05" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="VALUE" x="-0.381" y="21.59" size="1.27" layer="27" ratio="10" rot="R270"/>
+</element>
 </elements>
 <signals>
+<signal name="+3V3">
+<contactref element="SV1" pad="2"/>
+<contactref element="OLED" pad="3"/>
+<contactref element="SV8" pad="3"/>
+<wire x1="5.08" y1="15.24" x2="5.08" y2="4.445" width="0.6096" layer="16"/>
+<wire x1="5.08" y1="4.445" x2="63.5" y2="4.445" width="0.6096" layer="16"/>
+<wire x1="63.5" y1="4.445" x2="63.5" y2="33.02" width="0.6096" layer="16"/>
+<contactref element="BME280" pad="2"/>
+<wire x1="35.56" y1="35.56" x2="35.56" y2="27.94" width="0.6096" layer="16"/>
+<wire x1="35.56" y1="35.56" x2="35.56" y2="38.1" width="0.6096" layer="16"/>
+<wire x1="35.56" y1="38.1" x2="63.5" y2="38.1" width="0.6096" layer="16"/>
+<wire x1="63.5" y1="33.02" x2="63.5" y2="38.1" width="0.6096" layer="16"/>
+<contactref element="SV11" pad="3"/>
+<wire x1="5.08" y1="15.24" x2="2.54" y2="15.24" width="0.6096" layer="16"/>
+</signal>
+<signal name="GND">
+<contactref element="SV1" pad="1"/>
+<contactref element="OLED" pad="4"/>
+<contactref element="SV7" pad="1"/>
+<contactref element="SV4" pad="3"/>
+<wire x1="20.32" y1="30.48" x2="20.32" y2="27.94" width="0.6096" layer="16"/>
+<wire x1="20.32" y1="30.48" x2="5.08" y2="30.48" width="0.6096" layer="16"/>
+<wire x1="5.08" y1="30.48" x2="5.08" y2="27.94" width="0.6096" layer="16"/>
+<wire x1="20.32" y1="27.94" x2="33.02" y2="27.94" width="0.6096" layer="16"/>
+<contactref element="BME280" pad="1"/>
+<wire x1="33.02" y1="35.56" x2="33.02" y2="27.94" width="0.6096" layer="16"/>
+<wire x1="33.02" y1="35.56" x2="33.02" y2="40.64" width="0.6096" layer="16"/>
+<wire x1="33.02" y1="40.64" x2="66.04" y2="40.64" width="0.6096" layer="16"/>
+<wire x1="66.04" y1="40.64" x2="66.04" y2="33.02" width="0.6096" layer="16"/>
+<contactref element="SV10" pad="1"/>
+<wire x1="5.08" y1="27.94" x2="2.54" y2="27.94" width="0.6096" layer="16"/>
+</signal>
+<signal name="N$1">
+<contactref element="SV6" pad="1"/>
+<contactref element="SV1" pad="3"/>
+<wire x1="60.96" y1="33.02" x2="60.96" y2="7.62" width="0.6096" layer="16"/>
+<wire x1="60.96" y1="7.62" x2="20.32" y2="7.62" width="0.6096" layer="16"/>
+</signal>
+<signal name="N$2">
+<contactref element="OLED" pad="2"/>
+<contactref element="SV5" pad="3"/>
+<contactref element="BME280" pad="3"/>
+<wire x1="38.1" y1="35.56" x2="38.1" y2="27.94" width="0.6096" layer="16"/>
+<wire x1="20.32" y1="20.32" x2="38.1" y2="20.32" width="0.6096" layer="16"/>
+<wire x1="38.1" y1="20.32" x2="38.1" y2="27.94" width="0.6096" layer="16"/>
+</signal>
+<signal name="N$3">
+<contactref element="OLED" pad="1"/>
+<contactref element="SV5" pad="2"/>
+<contactref element="BME280" pad="4"/>
+<wire x1="40.64" y1="35.56" x2="40.64" y2="27.94" width="0.6096" layer="16"/>
+<wire x1="20.32" y1="17.78" x2="40.64" y2="17.78" width="0.6096" layer="16"/>
+<wire x1="40.64" y1="17.78" x2="40.64" y2="27.94" width="0.6096" layer="16"/>
+</signal>
+<signal name="N$5">
+<contactref element="SV3" pad="4"/>
+<contactref element="SV2" pad="2"/>
+<contactref element="SV9" pad="2"/>
+<wire x1="55.88" y1="33.02" x2="55.88" y2="35.56" width="0.6096" layer="16"/>
+<wire x1="8.89" y1="27.94" x2="8.89" y2="45.72" width="0.6096" layer="1"/>
+<wire x1="8.89" y1="45.72" x2="55.88" y2="45.72" width="0.6096" layer="1"/>
+<wire x1="55.88" y1="45.72" x2="55.88" y2="35.56" width="0.6096" layer="1"/>
+</signal>
+<signal name="N$6">
+<contactref element="SV3" pad="3"/>
+<contactref element="SV2" pad="1"/>
+<contactref element="SV9" pad="1"/>
+<wire x1="58.42" y1="33.02" x2="58.42" y2="35.56" width="0.6096" layer="16"/>
+<wire x1="11.43" y1="27.94" x2="11.43" y2="43.18" width="0.6096" layer="1"/>
+<wire x1="11.43" y1="43.18" x2="53.34" y2="43.18" width="0.6096" layer="1"/>
+<wire x1="53.34" y1="43.18" x2="53.34" y2="27.94" width="0.6096" layer="1"/>
+<wire x1="53.34" y1="27.94" x2="58.42" y2="27.94" width="0.6096" layer="1"/>
+<wire x1="58.42" y1="27.94" x2="58.42" y2="33.02" width="0.6096" layer="1"/>
+</signal>
+<signal name="N$4">
+<contactref element="SV10" pad="2"/>
+<contactref element="SV7" pad="2"/>
+<wire x1="5.08" y1="25.4" x2="2.54" y2="25.4" width="0.6096" layer="16"/>
+</signal>
+<signal name="N$7">
+<contactref element="SV7" pad="3"/>
+<contactref element="SV10" pad="3"/>
+<wire x1="5.08" y1="22.86" x2="2.54" y2="22.86" width="0.6096" layer="16"/>
+</signal>
+<signal name="N$8">
+<contactref element="SV11" pad="1"/>
+<contactref element="SV8" pad="1"/>
+<wire x1="5.08" y1="20.32" x2="2.54" y2="20.32" width="0.6096" layer="16"/>
+</signal>
+<signal name="N$9">
+<contactref element="SV8" pad="2"/>
+<contactref element="SV11" pad="2"/>
+<wire x1="5.08" y1="17.78" x2="2.54" y2="17.78" width="0.6096" layer="16"/>
+</signal>
 </signals>
 <mfgpreviewcolors>
 <mfgpreviewcolor name="soldermaskcolor" color="0xC8008000"/>
@@ -270,4 +647,16 @@ design rules under a new name.</description>
 </mfgpreviewcolors>
 </board>
 </drawing>
+<compatibility>
+<note version="8.3" severity="warning">
+Since Version 8.3, EAGLE supports URNs for individual library
+assets (packages, symbols, and devices). The URNs of those assets
+will not be understood (or retained) with this version.
+</note>
+<note version="8.3" severity="warning">
+Since Version 8.3, EAGLE supports the association of 3D packages
+with devices in libraries, schematics, and board files. Those 3D
+packages will not be understood (or retained) with this version.
+</note>
+</compatibility>
 </eagle>
