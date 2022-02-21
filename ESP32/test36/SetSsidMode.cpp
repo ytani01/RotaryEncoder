@@ -17,7 +17,7 @@ SetSsidMode::SetSsidMode(String name, CommonData_t *common_data)
 void SetSsidMode::setup() {
   this->confSsid = new ConfSsid();
   this->re_text = new RotaryEncoderText(this,
-                                        3, DISPLAY_H - DISPLAY_CH_H, 13,
+                                        3, DISPLAY_H - DISPLAY_CH_H, 17,
                                         SetSsidMode::CHARSET,
                                         this->re_text_cb);
   this->re_text->enableCursor();
