@@ -236,7 +236,6 @@ void OledMenu::display(Display_t *disp) {
   disp->printf("%s\n", this->title_str());
   
   disp->drawFastHLine(0, h + 3, DISPLAY_W, WHITE);
-  
 
   disp->setFont(NULL);
   disp->setTextSize(this->menu_ent_text_size);

@@ -49,6 +49,8 @@ class RotaryEncoderText {
   void enableCursor();
   void disableCursor();
   void setCursor(int x, int y);
+  void dispInputText(Display_t *disp, int x, int y, int ch_size=10,
+                     String str="", bool cursor_sw=false);
 
   virtual char reBtn_cb(ButtonInfo_t *bi);
   virtual char re_cb(RotaryEncoderInfo_t *ri);

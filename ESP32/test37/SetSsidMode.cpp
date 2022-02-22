@@ -63,9 +63,12 @@ Mode_t SetSsidMode::re_cb(RotaryEncoderInfo_t *ri) {
 void SetSsidMode::display(Display_t *disp) {
   int x = 0;
   int y = 0;
+
+  // title
   disp->setFont(&FreeSans9pt7b);
-  int h = 12;
   disp->setTextSize(1);
+  int h = 12;
+
   disp->setCursor(x, y + h);
   disp->setTextColor(WHITE, BLACK);
   disp->printf("Set SSID");
@@ -73,6 +76,7 @@ void SetSsidMode::display(Display_t *disp) {
   y += h + 1;
   disp->drawFastHLine(0, y, DISPLAY_W, WHITE);
 
+  // body
   disp->setFont(NULL);
   disp->setTextSize(1);
   disp->setTextWrap(true);
@@ -82,31 +86,16 @@ void SetSsidMode::display(Display_t *disp) {
   y += 2;
   disp->setCursor(x, y);
   disp->printf("SSID\n");
-  
-  y += DISPLAY_CH_H - 1;
-  disp->drawRect(x + 2, y, DISPLAY_W - 10, DISPLAY_CH_H + 3, WHITE);
-  disp->drawFastHLine(x + 2, y, 22, BLACK);
-
-  disp->setCursor(x + 2 + 2, y + 2);
-  disp->printf("%s", this->ssid.c_str());
+  y += DISPLAY_CH_H;
+  this->re_text->dispInputText(disp, x + 1, y, 20, this->ssid);
 
   // Password
   y += DISPLAY_CH_H + 4;
   disp->setCursor(x, y);
   disp->printf("Password\n");
+  y += DISPLAY_CH_H;
+  this->re_text->dispInputText(disp, x + 1, y, 20, this->pw, true);
 
-  y += DISPLAY_CH_H - 1;
-  disp->drawRect(x + 2, y, DISPLAY_W - 10, DISPLAY_CH_H + 3, WHITE);
-  disp->drawFastHLine(x + 2, y, 47, BLACK);
-  
-  disp->setCursor(x + 2 + 2, y + 2);
-  if ( this->pw.length() > 0 ) {
-    disp->printf("%s", this->pw.c_str());
-  }
-  int cursor_x = x + this->cursor_i * DISPLAY_CH_W + 2 + 2;
-  int cursor_y = y + 2;
-
-  this->re_text->setCursor(cursor_x, cursor_y);
   this->re_text->display(disp);
 } // SetSsidMode::display()
 

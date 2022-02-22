@@ -66,6 +66,29 @@ void RotaryEncoderText::setCursor(int x, int y) {
   this->cursor_y = y;
 } // RotaryEncoderText::setCursor()
 
+/**
+ *
+ */
+void RotaryEncoderText::dispInputText(Display_t *disp,
+                                      int x, int y, int ch_size,
+                                      String text, bool cursor_sw) {
+  int w = DISPLAY_CH_W * ch_size + 3;
+  disp->drawRect(x, y, w, DISPLAY_CH_H + 3, WHITE);
+  x += 2;
+  y += 2;
+  disp->setCursor(x, y);
+  disp->printf("%s", text.c_str());
+
+  if ( ! cursor_sw ) {
+    return;
+  }
+  this->cursor_sw = cursor_sw;
+
+  x += text.length() * DISPLAY_CH_W;
+  this->setCursor(x, y);
+  
+} // RotaryEncoderText::dispInputText()
+
 /** virtual
  *
  */
@@ -143,6 +166,10 @@ void RotaryEncoderText::display(Display_t *disp) {
   disp->setFont(NULL);
   disp->setTextSize(1);
   disp->setCursor(x, y);
+
+  /*
+   * char list
+   */
   for (int i=0; i < this->ch_list_len; i++) {
     int ch_i = (ch_i1 + i + charset_len) % charset_len;
     if ( ch_i == this->ch_i ) {
