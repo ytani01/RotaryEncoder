@@ -350,7 +350,7 @@ void setup() {
   // init Display
   Disp = new Display_t(DISPLAY_W, DISPLAY_H);
   Disp->DispBegin(0x3C);
-  Disp->setRotation(2);
+  Disp->setRotation(0); // XXX
   Disp->clearDisplay();
   Disp->display();
 
