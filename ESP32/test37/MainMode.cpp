@@ -108,17 +108,18 @@ void MainMode::drawTemp(Display_t *disp, int x, int y, float temp) {
     return;
   }
 
+  char buf[5];
+  sprintf(buf, "%4.1f", temp);
+  buf[2] = (char)0;
+
   disp->setFont(&FreeSansBold12pt7b);
   disp->setTextSize(1);
   disp->setCursor(x - 1, y + 20);
-  disp->printf("%2d", int(temp));
-  disp->setFont(NULL);
+  disp->printf("%s", buf);
 
   disp->setFont(&FreeSansBold9pt7b);
   disp->setTextSize(1);
   disp->setCursor(x + 29, y + 20);
-  char buf[5];
-  sprintf(buf, "%4.1f", temp);
   disp->printf("%c", buf[3]);
   disp->setFont(NULL);
 } // MainMode::drawTemp()
