@@ -94,10 +94,13 @@ NtpTask *ntpTask = NULL;
 NtpTaskInfo_t ntpInfo;
 
 // MQTT
+const unsigned long PUBLISH_INTERVAL = 10 * 1000; // ms
 const String MQTT_SERVER = "mqtt.ytani.net";
 const int MQTT_PORT = 1883;
 const String MQTT_TOPIC_ROOT = "esp32"; // topic = MQTT_TOPIC_ROOT + "/" + RES_NAME
 const String MQTT_CLIENT_ID = "esp32client";
+const String MQTT_USER = "";
+const String MQTT_PASSWORD = "";
 MqttTask *mqttTask = NULL;
 
 // BME280
@@ -106,7 +109,7 @@ constexpr float TEMP_OFFSET = -1.0;
 Bme280 *Bme;
 
 // Timer
-constexpr TickType_t TIMER_INTERVAL = 10 * 1000; // tick == ms (?)
+constexpr TickType_t TIMER_INTERVAL = 5 * 1000; // tick == ms (?)
 Ticker timer1;
 
 // Menu
@@ -395,9 +398,9 @@ void setup() {
   delay(task_interval);
 
   mqttTask = new MqttTask(&commonData,
-                          MQTT_SERVER, MQTT_PORT,
-                          MQTT_TOPIC_ROOT,
-                          MQTT_CLIENT_ID);
+                          PUBLISH_INTERVAL,
+                          MQTT_SERVER, MQTT_PORT, MQTT_TOPIC_ROOT,
+                          MQTT_CLIENT_ID, MQTT_USER, MQTT_PASSWORD);
   mqttTask->start();
   delay(task_interval);
 

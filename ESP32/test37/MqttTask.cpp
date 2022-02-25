@@ -7,11 +7,13 @@
  *
  */
 MqttTask::MqttTask(CommonData_t *common_data,
+                   unsigned long publish_interval,
                    String mqtt_server, int mqtt_port,
                    String topic_root,
                    String client_id, String user, String password)
   : Task("MQTT Task") {
   this->common_data = common_data;
+  this->publish_interval = publish_interval;
   this->mqtt_server = mqtt_server;
   this->mqtt_port = mqtt_port;
   this->topic_root = topic_root;
@@ -59,7 +61,7 @@ void MqttTask::loop() {
       log_i("connect(): ret=%s", ret ? "true" : "false");
     }
   } else {
-    if ( cur_ms - prev_ms > 30000 ) {
+    if ( cur_ms - prev_ms > this->publish_interval ) {
       prev_ms = cur_ms;
 
       bool ret;

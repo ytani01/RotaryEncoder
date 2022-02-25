@@ -13,6 +13,7 @@
 class MqttTask: public Task {
  public:
   CommonData_t *common_data;
+  unsigned long publish_interval; // ms
   String mqtt_server;
   int mqtt_port;
   String topic_root;
@@ -24,6 +25,7 @@ class MqttTask: public Task {
   PubSubClient *mqtt_client;
   
   MqttTask(CommonData_t *common_data,
+           unsigned long publish_interval=30000,
            String mqtt_server="mqtt", int mqtt_port=1883,
            String topic_root="esp32",
            String client_id="esp32client", String user="", String passwd="");
