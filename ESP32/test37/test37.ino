@@ -109,7 +109,7 @@ constexpr float TEMP_OFFSET = -1.0;
 Bme280 *Bme;
 
 // Timer
-constexpr TickType_t TIMER_INTERVAL = 5 * 1000; // tick == ms (?)
+constexpr TickType_t TIMER_INTERVAL = 2 * 1000; // tick == ms (?)
 Ticker timer1;
 
 // Menu
