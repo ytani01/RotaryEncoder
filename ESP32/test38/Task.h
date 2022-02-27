@@ -19,13 +19,13 @@ class task1: public Task {
 //#include <freertos/task.h>
 #include <esp32-hal-log.h>
 
-static const unsigned long TASK_NAME_SIZE = 64;
+static const unsigned long TASK_NAME_LEN = 64;
 
 /**
  *
  */
 typedef struct {
-  char name[TASK_NAME_SIZE + 1];
+  char name[TASK_NAME_LEN + 1];
   TaskHandle_t handle;
   uint32_t stack_size;
   UBaseType_t priority;

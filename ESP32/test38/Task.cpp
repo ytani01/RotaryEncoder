@@ -9,8 +9,8 @@
 Task::Task(String name,
            uint32_t stack_size, UBaseType_t priority, UBaseType_t core) {
   String nameString = name;
-  if ( nameString.length() > TASK_NAME_SIZE ) {
-    nameString = nameString.substring(0, TASK_NAME_SIZE);
+  if ( nameString.length() > TASK_NAME_LEN ) {
+    nameString = nameString.substring(0, TASK_NAME_LEN);
   }
   log_d("nameString=%s", nameString.c_str());
   strcpy(this->conf.name, nameString.c_str());

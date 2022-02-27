@@ -5,9 +5,7 @@
 #define _COMMON_H_
 
 #include <vector>
-// #include <stack> // XXX
 #include <esp32-hal-log.h>
-//#include <Arduino.h>
 #include <Adafruit_GFX.h>
 #include <Fonts/FreeSans12pt7b.h>
 #include <Fonts/FreeSans9pt7b.h>
