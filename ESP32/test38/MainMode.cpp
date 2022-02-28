@@ -81,8 +81,8 @@ void MainMode::display(Display_t *disp) {
   this->drawDateTime(disp, x, y, ti);
 
   // NTP
-  x = DISPLAY_W - DISPLAY_CH_W * 2;
-  y = 30;
+  x = DISPLAY_W - DISPLAY_CH_W * 3;
+  y = 27;
   this->drawNtp(disp, x, y,
                 common_data->ntp_info,
                 common_data->netmgr_info);
@@ -187,8 +187,6 @@ void MainMode::drawThi(Display_t *disp, int x, int y, float thi) {
  *
  */
 void MainMode::drawWiFi(Display_t *disp, int x, int y, NetMgrInfo_t *ni) {
-  int cur_ms = millis();
-  
   disp->setFont(NULL);
   disp->setTextSize(1);
   disp->setCursor(x, y);
@@ -196,17 +194,13 @@ void MainMode::drawWiFi(Display_t *disp, int x, int y, NetMgrInfo_t *ni) {
   int interval, ms;
   switch ( ni->mode ) {
   case NETMGR_MODE_START:
-    interval = 500;
-    ms = cur_ms % interval;
-    if ( ms < interval * 7 / 10 ) {
+    if ( millis() % 500 < 500 * 70 / 100 ) {
       disp->printf("Starting WiFi");
     }
     break;
 
   case NETMGR_MODE_TRY_WIFI:
-    interval = 500;
-    ms = cur_ms % interval;
-    if ( ms < interval * 7 / 10 ) {
+    if ( millis() % 500 < 500 * 70 / 100 ) {
       disp->printf("%s", ni->ssid.c_str());
     }
     break;
@@ -220,17 +214,13 @@ void MainMode::drawWiFi(Display_t *disp, int x, int y, NetMgrInfo_t *ni) {
 
   case NETMGR_MODE_AP_INIT:
   case NETMGR_MODE_AP_LOOP:
-    interval = 3000;
-    ms = cur_ms % interval;
-    if ( ms < interval * 95 / 100 ) {
+    if ( millis() % 3000 < 3000 * 95 / 100 ) {
       disp->printf("[ %s ]", ni->ap_ssid.c_str());
     }
     break;
 
   case NETMGR_MODE_WIFI_OFF:
-    interval = 500;
-    ms = millis() % interval;
-    if ( ms < interval * 5 / 10 ) {
+    if ( millis() % 500 < 500 * 50 / 100 ) {
       disp->printf("%s", ni->ssid.c_str());
     }
     break;
@@ -256,10 +246,10 @@ void MainMode::drawDateTime(Display_t *disp, int x, int y, struct tm *ti) {
   int y2 = y1 - h + 4;
   disp->drawLine(x1, y1, x2, y2, WHITE);
 
-  if ( millis() % 1000 >= 500 ) {
-    disp->setFont(NULL);
-    disp->setTextSize(2);
-    disp->setCursor(hour_x + w * 2, hour_y);
+  disp->setCursor(hour_x + w * 2, hour_y);
+  disp->setFont(NULL);
+  disp->setTextSize(2);
+  if ( millis() % 1000 < 500 ) {
     disp->printf(":");
   }
 
@@ -312,33 +302,37 @@ void MainMode::drawDateTime(Display_t *disp, int x, int y, struct tm *ti) {
 void MainMode::drawNtp(Display_t *disp, int x, int y,
                        NtpTaskInfo_t *ntp_info,
                        NetMgrInfo_t *netmgr_info) {
-  String ntp_stat_str = "?";
+  unsigned long interval_ms = 500;
+  unsigned long on_rate = 50;
 
   switch ( ntp_info->sntp_stat ) {
   case SNTP_SYNC_STATUS_RESET:
-    ntp_stat_str = "*";
+    interval_ms = 500;
+    on_rate = 50;
     break;
   case SNTP_SYNC_STATUS_IN_PROGRESS:
-    ntp_stat_str = "~";
+    interval_ms = 2000;
+    on_rate = 80;
     break;
   case SNTP_SYNC_STATUS_COMPLETED:
-    ntp_stat_str = "=";
+    interval_ms = 1000;
+    on_rate = 100;
     break;
   default:
     break;
   } // switch (sntp_stat)
   if ( netmgr_info->mode != NETMGR_MODE_WIFI_ON ) {
-    ntp_stat_str = "x";
+    interval_ms = 2000;
+    on_rate = 10;
   }
 
-  x = DISPLAY_W - DISPLAY_CH_W * 3;
-  y = 27;
+  //  x = DISPLAY_W - DISPLAY_CH_W * 3;
+  //  y = 27;
   disp->setFont(NULL);
   disp->setTextSize(1);
   disp->setCursor(x, y);
-  disp->printf("NTP");
+  if ( millis() % interval_ms < interval_ms * on_rate / 100 ) {
+    disp->printf("NTP");
+  }
 
-  disp->setTextSize(2);
-  disp->setCursor(x + DISPLAY_CH_W / 2, y + DISPLAY_CH_H);
-  disp->printf("%s", ntp_stat_str.c_str());
 } // MainMode::drawNtp()  
