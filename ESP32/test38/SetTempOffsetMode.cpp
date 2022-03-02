@@ -17,8 +17,8 @@ SetTempOffsetMode::SetTempOffsetMode(String name, CommonData_t *common_data)
 void SetTempOffsetMode::setup() {
   this->conf_temp = new ConfTemp();
   this->conf_temp->load();
-  this->common_data->bme_info->temp_offset = conf_temp->temp_offset;
-  log_i("temp_offset=%.1f", this->common_data->bme_info->temp_offset);
+  _cd->bme_info->temp_offset = conf_temp->temp_offset;
+  log_i("temp_offset=%.1f", _cd->bme_info->temp_offset);
 }
 
 /** virtual
@@ -29,7 +29,7 @@ Mode_t SetTempOffsetMode::reBtn_cb(ButtonInfo_t *bi) {
     return MODE_N;
   }
 
-  conf_temp->temp_offset = common_data->bme_info->temp_offset;
+  conf_temp->temp_offset = _cd->bme_info->temp_offset;
   log_i("temp_offset=%.1f", conf_temp->temp_offset);
   conf_temp->save();
 
@@ -44,7 +44,7 @@ Mode_t SetTempOffsetMode::re_cb(RotaryEncoderInfo_t *ri) {
     return MODE_N;
   }
   
-  float temp_offset = common_data->bme_info->temp_offset;
+  float temp_offset = _cd->bme_info->temp_offset;
   if ( ri->d_angle > 0 ) {
     temp_offset += 0.1;
   }
@@ -52,7 +52,7 @@ Mode_t SetTempOffsetMode::re_cb(RotaryEncoderInfo_t *ri) {
     temp_offset -= 0.1;
   }
   log_i("temp_offset=%.1f", temp_offset);
-  common_data->bme_info->temp_offset = temp_offset;
+  _cd->bme_info->temp_offset = temp_offset;
 
   return MODE_N;
 } // SetTempOffsetMode::re_cb()
@@ -61,8 +61,8 @@ Mode_t SetTempOffsetMode::re_cb(RotaryEncoderInfo_t *ri) {
  *
  */
 void SetTempOffsetMode::display(Display_t *disp) {
-  float temp = common_data->bme_info->temp;
-  float temp_offset = common_data->bme_info->temp_offset;
+  float temp = _cd->bme_info->temp;
+  float temp_offset = _cd->bme_info->temp_offset;
   int x, y;
 
   x = 5;

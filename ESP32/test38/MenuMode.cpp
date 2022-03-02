@@ -149,8 +149,8 @@ Mode_t MenuMode::reBtn_cb(ButtonInfo_t *bi) {
  */
 Mode_t MenuMode::obBtn_cb(ButtonInfo_t *bi) {
   if ( bi->click_count > 0 ) {
-    common_data->msg = " Onboard Btn\n";
-    common_data->msg += " click:" + String(bi->click_count);
+    _cd->msg = " Onboard Btn\n";
+    _cd->msg += " click:" + String(bi->click_count);
   }
   return MODE_N;
 } // MenuMode::obBtn_cb()

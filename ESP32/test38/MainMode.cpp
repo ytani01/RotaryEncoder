@@ -26,8 +26,8 @@ Mode_t MainMode::reBtn_cb(ButtonInfo_t *bi) {
  */
 Mode_t MainMode::obBtn_cb(ButtonInfo_t *bi) {
   if ( bi->click_count > 0 ) {
-    common_data->msg = " Onboard Btn\n";
-    common_data->msg += " click:" + String(bi->click_count);
+    _cd->msg = " Onboard Btn\n";
+    _cd->msg += " click:" + String(bi->click_count);
   }
   return MODE_N;
 } // MainMode::obBtn_cb()
@@ -36,9 +36,11 @@ Mode_t MainMode::obBtn_cb(ButtonInfo_t *bi) {
  *
  */
 Mode_t MainMode::re_cb(RotaryEncoderInfo_t *ri) {
+#if 0
   if ( ri->d_angle != 0 ) {
     return MODE_MENU;
   }
+#endif
 
   return MODE_N;
 } // MainMode::re_cb()
@@ -60,18 +62,18 @@ void MainMode::display(Display_t *disp) {
   // Temp, Hum, Pres, Thi
   x = 0;
   y = 0;
-  this->drawTemp(disp, x, y, common_data->bme_info->temp);
+  this->drawTemp(disp, x, y, _cd->bme_info->temp);
 
   x += 50;
-  this->drawHum(disp, x, y, common_data->bme_info->hum);
+  this->drawHum(disp, x, y, _cd->bme_info->hum);
 
   x -= 2;
   y += DISPLAY_CH_H * 2;
-  this->drawPres(disp, x, y, common_data->bme_info->pres);
+  this->drawPres(disp, x, y, _cd->bme_info->pres);
 
   x = DISPLAY_W - DISPLAY_CH_W * 2 * 2;
   y = 0;
-  this->drawThi(disp, x, y, common_data->bme_info->thi);
+  this->drawThi(disp, x, y, _cd->bme_info->thi);
 
   // Date/Time
   time_t t_now = time(NULL);
@@ -83,14 +85,12 @@ void MainMode::display(Display_t *disp) {
   // NTP
   x = DISPLAY_W - DISPLAY_CH_W * 3;
   y = 27;
-  this->drawNtp(disp, x, y,
-                common_data->ntp_info,
-                common_data->netmgr_info);
+  this->drawNtp(disp, x, y, _cd->ntp_info, _cd->netmgr_info);
 
   // WiFi
   x = 0;
   y = DISPLAY_H - DISPLAY_CH_H;
-  this->drawWiFi(disp, x, y, common_data->netmgr_info);
+  this->drawWiFi(disp, x, y, _cd->netmgr_info);
 } // MainMode::display()
 
 /**

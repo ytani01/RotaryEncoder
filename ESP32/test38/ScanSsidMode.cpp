@@ -70,9 +70,9 @@ Mode_t ScanSsidMode::reBtn_cb(ButtonInfo_t *bi) {
   OledMenuDst_t dst = this->ssidMenu->select();
   log_i("dst.obj.text=\"%s\"", dst.obj.text);
 
-  common_data->netmgr_info->new_ssid = String(dst.obj.text);
-  log_i("common_data->netmgr_info->new_ssid=%s",
-        common_data->netmgr_info->new_ssid.c_str());
+  _cd->netmgr_info->new_ssid = String(dst.obj.text);
+  log_i("_cd->netmgr_info->new_ssid=%s",
+        _cd->netmgr_info->new_ssid.c_str());
   
   return MODE_SET_SSID;
 } // ScanSsidMode::reBtn_cb()
@@ -100,8 +100,8 @@ void ScanSsidMode::display(Display_t *disp) {
 
   switch ( this->phase ) {
   case SCANSSID_PHASE_WAITING:
-    if ( common_data->netmgr_info->mode == NETMGR_MODE_START
-         || common_data->netmgr_info->mode == NETMGR_MODE_TRY_WIFI ) {
+    if ( _cd->netmgr_info->mode == NETMGR_MODE_START
+         || _cd->netmgr_info->mode == NETMGR_MODE_TRY_WIFI ) {
       /*
        * NetMgr待ち
        */

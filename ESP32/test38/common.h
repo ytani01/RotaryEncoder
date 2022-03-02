@@ -29,9 +29,8 @@ typedef enum {
               MODE_SET_SSID,
               MODE_N
 } Mode_t;
-static const char *MODE_T_STR[] = {"MAIN", "MENU", "RESTART",
-                                   "SET_TEMP_OFFSET",
-                                   "SCAN_SSID", "SET_SSID"};
+static const char *MODE_T_STR[] =
+  {"MAIN", "MENU", "RESTART", "SET_TEMP_OFFSET", "SCAN_SSID", "SET_SSID"};
 
 typedef struct {
   String msg;
@@ -41,4 +40,7 @@ typedef struct {
   NtpTaskInfo_t *ntp_info;
   Bme280Info_t *bme_info;
 } CommonData_t;
+
+#define _cd this->common_data
+
 #endif // _COMMON_H_

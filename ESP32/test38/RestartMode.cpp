@@ -19,7 +19,7 @@ bool RestartMode::enter(Mode_t prev_mode) {
 
   log_w("restart ..");
 
-  common_data->msg = " Reboot .. ";
+  _cd->msg = " Reboot .. ";
   delay(1000);
 
   ESP.deepSleep(100);

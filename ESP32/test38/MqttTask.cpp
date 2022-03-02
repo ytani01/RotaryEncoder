@@ -40,7 +40,7 @@ bool MqttTask::publish(String topic_sub, float value) {
   char buf[8];
   sprintf(buf, "%.2f", value);
   bool ret = this->mqtt_client->publish(topic.c_str(), buf);
-  log_i("publish(%s:%s): ret=%s", topic.c_str(), buf, ret ? "true" : "false");
+  log_d("publish(%s:%s): ret=%s", topic.c_str(), buf, ret ? "true" : "false");
   return ret;
 } // MqttTask::publish()
 
@@ -54,7 +54,7 @@ void MqttTask::loop() {
   this->mqtt_client->loop();
   
   if ( !this->mqtt_client->connected() ) {
-    if ( this->common_data->netmgr_info->mode == NETMGR_MODE_WIFI_ON ) {
+    if ( _cd->netmgr_info->mode == NETMGR_MODE_WIFI_ON ) {
       bool ret = this->mqtt_client->connect(this->client_id.c_str(),
                                             this->user.c_str(),
                                             this->password.c_str());
@@ -65,10 +65,13 @@ void MqttTask::loop() {
       prev_ms = cur_ms;
 
       bool ret;
-      ret = this->publish("temp", common_data->bme_info->temp);
-      ret = this->publish("hum", common_data->bme_info->hum);
-      ret = this->publish("pres", common_data->bme_info->pres);
-      ret = this->publish("thi", common_data->bme_info->thi);
+      ret = this->publish("temp", _cd->bme_info->temp);
+      ret = this->publish("hum", _cd->bme_info->hum);
+      ret = this->publish("pres", _cd->bme_info->pres);
+      ret = this->publish("thi", _cd->bme_info->thi);
+      log_i("publish: %.1f C(%.1f) %.0f %% %0.0f hPa %.1f thi",
+            _cd->bme_info->temp, _cd->bme_info->temp_offset,
+            _cd->bme_info->hum, _cd->bme_info->pres, _cd->bme_info->thi);
     }
   }
   //delay(1);

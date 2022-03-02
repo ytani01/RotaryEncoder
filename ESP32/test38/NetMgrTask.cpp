@@ -7,8 +7,8 @@
  *
  */
 NetMgrTask::NetMgrTask(String name, String ap_ssid_hdr,
-                                 NetMgrInfo_t *netmgr_info,
-                                 unsigned long wifi_try_count):
+                       NetMgrInfo_t *netmgr_info,
+                       unsigned long wifi_try_count):
   Task(name + "_task") {
 
   this->ap_ssid_hdr = ap_ssid_hdr;

@@ -51,7 +51,7 @@ Bme280Info_t *Bme280::get() {
 
   this->_info.thi = this->calc_thi(this->_info.temp, this->_info.hum);
 
-  log_i("%.1f C(%.1f) %.0f%% %0.0f hPa %.1f thi",
+  log_d("%.1f C(%.1f) %.0f%% %0.0f hPa %.1f thi",
         this->_info.temp, this->_info.temp_offset,
         this->_info.hum, this->_info.pres, this->_info.thi);
   return &this->_info;

@@ -11,12 +11,12 @@ void IRAM_ATTR intr_hdr(void *p) {
  *
  */
 RotaryEncoderTask::RotaryEncoderTask(String re_name,
-                                               uint8_t pin_dt, uint8_t pin_clk,
-                                               RotaryEncoderAngle_t angle_max,
-                                               pcnt_ctrl_mode_t lctrl_mode,
-                                               uint32_t stack_size,
-                                               UBaseType_t priority,
-                                               UBaseType_t core):
+                                     uint8_t pin_dt, uint8_t pin_clk,
+                                     RotaryEncoderAngle_t angle_max,
+                                     pcnt_ctrl_mode_t lctrl_mode,
+                                     uint32_t stack_size,
+                                     UBaseType_t priority,
+                                     UBaseType_t core):
   Task(re_name + "Task", stack_size, priority, core) {
 
   this->re_name = re_name;
@@ -26,11 +26,11 @@ RotaryEncoderTask::RotaryEncoderTask(String re_name,
   this->lctrl_mode = lctrl_mode;
 
   this->re = new RotaryEncoder(this->re_name,
-                                    this->pin_dt, this->pin_clk,
-                                    this->angle_max,
-                                    this->lctrl_mode,
-                                    PCNT_UNIT_0,
-                                    intr_hdr);
+                               this->pin_dt, this->pin_clk,
+                               this->angle_max,
+                               this->lctrl_mode,
+                               PCNT_UNIT_0,
+                               intr_hdr);
 
   this->_out_que = xQueueCreate(RotaryEncoderTask::Q_SIZE,
                                 sizeof(RotaryEncoderInfo_t));
@@ -102,12 +102,12 @@ static void _re_cb(RotaryEncoderInfo_t *re_info) {
  */
 RotaryEncoderWatcher::
 RotaryEncoderWatcher(String re_name,
-                          uint8_t pin_dt, uint8_t pin_clk,
-                          RotaryEncoderAngle_t angle_max,
-                          pcnt_ctrl_mode_t lctrl_mode,
-                          void (*cb)(RotaryEncoderInfo_t *re_info),
-                          uint32_t stack_size, UBaseType_t priority,
-                          UBaseType_t core):
+                     uint8_t pin_dt, uint8_t pin_clk,
+                     RotaryEncoderAngle_t angle_max,
+                     pcnt_ctrl_mode_t lctrl_mode,
+                     void (*cb)(RotaryEncoderInfo_t *re_info),
+                     uint32_t stack_size, UBaseType_t priority,
+                     UBaseType_t core):
   Task(re_name + "Watcher", stack_size, priority, core) {
 
   this->_re_name = re_name;
@@ -140,12 +140,12 @@ RotaryEncoderInfo_t *RotaryEncoderWatcher::get_re_info_src() {
 void RotaryEncoderWatcher::setup() {
   this->_re_task =
     new RotaryEncoderTask(this->_re_name,
-                               this->_pin_dt, this->_pin_clk,
-                               this->_angle_max,
-                               this->_lctrl_mode,
-                               this->_stack_size,
-                               this->_priority,
-                               this->_core);
+                          this->_pin_dt, this->_pin_clk,
+                          this->_angle_max,
+                          this->_lctrl_mode,
+                          this->_stack_size,
+                          this->_priority,
+                          this->_core);
   this->_re_task->start();
 } // RotaryEncoderWatcher::setup()
 

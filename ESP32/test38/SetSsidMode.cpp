@@ -27,7 +27,7 @@ void SetSsidMode::setup() {
  *
  */
 bool SetSsidMode::enter(Mode_t prev_mode) {
-  this->ssid = common_data->netmgr_info->new_ssid;
+  this->ssid = _cd->netmgr_info->new_ssid;
 
   confSsid->load();
   this->pw = confSsid->ent[this->ssid.c_str()].c_str();
