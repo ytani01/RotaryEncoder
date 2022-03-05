@@ -23,9 +23,16 @@ int ConfTemp::load() {
   }
 
   String line = this->read_line();
-
-  this->temp_offset = line.toFloat();
   this->close();
+
+  log_i("line=%s", line.c_str());
+  if ( line == "" ) {
+    this->temp_offset = 0.0;
+    this->save();
+  } else {
+    this->temp_offset = line.toFloat();
+  }
+  log_i("temp_offset=%f", this->temp_offset);
   
   return this->line_count;
 } // ConfTemp::load()

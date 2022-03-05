@@ -12,7 +12,7 @@ Bme280::Bme280(uint8_t addr, float temp_offset) {
 
   this->_info.active = this->_bme.begin(this->_info.addr);
 
-  log_i("active=%d", this->_info.active);
+  log_i("addr=active=%d", this->_info.active);
 } // Bme280::Bme280()
 
 /**
@@ -42,7 +42,11 @@ float Bme280::get_temp_offset() {
 Bme280Info_t *Bme280::get() {
   if ( ! this->_info.active ) {
     log_w("active=%d", this->_info.active);
-    return NULL;
+    this->_info.temp=0.0;
+    this->_info.hum=0.0;
+    this->_info.pres=0.0;
+    this->_info.thi=0.0;
+    return &this->_info;
   }
 
   this->_info.temp = this->_bme.readTemperature() + this->_info.temp_offset;

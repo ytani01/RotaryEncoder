@@ -328,6 +328,7 @@ void setup() {
   confFps = new ConfFps();
   confFps->load();
   dispFps = confFps->disp_fps;
+  log_i("dispFps=%d", dispFps);
 
   // init commonData
   commonData.netmgr_info = &netMgrInfo;

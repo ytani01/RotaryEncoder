@@ -16,16 +16,22 @@ ConfFps::ConfFps()
 int ConfFps::load() {
   if ( this->open_read() < 0 ) {
     this->disp_fps = true;
+    this->save();
     return -1;
   }
 
-  if ( this->read_line() == "true" ) {
+  String line = this->read_line();
+  if ( line == "true" ) {
     this->disp_fps = true;
   } else {
     this->disp_fps = false;
   }
   this->close();
 
+  if ( line == "" ) {
+    this->save();
+  }
+  
   return this->line_count;
 } // ConfFps::load()
 
