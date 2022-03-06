@@ -4,12 +4,12 @@
 #ifndef _NETMGR_H_
 #define _NETMGR_H_
 
-#include <esp_system.h>
 #include <esp_wifi.h>
 #include <WiFi.h>
 #include <WebServer.h>
 #include <DNSServer.h>
 
+#include "commonlib.h"
 #include "SSIDent.h"
 #include "ConfSsid.h"
 
@@ -74,7 +74,6 @@ public:
 
   void save_ssid(String ssid, String pw);
   void restart();
-  String get_mac_addr_String();
   //  void set_ssid(String ssid="");
   
 protected:

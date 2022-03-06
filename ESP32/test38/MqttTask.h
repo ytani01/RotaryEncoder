@@ -8,6 +8,7 @@
 
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include "commonlib.h"
 #include "common.h"
 
 class MqttTask: public Task {
@@ -27,8 +28,8 @@ class MqttTask: public Task {
   MqttTask(CommonData_t *common_data,
            unsigned long publish_interval=30000,
            String mqtt_server="mqtt", int mqtt_port=1883,
-           String topic_root="esp32",
-           String client_id="esp32client", String user="", String passwd="");
+           String topic_root="",
+           String client_id="", String user="", String passwd="");
 
  protected:
   virtual void setup();

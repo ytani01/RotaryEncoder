@@ -18,14 +18,19 @@ MqttTask::MqttTask(CommonData_t *common_data,
   this->publish_interval = publish_interval;
   this->mqtt_server = mqtt_server;
   this->mqtt_port = mqtt_port;
-  sprintf(buf, "%s%02X%02X%02X", topic_root.c_str(),
-          _cd->netmgr_info->mac_addr[3],
-          _cd->netmgr_info->mac_addr[4],
-          _cd->netmgr_info->mac_addr[5]);
-  this->topic_root = String(buf);
+
+  this->topic_root = topic_root;
+  if ( topic_root == "" ) {
+    this->topic_root = "env_" + get_mac_addr_String();
+  }
   log_i("topic_root:\"%s\"", this->topic_root.c_str());
   
   this->client_id = client_id;
+  if ( client_id == "" ) {
+    this->client_id = this->topic_root;
+  }
+  log_i("client_id:\"%s\"", this->client_id.c_str());
+
   this->user = user;
   this->password = password;
 } // MqttTask::MqttTask()

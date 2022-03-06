@@ -4,6 +4,7 @@
 #ifndef _MAIN_MODE_H_
 #define _MAIN_MODE_H_
 
+#include "commonlib.h"
 #include "ModeBase.h"
 
 /** constructor
@@ -11,6 +12,8 @@
  */
 class MainMode: public ModeBase {
  public:
+  char mac_addr_str[13];
+
   MainMode(String name, CommonData_t *common_data);
 
   virtual Mode_t reBtn_cb(ButtonInfo_t *bi);

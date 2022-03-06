@@ -33,7 +33,7 @@ NetMgr::NetMgr(String ap_ssid_hdr, unsigned int try_count_max) {
           this->mac_addr[3], this->mac_addr[4], this->mac_addr[5]);
   log_i("MacAddr=%s", mac_str);
 
-  this->ap_ssid = this->ap_ssid_hdr + "_" + this->get_mac_addr_String();
+  this->ap_ssid = this->ap_ssid_hdr + "_" + get_mac_addr_String();
   this->ap_ip = IPAddress(this->ap_ip_int[0],
                           this->ap_ip_int[1],
                           this->ap_ip_int[2],
@@ -293,18 +293,6 @@ void NetMgr::save_ssid(String ssid, String pw) {
   confSsid->ent[ssid.c_str()] = pw.c_str();
   confSsid->save();
 } // NetMgr::save_ssid()
-
-/**
- *
- */
-String NetMgr::get_mac_addr_String() {
-  char buf[13];
-  sprintf(buf, "%02X%02X%02X%02X%02X%02X",
-          this->mac_addr[0], this->mac_addr[1], this->mac_addr[2],
-          this->mac_addr[3], this->mac_addr[4], this->mac_addr[5]);
-
-  return String(buf);
-} // NetMgr::get_mac_addr_String()
 
 /**
  *

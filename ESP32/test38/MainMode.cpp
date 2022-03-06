@@ -9,6 +9,8 @@
 MainMode::MainMode(String name, CommonData_t *common_data)
   : ModeBase(name, common_data) {
 
+  strcpy(this->mac_addr_str, get_mac_addr_String().c_str());
+  log_i("mac_addr_str=\"%s\"", this->mac_addr_str);
 } // MainMode::MainMode()
 
 /**
@@ -91,6 +93,20 @@ void MainMode::display(Display_t *disp) {
   x = 0;
   y = DISPLAY_H - DISPLAY_CH_H;
   this->drawWiFi(disp, x, y, _cd->netmgr_info);
+
+  // MAC Addr
+  x = DISPLAY_W - 4 * 12;
+  y = DISPLAY_H - 1;
+  disp->setFont(&Picopixel);
+#if 0
+  x = DISPLAY_W - DISPLAY_CH_W * 13;
+  y = DISPLAY_H - DISPLAY_CH_H;
+  disp->setFont(NULL);
+#endif
+  disp->setTextSize(1);
+  disp->setCursor(x, y);
+  disp->printf(" %s ", this->mac_addr_str);
+  disp->setFont(NULL);
 } // MainMode::display()
 
 /**
@@ -207,9 +223,11 @@ void MainMode::drawWiFi(Display_t *disp, int x, int y, NetMgrInfo_t *ni) {
 
   case NETMGR_MODE_WIFI_ON:
     disp->printf("%s", ni->ssid.c_str());
+#if 0
     disp->setFont(&Picopixel);
     disp->printf(" %s", ni->ip_addr.toString().c_str());
     disp->setFont(NULL);
+#endif
     break;
 
   case NETMGR_MODE_AP_INIT:
