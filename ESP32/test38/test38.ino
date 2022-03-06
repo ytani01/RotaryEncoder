@@ -97,7 +97,7 @@ NtpTaskInfo_t ntpInfo;
 const unsigned long PUBLISH_INTERVAL = 10 * 1000; // ms
 const String MQTT_SERVER = "mqtt.ytani.net";
 const int MQTT_PORT = 1883;
-const String MQTT_TOPIC_ROOT = "esp32"; // topic = MQTT_TOPIC_ROOT + "/" + RES_NAME
+const String MQTT_TOPIC_ROOT = "ytenv"; // topic = MQTT_TOPIC_ROOT + "/" + RES_NAME
 const String MQTT_CLIENT_ID = "esp32client";
 const String MQTT_USER = "";
 const String MQTT_PASSWORD = "";

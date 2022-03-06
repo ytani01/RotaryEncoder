@@ -12,11 +12,19 @@ MqttTask::MqttTask(CommonData_t *common_data,
                    String topic_root,
                    String client_id, String user, String password)
   : Task("MQTT Task") {
+  char buf[64];
+
   this->common_data = common_data;
   this->publish_interval = publish_interval;
   this->mqtt_server = mqtt_server;
   this->mqtt_port = mqtt_port;
-  this->topic_root = topic_root;
+  sprintf(buf, "%s%02X%02X%02X", topic_root.c_str(),
+          _cd->netmgr_info->mac_addr[3],
+          _cd->netmgr_info->mac_addr[4],
+          _cd->netmgr_info->mac_addr[5]);
+  this->topic_root = String(buf);
+  log_i("topic_root:\"%s\"", this->topic_root.c_str());
+  
   this->client_id = client_id;
   this->user = user;
   this->password = password;
@@ -40,7 +48,7 @@ bool MqttTask::publish(String topic_sub, float value) {
   char buf[8];
   sprintf(buf, "%.2f", value);
   bool ret = this->mqtt_client->publish(topic.c_str(), buf);
-  log_d("publish(%s:%s): ret=%s", topic.c_str(), buf, ret ? "true" : "false");
+  log_i("publish(%s:%s): ret=%s", topic.c_str(), buf, ret ? "true" : "false");
   return ret;
 } // MqttTask::publish()
 
@@ -58,7 +66,7 @@ void MqttTask::loop() {
       bool ret = this->mqtt_client->connect(this->client_id.c_str(),
                                             this->user.c_str(),
                                             this->password.c_str());
-      log_i("connect(): ret=%s", ret ? "true" : "false");
+      // log_i("connect(): ret=%s", ret ? "true" : "false");
     }
   } else {
     if ( cur_ms - prev_ms > this->publish_interval ) {
@@ -69,7 +77,8 @@ void MqttTask::loop() {
       ret = this->publish("hum", _cd->bme_info->hum);
       ret = this->publish("pres", _cd->bme_info->pres);
       ret = this->publish("thi", _cd->bme_info->thi);
-      log_i("publish: %.1f C(%.1f) %.0f %% %0.0f hPa %.1f thi",
+      log_i("publish=>%s/ %.1f C(%.1f) %.0f %% %0.0f hPa %.1f thi",
+            this->topic_root.c_str(),
             _cd->bme_info->temp, _cd->bme_info->temp_offset,
             _cd->bme_info->hum, _cd->bme_info->pres, _cd->bme_info->thi);
     }
