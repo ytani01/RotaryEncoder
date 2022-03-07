@@ -66,14 +66,14 @@ void MainMode::display(Display_t *disp) {
   y = 0;
   this->drawTemp(disp, x, y, _cd->bme_info->temp);
 
-  x += 43;
+  x += 45;
   this->drawHum(disp, x, y, _cd->bme_info->hum);
 
-  x -= 2;
+  x -= 3;
   y += DISPLAY_CH_H * 2 - 1;
   this->drawPres(disp, x, y, _cd->bme_info->pres);
 
-  x += 45;
+  x += 39;
   y = 0;
   this->drawThi(disp, x, y, _cd->bme_info->thi);
 
@@ -85,8 +85,8 @@ void MainMode::display(Display_t *disp) {
   this->drawDateTime(disp, x, y, ti);
 
   // NTP
-  x = DISPLAY_W - DISPLAY_CH_W * 3;
-  y = DISPLAY_H - DISPLAY_CH_H * 2;
+  x = DISPLAY_W - 4 * 3;
+  y = 30;
   this->drawNtp(disp, x, y, _cd->ntp_info, _cd->netmgr_info);
 
   // WiFi
@@ -188,6 +188,7 @@ void MainMode::drawThi(Display_t *disp, int x, int y, float thi) {
   disp->setFont(&FreeSerifBold9pt7b);
   disp->setTextSize(1);
   int h = 12;
+  x += 8;
   disp->setCursor(x, y + DISPLAY_CH_H +  h);
   disp->printf("%2.0f", thi);
 
@@ -349,7 +350,8 @@ void MainMode::drawNtp(Display_t *disp, int x, int y,
 
   //  x = DISPLAY_W - DISPLAY_CH_W * 3;
   //  y = 27;
-  disp->setFont(NULL);
+  //disp->setFont(NULL);
+  disp->setFont(&Picopixel);
   disp->setTextSize(1);
   disp->setCursor(x, y);
   if ( millis() % interval_ms < interval_ms * on_rate / 100 ) {

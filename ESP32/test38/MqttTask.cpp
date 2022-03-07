@@ -28,7 +28,7 @@ MqttTask::MqttTask(CommonData_t *common_data,
   
   this->topic_root = topic_root;
   if ( topic_root == "" ) {
-    this->topic_root = this->topic_root;
+    this->topic_root = this->client_id;
   }
   log_i("topic_root:\"%s\"", this->topic_root.c_str());
 

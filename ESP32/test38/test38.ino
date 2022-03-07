@@ -75,12 +75,12 @@ RotaryEncoderInfo_t reInfo;
 // NeoPixel
 constexpr uint8_t PIN_NEOPIXEL_ONBOARD = 27;
 constexpr uint16_t LEDS_N_ONBOARD = 1;
-constexpr uint8_t LED_BRIGHTNESS_ONBOARD = 50;
+constexpr uint8_t LEDS_BRIGHTNESS_ONBOARD = 64;
 CRGB leds_onboard[LEDS_N_ONBOARD];
 
 constexpr uint8_t PIN_NEOPIXEL_EXT1 = 18;
 constexpr uint16_t LEDS_N_EXT1 = 100;
-constexpr uint8_t LED_BRIGHTNESS_EXT1 = 40;
+constexpr uint8_t LEDS_BRIGHTNESS_EXT1 = 40;
 CRGB leds_ext1[LEDS_N_EXT1];
 
 // WiFi
@@ -209,9 +209,9 @@ void reBtn_cb(ButtonInfo_t *btn_info) {
   reBtnInfo = *btn_info;
 
   if ( btn_info->push_count > 0 ) {
-    ch_hsv(0, 255, 255);
+    ch_hsv(0, 255, LEDS_BRIGHTNESS_ONBOARD);
   } else {
-    ch_hsv(128, 255, 255);
+    ch_hsv(128, 255, LEDS_BRIGHTNESS_ONBOARD);
   }
 
   Mode_t dst_mode = Mode[curMode]->reBtn_cb(btn_info);
@@ -228,9 +228,9 @@ void obBtn_cb(ButtonInfo_t *btn_info) {
   obBtnInfo = *btn_info;
 
   if ( btn_info->push_count > 0 ) {
-    ch_hsv(64, 255, 255);
+    ch_hsv(64, 255, LEDS_BRIGHTNESS_ONBOARD);
   } else {
-    ch_hsv(192, 255, 255);
+    ch_hsv(192, 255, LEDS_BRIGHTNESS_ONBOARD);
   }
 
   if ( btn_info->long_pressed && btn_info->repeat_count == 0 ) {
@@ -354,14 +354,14 @@ void setup() {
   // NeoPixel
   FastLED.addLeds<WS2812B, PIN_NEOPIXEL_ONBOARD, GRB>
     (leds_onboard, LEDS_N_ONBOARD).setCorrection(TypicalLEDStrip);
-  FastLED.setBrightness(LED_BRIGHTNESS_ONBOARD);
-  leds_onboard[0] = CRGB(255,255,255);
+  FastLED.setBrightness(LEDS_BRIGHTNESS_ONBOARD);
+  leds_onboard[0] = CRGB(255, 255, LEDS_BRIGHTNESS_ONBOARD);
 
   FastLED.addLeds<WS2812B, PIN_NEOPIXEL_EXT1, GRB>
     (leds_ext1, LEDS_N_EXT1).setCorrection(TypicalLEDStrip);
-  FastLED.setBrightness(LED_BRIGHTNESS_EXT1);
+  FastLED.setBrightness(LEDS_BRIGHTNESS_EXT1);
   for (int i=0; i < LEDS_N_EXT1; i++) {
-    leds_ext1[i] = CRGB(255,255,255);
+    leds_ext1[i] = CRGB(255, 255, LEDS_BRIGHTNESS_ONBOARD);
   }
   FastLED.show();
   
