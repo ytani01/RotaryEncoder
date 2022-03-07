@@ -58,22 +58,22 @@ void MainMode::display(Display_t *disp) {
   disp->setTextColor(WHITE, BLACK);
   
   // frame
-  disp->drawFastHLine(0, 25, DISPLAY_W, WHITE);
-  disp->drawFastHLine(0, 52, DISPLAY_W, WHITE);
+  disp->drawFastHLine(0, 24, DISPLAY_W, WHITE);
+  disp->drawFastHLine(0, 41, DISPLAY_W, WHITE);
 
   // Temp, Hum, Pres, Thi
   x = 0;
   y = 0;
   this->drawTemp(disp, x, y, _cd->bme_info->temp);
 
-  x += 50;
+  x += 43;
   this->drawHum(disp, x, y, _cd->bme_info->hum);
 
   x -= 2;
-  y += DISPLAY_CH_H * 2;
+  y += DISPLAY_CH_H * 2 - 1;
   this->drawPres(disp, x, y, _cd->bme_info->pres);
 
-  x = DISPLAY_W - DISPLAY_CH_W * 2 * 2;
+  x += 45;
   y = 0;
   this->drawThi(disp, x, y, _cd->bme_info->thi);
 
@@ -81,31 +81,26 @@ void MainMode::display(Display_t *disp) {
   time_t t_now = time(NULL);
   struct tm *ti = localtime(&t_now);
   x = 0;
-  y = 28;
+  y = 26;
   this->drawDateTime(disp, x, y, ti);
 
   // NTP
   x = DISPLAY_W - DISPLAY_CH_W * 3;
-  y = 27;
+  y = DISPLAY_H - DISPLAY_CH_H * 2;
   this->drawNtp(disp, x, y, _cd->ntp_info, _cd->netmgr_info);
 
   // WiFi
   x = 0;
-  y = DISPLAY_H - DISPLAY_CH_H;
+  y = DISPLAY_H - DISPLAY_CH_H * 2 - 1;
   this->drawWiFi(disp, x, y, _cd->netmgr_info);
 
   // MAC Addr
-  x = DISPLAY_W - 4 * 12;
-  y = DISPLAY_H - 1;
-  disp->setFont(&Picopixel);
-#if 0
-  x = DISPLAY_W - DISPLAY_CH_W * 13;
+  x = 0;
   y = DISPLAY_H - DISPLAY_CH_H;
   disp->setFont(NULL);
-#endif
   disp->setTextSize(1);
   disp->setCursor(x, y);
-  disp->printf(" %s ", this->mac_addr_str);
+  disp->printf("%s ", this->mac_addr_str);
   disp->setFont(NULL);
 } // MainMode::display()
 
@@ -117,7 +112,7 @@ void MainMode::drawTemp(Display_t *disp, int x, int y, float temp) {
   disp->setTextSize(1);
   disp->setCursor(x + 24, y + 14);
   disp->printf(".");
-  disp->setCursor(x + 26, y);
+  disp->setCursor(x + 27, y);
   disp->printf("%cC", (char)247);
 
   if ( isnan(temp) ) {
@@ -184,7 +179,7 @@ void MainMode::drawThi(Display_t *disp, int x, int y, float thi) {
   disp->setFont(NULL);
   disp->setCursor(x + 1, y);
   disp->setTextSize(1);
-  disp->printf("THI");
+  disp->printf("THI/DI");
 
   if ( isnan(thi) ) {
     return;
@@ -193,7 +188,7 @@ void MainMode::drawThi(Display_t *disp, int x, int y, float thi) {
   disp->setFont(&FreeSerifBold9pt7b);
   disp->setTextSize(1);
   int h = 12;
-  disp->setCursor(x, y + DISPLAY_CH_H +  h + 1);
+  disp->setCursor(x, y + DISPLAY_CH_H +  h);
   disp->printf("%2.0f", thi);
 
   disp->setFont(NULL);
@@ -249,32 +244,34 @@ void MainMode::drawWiFi(Display_t *disp, int x, int y, NetMgrInfo_t *ni) {
  *
  */
 void MainMode::drawDateTime(Display_t *disp, int x, int y, struct tm *ti) {
-  int w = 9;
+  int w = 10;
   int h = 12;
   int mon_x = x;
   int mon_y = y;
-  int hour_x = mon_x + w * 4 + 12;
+  int hour_x = mon_x + w * 4 + 4 + DISPLAY_CH_W * 3 + 3;
   int hour_y = mon_y;
-  int sec_x = hour_x - 12;
+  int sec_x = hour_x - 10;
   int sec_y = y + h + 4;
 
   int x1 = mon_x + w * 2;
-  int y1 = mon_y + h - 2;
+  int y1 = mon_y + h - 1;
   int x2 = x1 + 3;
-  int y2 = y1 - h + 4;
+  int y2 = y1 - h + 3;
   disp->drawLine(x1, y1, x2, y2, WHITE);
 
-  disp->setCursor(hour_x + w * 2, hour_y);
+  disp->setCursor(hour_x + w * 2 - 2, hour_y - 1);
   disp->setFont(NULL);
   disp->setTextSize(2);
   if ( millis() % 1000 < 500 ) {
     disp->printf(":");
   }
 
+#if 0
   disp->drawRect(sec_x, sec_y, 61, 5, WHITE);
   for (int x1=sec_x; x1 <= sec_x+60; x1 += 10) {
     disp->drawFastVLine(x1, sec_y, 3, WHITE);
   }
+#endif
   
   if ( ti->tm_year + 1900 < 2000 ) {
     return;
@@ -288,14 +285,14 @@ void MainMode::drawDateTime(Display_t *disp, int x, int y, struct tm *ti) {
   disp->setFont(&FreeSans9pt7b);
   disp->setTextSize(1);
   disp->setCursor(mon_x, mon_y + h);
-  disp->printf("%2d\n", ti->tm_mon + 1);
+  disp->printf("%02d\n", ti->tm_mon + 1);
 
-  x += w * 2 + 4;
+  x += w * 2 + 5;
   disp->setCursor(x, y + h);
-  disp->printf("%-2d", ti->tm_mday);
+  disp->printf("%02d", ti->tm_mday);
 
-  x -= 8;
-  y += h + 3;
+  x += w * 2 + 1;
+  y += DISPLAY_CH_H - 2;
   disp->setFont(NULL);
   disp->setTextSize(1);
   disp->setCursor(x, y);
@@ -308,10 +305,16 @@ void MainMode::drawDateTime(Display_t *disp, int x, int y, struct tm *ti) {
   disp->setCursor(x, y + h);
   disp->printf("%02d", ti->tm_hour);
 
-  disp->setCursor(x + w * 2 + 7, y + h);
+  x += w * 2 + 5;
+  disp->setCursor(x, y + h);
   disp->printf("%02d", ti->tm_min);
 
-  disp->fillRect(sec_x+1, sec_y, ti->tm_sec, 4, WHITE);
+  x += w * 2 + 2;
+  disp->setFont(NULL);
+  disp->setCursor(x, y + DISPLAY_CH_H - 2);
+  disp->printf("%02d", ti->tm_sec);
+
+  // disp->fillRect(sec_x+1, sec_y, ti->tm_sec, 4, WHITE);
 } // MainMode::drawDateTime()
 
 /**

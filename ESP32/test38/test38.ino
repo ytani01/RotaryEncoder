@@ -393,8 +393,10 @@ void setup() {
 
   mqttTask = new MqttTask(&commonData,
                           PUBLISH_INTERVAL,
-                          MQTT_SERVER, MQTT_PORT, MQTT_TOPIC_ROOT,
-                          MQTT_CLIENT_ID, MQTT_USER, MQTT_PASSWORD);
+                          MQTT_SERVER, MQTT_PORT,
+                          MQTT_CLIENT_ID,
+                          MQTT_TOPIC_ROOT,
+                          MQTT_USER, MQTT_PASSWORD);
   mqttTask->start();
   delay(task_interval);
 
@@ -488,15 +490,15 @@ void loop() {
       }
     }
 
-    int w = 28;
+    int w = 30;
     int h = 7;
     int x = DISPLAY_W - w;
-    int y = DISPLAY_H - h - 3;
+    int y = DISPLAY_H - 6;
     Disp->setFont(&Picopixel);
     Disp->setTextSize(1);
     Disp->fillRect(x, y, w, h, BLACK);
     Disp->setCursor(x + 2, y + 5);
-    Disp->printf("%4.1fFPS", min_fps);
+    Disp->printf("%4.1f FPS", min_fps);
     Disp->setFont(NULL);
   } // if (dispFps);
   

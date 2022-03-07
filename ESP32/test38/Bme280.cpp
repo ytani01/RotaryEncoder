@@ -42,10 +42,11 @@ float Bme280::get_temp_offset() {
 Bme280Info_t *Bme280::get() {
   if ( ! this->_info.active ) {
     log_w("active=%d", this->_info.active);
-    this->_info.temp=0.0;
-    this->_info.hum=0.0;
-    this->_info.pres=0.0;
-    this->_info.thi=0.0;
+    this->_info.temp=NAN;
+    this->_info.hum=NAN;
+    this->_info.pres=NAN;
+    this->_info.thi=NAN;
+
     return &this->_info;
   }
 

@@ -28,8 +28,9 @@ class MqttTask: public Task {
   MqttTask(CommonData_t *common_data,
            unsigned long publish_interval=30000,
            String mqtt_server="mqtt", int mqtt_port=1883,
+           String client_id="",
            String topic_root="",
-           String client_id="", String user="", String passwd="");
+           String user="", String passwd="");
 
  protected:
   virtual void setup();

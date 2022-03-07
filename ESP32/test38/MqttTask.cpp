@@ -9,8 +9,9 @@
 MqttTask::MqttTask(CommonData_t *common_data,
                    unsigned long publish_interval,
                    String mqtt_server, int mqtt_port,
+                   String client_id,
                    String topic_root,
-                   String client_id, String user, String password)
+                   String user, String password)
   : Task("MQTT Task") {
   char buf[64];
 
@@ -19,17 +20,17 @@ MqttTask::MqttTask(CommonData_t *common_data,
   this->mqtt_server = mqtt_server;
   this->mqtt_port = mqtt_port;
 
-  this->topic_root = topic_root;
-  if ( topic_root == "" ) {
-    this->topic_root = "env_" + get_mac_addr_String();
-  }
-  log_i("topic_root:\"%s\"", this->topic_root.c_str());
-  
   this->client_id = client_id;
   if ( client_id == "" ) {
-    this->client_id = this->topic_root;
+    this->client_id = "env_" + get_mac_addr_String();
   }
   log_i("client_id:\"%s\"", this->client_id.c_str());
+  
+  this->topic_root = topic_root;
+  if ( topic_root == "" ) {
+    this->topic_root = this->topic_root;
+  }
+  log_i("topic_root:\"%s\"", this->topic_root.c_str());
 
   this->user = user;
   this->password = password;
@@ -53,7 +54,7 @@ bool MqttTask::publish(String topic_sub, float value) {
   char buf[8];
   sprintf(buf, "%.2f", value);
   bool ret = this->mqtt_client->publish(topic.c_str(), buf);
-  log_i("publish(%s:%s): ret=%s", topic.c_str(), buf, ret ? "true" : "false");
+  log_d("publish(%s:%s): ret=%s", topic.c_str(), buf, ret ? "true" : "false");
   return ret;
 } // MqttTask::publish()
 
@@ -82,7 +83,7 @@ void MqttTask::loop() {
       ret = this->publish("hum", _cd->bme_info->hum);
       ret = this->publish("pres", _cd->bme_info->pres);
       ret = this->publish("thi", _cd->bme_info->thi);
-      log_i("publish=>%s/ %.1f C(%.1f) %.0f %% %0.0f hPa %.1f thi",
+      log_i("publish=>%s/ %.2f C(%.1f) %.1f %% %0.1f hPa %.1f thi",
             this->topic_root.c_str(),
             _cd->bme_info->temp, _cd->bme_info->temp_offset,
             _cd->bme_info->hum, _cd->bme_info->pres, _cd->bme_info->thi);
