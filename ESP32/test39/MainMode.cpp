@@ -229,7 +229,7 @@ void MainMode::drawWiFi(Display_t *disp, int x, int y, NetMgrInfo_t *ni) {
   case NETMGR_MODE_AP_INIT:
   case NETMGR_MODE_AP_LOOP:
     if ( millis() % 3000 < 3000 * 95 / 100 ) {
-      disp->printf("[ %s ]", ni->ap_ssid.c_str());
+      disp->printf("[%s]", ni->ap_ssid.c_str());
     }
     break;
 

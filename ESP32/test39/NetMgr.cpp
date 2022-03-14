@@ -117,6 +117,11 @@ NetMgrMode_t NetMgr::loop() {
       this->cur_mode = NETMGR_MODE_AP_INIT;
       break;
     }
+
+    if ( NetMgr::ssidN > SSID_N_MAX ) {
+      NetMgr::ssidN = SSID_N_MAX;
+      log_i("ssidN=%d", NetMgr::ssidN);
+    }
     for (int i=0; i < NetMgr::ssidN; i++) {
       NetMgr::ssidEnt[i].set(WiFi.SSID(i), WiFi.RSSI(i), WiFi.encryptionType(i));
     } // for()

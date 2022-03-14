@@ -28,6 +28,9 @@
 ConfFps *confFps;
 static bool dispFps = true;
 
+const unsigned long IDEL_RESET = 1 * 60 * 1000; // ms
+unsigned long idleStart = 0;
+
 // Modes
 #define curMode commonData.cur_mode
 
@@ -205,6 +208,8 @@ void timer1_cb() {
  *
  */
 void reBtn_cb(ButtonInfo_t *btn_info) {
+  idleStart = millis();
+
   log_i("%s", Button::info2String(btn_info).c_str());
   reBtnInfo = *btn_info;
 
@@ -224,6 +229,8 @@ void reBtn_cb(ButtonInfo_t *btn_info) {
  *
  */
 void obBtn_cb(ButtonInfo_t *btn_info) {
+  idleStart = millis();
+
   log_i("%s", Button::info2String(btn_info).c_str());
   obBtnInfo = *btn_info;
 
@@ -248,6 +255,8 @@ void obBtn_cb(ButtonInfo_t *btn_info) {
  *
  */
 void re_cb(RotaryEncoderInfo_t *re_info) {
+  idleStart = millis();
+
   log_d("%s", RotaryEncoder::info2String(re_info).c_str());
 
   /**
@@ -427,7 +436,9 @@ void setup() {
     log_i("%d:%s", i, Mode[i]->get_name().c_str());
     Mode[i]->setup();
   }
-  change_mode(MODE_MAIN); 
+  change_mode(MODE_MAIN);
+
+  idleStart = millis();
 } // setup()
 
 /**
@@ -475,6 +486,16 @@ void loop() {
 
   Mode[curMode]->display(Disp);
 
+  // idle ms
+  unsigned long idle_ms = millis() - idleStart;
+  if ( idle_ms >= IDEL_RESET
+       && commonData.netmgr_info->mode != NETMGR_MODE_WIFI_ON ) {
+    log_i("idle_ms=%d .. reboot", idle_ms);
+    //ESP.restart();
+    ESP.deepSleep(100);
+    delay(500);
+  }
+  
   // fps
   if ( dispFps ) {
     float fps = 0.0;
@@ -500,8 +521,12 @@ void loop() {
     Disp->setCursor(x + 2, y + 5);
     Disp->printf("%4.1f FPS", min_fps);
     Disp->setFont(NULL);
+
+    Disp->setCursor(DISPLAY_W - DISPLAY_CH_W * 6,
+                    DISPLAY_H - DISPLAY_CH_H * 2);
+    Disp->printf("%6d", idle_ms);
   } // if (dispFps);
-  
+
   Disp->display();
   delay(1);
 } // loop()
