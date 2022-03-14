@@ -28,7 +28,8 @@
 ConfFps *confFps;
 static bool dispFps = true;
 
-const unsigned long IDEL_RESET = 1 * 60 * 1000; // ms
+// ネット接続がなく、かつ、アイドル時間が経過したら、リセットする
+const unsigned long IDEL_RESET = 5 * 60 * 1000; // ms
 unsigned long idleStart = 0;
 
 // Modes
