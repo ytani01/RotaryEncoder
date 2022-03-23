@@ -286,7 +286,7 @@ void MainMode::drawDateTime(Display_t *disp, int x, int y, struct tm *ti) {
   disp->setFont(&FreeSans9pt7b);
   disp->setTextSize(1);
   disp->setCursor(mon_x, mon_y + h);
-  disp->printf("%02d\n", ti->tm_mon + 1);
+  disp->printf("%02d", ti->tm_mon + 1);
 
   x += w * 2 + 5;
   disp->setCursor(x, y + h);

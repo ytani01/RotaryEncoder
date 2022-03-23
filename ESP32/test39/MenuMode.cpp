@@ -38,8 +38,8 @@ void MenuMode::setup() {
   OledMenuEnt *ment_text_reboot = new OledMenuEnt(" @ reboot ", "reboot");  
   OledMenuEnt *ment_text_dispfps = new OledMenuEnt(" i ON/OFF FPS ", "disp_fps");  
 
-
   OledMenuEnt *ment_line = new OledMenuEnt("--------------------");
+  OledMenuEnt *ment_version = new OledMenuEnt("Version");
 
   this->topMenu->addEnt(ment_mode_main);
   this->topMenu->addEnt(ment_line);
@@ -65,6 +65,7 @@ void MenuMode::setup() {
   this->wifiMenu->addEnt(ment_line);
   this->wifiMenu->addEnt(ment_text_clear_ssid);
 
+  this->systemMenu->addEnt(ment_version);
   this->systemMenu->addEnt(ment_menu_top);
   this->systemMenu->addEnt(ment_mode_main);
   this->systemMenu->addEnt(ment_line);

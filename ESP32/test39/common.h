@@ -1,4 +1,5 @@
 /**
+ * $Id$
  * Copyright (c) 2022 Yoichi Tanibayashi
  */
 #ifndef _COMMON_H_
