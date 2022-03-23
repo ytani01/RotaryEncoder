@@ -20,6 +20,8 @@
 #include "NtpTask.h"
 #include "Bme280.h"
 
+#define VERSION_STR "0.39"
+
 typedef enum {
               MODE_MAIN,
               MODE_MENU,

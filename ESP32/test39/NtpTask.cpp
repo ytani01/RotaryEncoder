@@ -55,7 +55,8 @@ void NtpTask::setup() {
 
   setenv("TZ", "JST-9", 1);
   tzset();
-  sntp_set_sync_mode(SNTP_SYNC_MODE_SMOOTH);
+  //sntp_set_sync_mode(SNTP_SYNC_MODE_SMOOTH);
+  sntp_set_sync_mode(SNTP_SYNC_MODE_IMMED);
 } // NtpTask::setup()
 
 /**

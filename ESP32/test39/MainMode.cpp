@@ -310,7 +310,7 @@ void MainMode::drawDateTime(Display_t *disp, int x, int y, struct tm *ti) {
   disp->setCursor(x, y + h);
   disp->printf("%02d", ti->tm_min);
 
-  x += w * 2 + 2;
+  x += w * 2 + 3;
   disp->setFont(NULL);
   disp->setCursor(x, y + DISPLAY_CH_H - 2);
   disp->printf("%02d", ti->tm_sec);
