@@ -25,6 +25,8 @@
 
 #include "ConfFps.h"
 
+#define MYNAME __FILE__
+
 ConfFps *confFps;
 static bool dispFps = true;
 
@@ -332,7 +334,7 @@ void setup() {
     delay(100);
   } while (!Serial);  // Serial Init Wait
   Serial.println();
-  Serial.println("===== start =====");
+  Serial.println("===== start: " + String(MYNAME) + " =====");
   log_i("portTICK_PERIOD_MS=%d", portTICK_PERIOD_MS);
 
   confFps = new ConfFps();

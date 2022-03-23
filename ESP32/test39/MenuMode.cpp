@@ -21,7 +21,7 @@ void MenuMode::setup() {
   this->clockMenu = new OledMenu("Clock");
   this->thermometerMenu = new OledMenu("Thermo");
   this->wifiMenu = new OledMenu("WiFi");
-  this->systemMenu = new OledMenu("System");
+  this->systemMenu = new OledMenu(String("System v") + String(VERSION_STR));
 
   OledMenuEnt *ment_mode_main = new OledMenuEnt("<< Exit Menu ", MODE_MAIN);
   OledMenuEnt *ment_mode_sto = new OledMenuEnt(" * Temp Offset ", MODE_SET_TEMP_OFFSET);
@@ -39,7 +39,6 @@ void MenuMode::setup() {
   OledMenuEnt *ment_text_dispfps = new OledMenuEnt(" i ON/OFF FPS ", "disp_fps");  
 
   OledMenuEnt *ment_line = new OledMenuEnt("--------------------");
-  OledMenuEnt *ment_version = new OledMenuEnt("Version");
 
   this->topMenu->addEnt(ment_mode_main);
   this->topMenu->addEnt(ment_line);
@@ -65,7 +64,6 @@ void MenuMode::setup() {
   this->wifiMenu->addEnt(ment_line);
   this->wifiMenu->addEnt(ment_text_clear_ssid);
 
-  this->systemMenu->addEnt(ment_version);
   this->systemMenu->addEnt(ment_menu_top);
   this->systemMenu->addEnt(ment_mode_main);
   this->systemMenu->addEnt(ment_line);
