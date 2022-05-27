@@ -321,23 +321,19 @@
 <pad name="GNDVIN" x="10.16" y="-3.81" drill="0.9" shape="long"/>
 <pad name="VIN" x="10.16" y="-6.35" drill="0.9" shape="long"/>
 </package>
-<package name="USB-C-DIRECT">
-<wire x1="-11" y1="-2.009" x2="11" y2="-2.009" width="0.1524" layer="21"/>
-<wire x1="11" y1="-2.009" x2="11" y2="-15.009" width="0.1524" layer="21"/>
-<wire x1="11" y1="-15.009" x2="-11" y2="-15.009" width="0.1524" layer="21"/>
-<wire x1="-11" y1="-15.009" x2="-11" y2="-2.009" width="0.1524" layer="21"/>
-<pad name="CC2" x="-6.35" y="-13.97" drill="0.9"/>
-<pad name="D+" x="-3.81" y="-13.97" drill="0.9"/>
-<pad name="D-" x="-1.27" y="-13.97" drill="0.9"/>
-<pad name="CC1" x="1.27" y="-13.97" drill="0.9"/>
-<pad name="GND" x="3.81" y="-13.97" drill="0.9"/>
-<pad name="VBUS" x="6.35" y="-13.97" drill="0.9"/>
-<wire x1="-4.25" y1="-0.5" x2="4.25" y2="-0.5" width="0.1524" layer="21"/>
-<wire x1="4.25" y1="-0.5" x2="4.25" y2="-8" width="0.1524" layer="21"/>
-<wire x1="4.25" y1="-8" x2="-4.25" y2="-8" width="0.1524" layer="21"/>
-<wire x1="-4.25" y1="-8" x2="-4.25" y2="-0.5" width="0.1524" layer="21"/>
-<circle x="-8.46" y="-5.08" radius="2" width="0.1524" layer="21"/>
-<circle x="8.46" y="-5.08" radius="2" width="0.1524" layer="21"/>
+<package name="AE-USB2.0-TYPE-C-CTRPB-1">
+<wire x1="-3.81" y1="-3.81" x2="-3.81" y2="8.19" width="0.1524" layer="21"/>
+<wire x1="-3.81" y1="8.19" x2="6.19" y2="8.19" width="0.1524" layer="21"/>
+<wire x1="6.19" y1="8.19" x2="6.19" y2="-3.81" width="0.1524" layer="21"/>
+<wire x1="6.19" y1="-3.81" x2="-3.81" y2="-3.81" width="0.1524" layer="21"/>
+<pad name="V_L" x="-2.54" y="-2.54" drill="0.85" shape="square"/>
+<pad name="GND_L" x="-2.54" y="0" drill="0.85" shape="square"/>
+<pad name="GND_R" x="5.08" y="0" drill="0.85" shape="square"/>
+<pad name="V_R" x="5.08" y="-2.54" drill="0.85" shape="square"/>
+<wire x1="-3.302" y1="8.405" x2="-3.302" y2="1.905" width="0.1524" layer="21"/>
+<wire x1="-3.302" y1="1.905" x2="5.698" y2="1.905" width="0.1524" layer="21"/>
+<wire x1="5.698" y1="1.905" x2="5.698" y2="8.405" width="0.1524" layer="21"/>
+<wire x1="5.698" y1="8.405" x2="-3.302" y2="8.405" width="0.1524" layer="21"/>
 </package>
 </packages>
 <packages3d>
@@ -446,19 +442,15 @@
 <text x="-12.7" y="6.35" size="1.778" layer="96">&gt;NAME</text>
 <text x="-12.7" y="-10.16" size="1.778" layer="95">&gt;VALUE</text>
 </symbol>
-<symbol name="USB-C-DIRECT">
-<pin name="VBUS" x="7.62" y="7.62" visible="pin" length="short" rot="R180"/>
-<pin name="GND" x="7.62" y="5.08" visible="pin" length="short" rot="R180"/>
-<pin name="CC1" x="7.62" y="2.54" visible="pin" length="short" rot="R180"/>
-<pin name="D-" x="7.62" y="0" visible="pin" length="short" rot="R180"/>
-<pin name="D+" x="7.62" y="-2.54" visible="pin" length="short" rot="R180"/>
-<pin name="CC2" x="7.62" y="-5.08" visible="pin" length="short" rot="R180"/>
-<wire x1="-5.08" y1="10.16" x2="5.08" y2="10.16" width="0.1524" layer="94"/>
-<wire x1="5.08" y1="10.16" x2="5.08" y2="-7.62" width="0.1524" layer="94"/>
-<wire x1="5.08" y1="-7.62" x2="-5.08" y2="-7.62" width="0.1524" layer="94"/>
-<wire x1="-5.08" y1="-7.62" x2="-5.08" y2="10.16" width="0.1524" layer="94"/>
-<text x="-5.08" y="11.43" size="1.778" layer="95">&gt;NAME</text>
-<text x="-5.08" y="-10.16" size="1.778" layer="96">&gt;VALUE</text>
+<symbol name="AE-USB2.0-TYPE-C-CTRPB-1">
+<pin name="V+R" x="10.16" y="2.54" length="short" rot="R180"/>
+<pin name="V-R" x="10.16" y="-5.08" length="short" rot="R180"/>
+<wire x1="-7.62" y1="5.08" x2="-7.62" y2="-7.62" width="0.1524" layer="94"/>
+<wire x1="-7.62" y1="-7.62" x2="7.62" y2="-7.62" width="0.1524" layer="94"/>
+<wire x1="7.62" y1="-7.62" x2="7.62" y2="5.08" width="0.1524" layer="94"/>
+<wire x1="7.62" y1="5.08" x2="-7.62" y2="5.08" width="0.1524" layer="94"/>
+<pin name="V+L" x="-10.16" y="2.54" length="short"/>
+<pin name="V-L" x="-10.16" y="-5.08" length="short"/>
 </symbol>
 </symbols>
 <devicesets>
@@ -608,19 +600,17 @@ Blank/White
 </device>
 </devices>
 </deviceset>
-<deviceset name="USB-C-DIRECT" prefix="USB" uservalue="yes">
+<deviceset name="AE-USB2.0-TYPE-C-CTRPB-1" prefix="TYPE-C">
 <gates>
-<gate name="G$1" symbol="USB-C-DIRECT" x="48.26" y="-12.7"/>
+<gate name="G$1" symbol="AE-USB2.0-TYPE-C-CTRPB-1" x="17.78" y="-12.7"/>
 </gates>
 <devices>
-<device name="" package="USB-C-DIRECT">
+<device name="" package="AE-USB2.0-TYPE-C-CTRPB-1">
 <connects>
-<connect gate="G$1" pin="CC1" pad="CC1"/>
-<connect gate="G$1" pin="CC2" pad="CC2"/>
-<connect gate="G$1" pin="D+" pad="D+"/>
-<connect gate="G$1" pin="D-" pad="D-"/>
-<connect gate="G$1" pin="GND" pad="GND"/>
-<connect gate="G$1" pin="VBUS" pad="VBUS"/>
+<connect gate="G$1" pin="V+L" pad="V_L"/>
+<connect gate="G$1" pin="V+R" pad="V_R"/>
+<connect gate="G$1" pin="V-L" pad="GND_L"/>
+<connect gate="G$1" pin="V-R" pad="GND_R"/>
 </connects>
 <technologies>
 <technology name=""/>
@@ -5271,10 +5261,10 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <part name="GND1" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="GND7" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="CD1" library="ytani1" deviceset="MH-CD42" device=""/>
-<part name="USB1" library="ytani1" deviceset="USB-C-DIRECT" device="" value="USB1"/>
 <part name="GND9" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="GND10" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="GND8" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
+<part name="U$1" library="ytani1" deviceset="AE-USB2.0-TYPE-C-CTRPB-1" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -5400,10 +5390,6 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <attribute name="NAME" x="-58.42" y="80.01" size="1.778" layer="96"/>
 <attribute name="VALUE" x="-58.42" y="63.5" size="1.778" layer="95"/>
 </instance>
-<instance part="USB1" gate="G$1" x="-76.2" y="68.58" smashed="yes">
-<attribute name="NAME" x="-81.28" y="80.01" size="1.778" layer="95"/>
-<attribute name="VALUE" x="-81.28" y="58.42" size="1.778" layer="96"/>
-</instance>
 <instance part="GND9" gate="1" x="-66.04" y="58.42" smashed="yes">
 <attribute name="VALUE" x="-68.58" y="55.88" size="1.778" layer="96"/>
 </instance>
@@ -5413,6 +5399,7 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <instance part="GND8" gate="1" x="-60.96" y="86.36" smashed="yes">
 <attribute name="VALUE" x="-63.5" y="83.82" size="1.778" layer="96"/>
 </instance>
+<instance part="U$1" gate="G$1" x="-86.36" y="73.66" smashed="yes"/>
 </instances>
 <busses>
 </busses>
@@ -5500,13 +5487,12 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <wire x1="-60.96" y1="68.58" x2="-66.04" y2="68.58" width="0.1524" layer="91"/>
 <pinref part="GND9" gate="1" pin="GND"/>
 <wire x1="-66.04" y1="68.58" x2="-66.04" y2="60.96" width="0.1524" layer="91"/>
-<pinref part="USB1" gate="G$1" pin="GND"/>
 <pinref part="CD1" gate="G$1" pin="GNDVIN"/>
-<wire x1="-68.58" y1="73.66" x2="-66.04" y2="73.66" width="0.1524" layer="91"/>
 <wire x1="-66.04" y1="73.66" x2="-60.96" y2="73.66" width="0.1524" layer="91"/>
 <wire x1="-66.04" y1="68.58" x2="-66.04" y2="73.66" width="0.1524" layer="91"/>
 <junction x="-66.04" y="68.58"/>
-<junction x="-66.04" y="73.66"/>
+<pinref part="U$1" gate="G$1" pin="V-R"/>
+<wire x1="-76.2" y1="68.58" x2="-66.04" y2="68.58" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="CD1" gate="G$1" pin="GND5"/>
@@ -5642,19 +5628,19 @@ Source: http://www.mouser.com/ds/2/392/products_18-2245.pdf</description>
 <wire x1="101.6" y1="2.54" x2="101.6" y2="93.98" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="VBUS" class="0">
-<segment>
-<pinref part="USB1" gate="G$1" pin="VBUS"/>
-<wire x1="-68.58" y1="76.2" x2="-60.96" y2="76.2" width="0.1524" layer="91"/>
-<pinref part="CD1" gate="G$1" pin="VIN"/>
-</segment>
-</net>
 <net name="BAT+" class="0">
 <segment>
 <pinref part="CD1" gate="G$1" pin="BAT"/>
 <wire x1="-63.5" y1="93.98" x2="-63.5" y2="71.12" width="0.1524" layer="91"/>
 <wire x1="-63.5" y1="71.12" x2="-60.96" y2="71.12" width="0.1524" layer="91"/>
 <pinref part="P1" gate="G$1" pin="1"/>
+</segment>
+</net>
+<net name="N$1" class="0">
+<segment>
+<pinref part="U$1" gate="G$1" pin="V+R"/>
+<pinref part="CD1" gate="G$1" pin="VIN"/>
+<wire x1="-76.2" y1="76.2" x2="-60.96" y2="76.2" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
