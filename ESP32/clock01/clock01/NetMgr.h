@@ -47,7 +47,7 @@ public:
   NetMgrMode_t cur_mode = NETMGR_MODE_START;
 
   static String myName;
-  static unsigned int ssidN;
+  static int16_t ssidN;
   static SSIDent ssidEnt[SSID_N_MAX];
 
   unsigned int try_count_max = DEF_TRY_COUNT_MAX;

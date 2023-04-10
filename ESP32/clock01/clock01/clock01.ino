@@ -331,7 +331,8 @@ void menu_cb(String text) {
 void setup() {
   Serial.begin(115200);
   do {
-    delay(100);
+    delay(500);
+    Serial.print('.');
   } while (!Serial);  // Serial Init Wait
   Serial.println();
   Serial.println("===== start: " + String(MYNAME) + " =====");
@@ -380,12 +381,12 @@ void setup() {
   // Tasks
   unsigned long task_interval = 10;
 
-  ntpTask = new NtpTask((String *)NTP_SVR, &netMgrTask, ntp_cb);
-  ntpTask->start();
-  delay(task_interval);
-
   netMgrTask = new NetMgrTask("NetMgr", AP_SSID_HDR, &netMgrInfo);
   netMgrTask->start();
+  delay(1000); // NTPなどより先に実行することが重要(?)
+
+  ntpTask = new NtpTask((String *)NTP_SVR, &netMgrTask, ntp_cb);
+  ntpTask->start();
   delay(task_interval);
 
   reBtnWatcher = new ButtonWatcher(RE_BTN_NAME, PIN_BTN_RE, reBtn_cb);

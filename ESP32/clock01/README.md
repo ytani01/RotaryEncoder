@@ -12,4 +12,4 @@
 
 #### 設定
 
-ボード: ESP32 PICO-D4
+- ボード: ESP32 Dev Module or ESP32 PICO-D4

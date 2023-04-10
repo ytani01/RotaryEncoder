@@ -119,8 +119,19 @@ void ScanSsidMode::display(Display_t *disp) {
     /*
      * スキャン開始
      */
+
+
     WiFi.scanDelete(); // XXX
+
+    this->common_data->netmgr_info->mode = NETMGR_MODE_NULL;
+    delay(500);
+
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+    delay(100);
+    
     WiFi.scanNetworks(true, true);
+    log_i("WiFi.scanNetworks(true, true)");
     this->phase = SCANSSID_PHASE_SCANNING;
     break;
 

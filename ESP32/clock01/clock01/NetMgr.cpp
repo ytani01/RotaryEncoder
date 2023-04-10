@@ -11,7 +11,7 @@ static ConfSsid *confSsid;
  * Initialize static variables
  */
 String NetMgr::myName = "NetMgr";
-unsigned int NetMgr::ssidN = 0;
+int16_t NetMgr::ssidN = 0;
 SSIDent NetMgr::ssidEnt[NetMgr::SSID_N_MAX];
 WebServer NetMgr::web_svr(WEBSVR_PORT);
 
@@ -84,33 +84,32 @@ NetMgrMode_t NetMgr::loop() {
     
     /*
      * XXX 以下、悪あがき
-     * XXX これでも、reboot一回おきに接続に失敗する!!??
+     * XXX TBD
      */
-    WiFi.mode(WIFI_AP);
-    delay(500);
-
-    WiFi.disconnect(true, true);
-    log_i("disconnect");
-    delay(500);
-
     WiFi.mode(WIFI_OFF);
     log_i("WIFI_OFF");
-    delay(500);
+    delay(100);
 
     //eps_wifi_restore();
     //log_i("esp_wifi_restore()");
     //delay(5000);
+
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect(true, true);
+    delay(100);
     
     // scan SSIDs
     log_i("scan SSID ..");
-    NetMgr::ssidN = WiFi.scanNetworks(false, true, false, 200);
+    NetMgr::ssidN = WiFi.scanNetworks(false, true);
     log_i("ssidN=%d", NetMgr::ssidN);
 
     if ( ssidN <= 0 ) {
-      delay(10);
+      WiFi.mode(WIFI_STA);
+      WiFi.disconnect();
+      delay(200);
+
       log_i("retry: scan SSID ..");
-      WiFi.scanDelete();
-      NetMgr::ssidN = WiFi.scanNetworks(false, true, false, 200);
+      NetMgr::ssidN = WiFi.scanNetworks(false, true);
       log_i("ssidN=%d", NetMgr::ssidN);
     }
     if ( ssidN <= 0 ) {
@@ -123,6 +122,7 @@ NetMgrMode_t NetMgr::loop() {
       log_i("ssidN=%d", NetMgr::ssidN);
     }
     for (int i=0; i < NetMgr::ssidN; i++) {
+      log_i("  %s", WiFi.SSID(i));
       NetMgr::ssidEnt[i].set(WiFi.SSID(i), WiFi.RSSI(i), WiFi.encryptionType(i));
     } // for()
     WiFi.scanDelete();
@@ -398,8 +398,12 @@ String NetMgr::html_footer() {
  *
  */
 void NetMgr::async_scan_ssid_start() {
+  //WiFi.mode(WIFI_STA);
+  //WiFi.disconnect();
+  //delay(200);
+
   WiFi.scanNetworks(true, true);
-  log_i("");
+  log_i("WiFi.scanNetworks()");
 } // NetMgr::async_scan_ssid_start()
 
 /**
@@ -566,6 +570,7 @@ void NetMgr::handle_confirm_reboot() {
  */
 void NetMgr::handle_do_scan() {
   NetMgr::async_scan_ssid_start();
+  NetMgr::async_scan_ssid_wait();
 
   // 自動転送
   web_svr.sendHeader("Location", String("/select_ssid"), true);
