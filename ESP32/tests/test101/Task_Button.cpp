@@ -9,10 +9,10 @@ static QueueHandle_t outQue = (QueueHandle_t)NULL; // for static function
  *
  */
 Task_Button::Task_Button(String btn_name, uint8_t pin,
-                                 uint32_t stack_size,
-                                 UBaseType_t priority,
-                                 UBaseType_t core):
-  Task(btn_name + "Task", stack_size, priority, core) {
+                         uint32_t stack_size,
+                         UBaseType_t priority,
+                         UBaseType_t core):
+  Task(btn_name, stack_size, priority, core) {
 
   this->btn_name = btn_name;
   this->pin = pin;
