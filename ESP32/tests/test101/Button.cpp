@@ -182,7 +182,7 @@ ButtonCount_t Button::get_repeat_count() {
 String Button::info2String(ButtonInfo_t *info, bool interrupted) {
   char buf[128];
   String intrString = interrupted ? "!" : " ";
-  String valueString = info->value ? "H(OFF)" : "L(ON )";
+  String valueString = info->value ? "H:OFF" : "L:ON ";
   String longPressedString = info->long_pressed ? "L" : "-";
   
   sprintf(buf, "%sBTN[%s:%d] %s P:%d C:%d %s R:%d",

@@ -12,8 +12,6 @@
 
 #include "commonlib.h"
 
-#include "Task.h"
-
 #define VERSION_STR "0.01"
 
 #endif // _COMMON_H_

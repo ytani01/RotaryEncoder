@@ -5,6 +5,8 @@
 
 #include "common.h"
 
+#include "Display.h"
+
 #include "Task_Foo.h"
 #include "Task_NetMgr.h"
 #include "Task_Button.h"
@@ -13,8 +15,11 @@
 
 Task_Foo* task_Foo;
 
+// Display
+Display_t *Disp;
+
 // Timer
-constexpr TickType_t TIMER1_INTERVAL = 30 * 1000; // tick == ms (?)
+constexpr TickType_t TIMER1_INTERVAL = 10 * 1000; // tick == ms (?)
 Ticker timer1;
 
 // WiFi
@@ -23,8 +28,12 @@ NetMgrInfo_t netMgrInfo;
 
 // Button
 constexpr uint8_t PIN_BTN_RE = 26;
-Task_ButtonWatcher* task_BtnW_RE;
-ButtonInfo_t buttonInfo_RotaryEncoder;
+Task_ButtonWatcher* task_Btn_RE;
+ButtonInfo_t btnInfo_RE;
+
+constexpr uint8_t PIN_BTN_OB = 39;
+Task_ButtonWatcher* task_Btn_OB;
+ButtonInfo_t btnInfo_OB;
 
 /**
  *
@@ -33,7 +42,16 @@ void cb_timer1() {
   static TickType_t prev_tick1 = xTaskGetTickCount();
   TickType_t tick1 = xTaskGetTickCount();
   TickType_t d_tick1 = tick1 - prev_tick1;
-  log_i("%u:%u", tick1, d_tick1);
+  //log_i("%u:%u", tick1, d_tick1);
+
+  //Serial.println("--------");
+  Disp->setFont(NULL);
+  Disp->setTextColor(WHITE, BLACK);
+  Disp->setTextSize(1);
+  //Disp->setCursor(5, 10);
+  Disp->setTextWrap(true);
+  Disp->printf(" %6d", tick1);
+  Disp->display();
 
   prev_tick1 = tick1;
 } // cb_timer1()
@@ -43,11 +61,6 @@ void cb_timer1() {
  */
 void cbBtn_RE(ButtonInfo_t *bi) {
   log_i("%s", Button::info2String(bi).c_str());
-
-  /*
-  ButtonInfo_t* btn1_info = task_BtnW_RE->get_bi();
-  log_i("%s", Button::info2String(btn1_info).c_str());
-  */
 
   /*
   if ( bi->value == Button::ON ) {
@@ -70,6 +83,12 @@ void cbBtn_RE(ButtonInfo_t *bi) {
   }
 } // cbBtn_RE()
 
+void cbBtn_OB(ButtonInfo_t *bi) {
+  log_i("%s", Button::info2String(bi).c_str());
+
+  task_delay(1000);
+} // cbBtn_OB()
+
 /**
  *
  */
@@ -84,12 +103,25 @@ void setup() {
   log_d("portTICK_PERIOD_MS=%d", portTICK_PERIOD_MS);
   log_i("MAC Addr: %s", get_mac_addr_String().c_str());
 
+  // Display
+  Disp = new Display_t(DISPLAY_W, DISPLAY_H);
+  Disp->DispBegin(DISPLAY_I2C_ADDR);
+  Disp->setRotation(0);
+  Disp->clearDisplay();
+  Disp->display();
+
+  // Task
   task_Foo = new Task_Foo("task_foo");
   task_Foo->start();
 
   // Button
-  task_BtnW_RE = new Task_ButtonWatcher("btnRE", PIN_BTN_RE, cbBtn_RE);
-  task_BtnW_RE->start();
+  task_Btn_RE = new Task_ButtonWatcher("btnRE", PIN_BTN_RE, cbBtn_RE);
+  task_Btn_RE->start();
+
+  task_delay(100);
+
+  task_Btn_OB = new Task_ButtonWatcher("btnOB", PIN_BTN_OB, cbBtn_OB);
+  task_Btn_OB->start();
 
   task_delay(100);
 

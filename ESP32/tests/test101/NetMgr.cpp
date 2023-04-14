@@ -15,6 +15,98 @@ int16_t NetMgr::ssidN = 0;
 SSIDent NetMgr::ssidEnt[NetMgr::SSID_N_MAX];
 WebServer NetMgr::web_svr(WEBSVR_PORT);
 
+/** TBD: for debug
+ *
+ */
+static void onWiFiEvent(WiFiEvent_t event_id, WiFiEventInfo_t info) {
+  log_i("event_id = %3d", event_id);
+  switch (event_id) {
+  case ARDUINO_EVENT_WIFI_READY: 
+    Serial.println("WiFi interface ready");
+    break;
+  case ARDUINO_EVENT_WIFI_SCAN_DONE:
+    Serial.println("Completed scan for access points");
+    break;
+  case ARDUINO_EVENT_WIFI_STA_START:
+    Serial.println("WiFi client started");
+    break;
+  case ARDUINO_EVENT_WIFI_STA_STOP:
+    Serial.println("WiFi clients stopped");
+    break;
+  case ARDUINO_EVENT_WIFI_STA_CONNECTED:
+    Serial.println("Connected to access point");
+    break;
+  case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+    Serial.println("Disconnected from WiFi access point");
+    break;
+  case ARDUINO_EVENT_WIFI_STA_AUTHMODE_CHANGE:
+    Serial.println("Authentication mode of access point has changed");
+    break;
+  case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+    Serial.print("Obtained IP address: ");
+    Serial.println(WiFi.localIP());
+    break;
+  case ARDUINO_EVENT_WIFI_STA_LOST_IP:
+    Serial.println("Lost IP address and IP address is reset to 0");
+    break;
+  case ARDUINO_EVENT_WPS_ER_SUCCESS:
+    Serial.println("WiFi Protected Setup (WPS): succeeded in enrollee mode");
+    break;
+  case ARDUINO_EVENT_WPS_ER_FAILED:
+    Serial.println("WiFi Protected Setup (WPS): failed in enrollee mode");
+    break;
+  case ARDUINO_EVENT_WPS_ER_TIMEOUT:
+    Serial.println("WiFi Protected Setup (WPS): timeout in enrollee mode");
+    break;
+  case ARDUINO_EVENT_WPS_ER_PIN:
+    Serial.println("WiFi Protected Setup (WPS): pin code in enrollee mode");
+    break;
+  case ARDUINO_EVENT_WIFI_AP_START:
+    Serial.println("WiFi access point started");
+    break;
+  case ARDUINO_EVENT_WIFI_AP_STOP:
+    Serial.println("WiFi access point  stopped");
+    break;
+  case ARDUINO_EVENT_WIFI_AP_STACONNECTED:
+    Serial.println("Client connected");
+    break;
+  case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED:
+    Serial.println("Client disconnected");
+    break;
+  case ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED:
+    Serial.println("Assigned IP address to client");
+    break;
+  case ARDUINO_EVENT_WIFI_AP_PROBEREQRECVED:
+    Serial.println("Received probe request");
+    break;
+  case ARDUINO_EVENT_WIFI_AP_GOT_IP6:
+    Serial.println("AP IPv6 is preferred");
+    break;
+  case ARDUINO_EVENT_WIFI_STA_GOT_IP6:
+    Serial.println("STA IPv6 is preferred");
+    break;
+  case ARDUINO_EVENT_ETH_GOT_IP6:
+    Serial.println("Ethernet IPv6 is preferred");
+    break;
+  case ARDUINO_EVENT_ETH_START:
+    Serial.println("Ethernet started");
+    break;
+  case ARDUINO_EVENT_ETH_STOP:
+    Serial.println("Ethernet stopped");
+    break;
+  case ARDUINO_EVENT_ETH_CONNECTED:
+    Serial.println("Ethernet connected");
+    break;
+  case ARDUINO_EVENT_ETH_DISCONNECTED:
+    Serial.println("Ethernet disconnected");
+    break;
+  case ARDUINO_EVENT_ETH_GOT_IP:
+    Serial.println("Obtained IP address");
+    break;
+  default: break;
+  }
+}
+
 /** constructor
  *
  */
@@ -44,6 +136,8 @@ NetMgr::NetMgr(String ap_ssid_hdr, unsigned int try_count_max) {
                                this->ap_netmask_int[3]);
 
   confSsid = new Conf_Ssid;
+
+  WiFi.onEvent(onWiFiEvent);
 } // NetMgr::NetMgr()
 
 /**
@@ -64,7 +158,7 @@ NetMgrMode_t NetMgr::loop() {
   this->_loop_count++;
 
   wl_status_t wl_stat = WiFi.status();
-  
+
   int ent_size = 0;
 
   if ( this->restart_flag ) {
@@ -114,28 +208,36 @@ NetMgrMode_t NetMgr::loop() {
     
     // scan SSIDs
     log_i("scan SSID ..");
-    //NetMgr::ssidN = WiFi.scanNetworks(false, true);
-    NetMgr::ssidN = WiFi.scanNetworks();
-    log_i("ssidN=%d", NetMgr::ssidN);
 
-    if ( ssidN <= 0 ) {
+    NetMgr::ssidN = WIFI_SCAN_RUNNING;
+    do {
+      //NetMgr::ssidN = WiFi.scanNetworks(false, true);
+      NetMgr::ssidN = WiFi.scanNetworks();
+      log_i("ssidN=%d", NetMgr::ssidN);
+
+      task_delay(500);
+    } while ( NetMgr::ssidN == WIFI_SCAN_RUNNING );
+
+    if ( ssidN <= WIFI_SCAN_FAILED ) {
       WiFi.mode(WIFI_STA);
       WiFi.disconnect();
       task_delay(200);
 
       log_i("retry: scan SSID ..");
 
-      //NetMgr::ssidN = WiFi.scanNetworks(false, true);
       NetMgr::ssidN = WiFi.scanNetworks();
 
       log_i("ssidN=%d", NetMgr::ssidN);
     }
     if ( ssidN <= 0 ) {
+      log_w("%s", WL_STATUS_T_STR[WiFi.status()]);
+
       // スキャン失敗の場合、アクセスポイントモードへ
       this->cur_mode = NETMGR_MODE_AP_INIT;
       break;
     }
 
+    // スキャン成功
     if ( NetMgr::ssidN > SSID_N_MAX ) {
       NetMgr::ssidN = SSID_N_MAX;
       log_i("ssidN=%d", NetMgr::ssidN);
@@ -264,6 +366,8 @@ NetMgrMode_t NetMgr::loop() {
     retry_count = 2;
 
     if ( wl_stat != WL_CONNECTED ) {
+      this->net_is_available = false;
+
       log_w("wl_stat=%s(%d)", WL_STATUS_T_STR[wl_stat], wl_stat);
       this->cur_mode = NETMGR_MODE_START;
       break;

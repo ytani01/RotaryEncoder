@@ -52,7 +52,7 @@ whie (true) {
  */
 class Task_Button: public Task {
 public:
-  static const UBaseType_t Q_SIZE = 16;
+  static const UBaseType_t Q_SIZE = 32;
   static const uint32_t STACK_SIZE_DEF = 4 * 1024;
   static const UBaseType_t PRIORITY_DEF = 0;
   static const UBaseType_t CORE_DEF = APP_CPU_NUM;
