@@ -390,6 +390,8 @@ NetMgrMode_t NetMgr::loop() {
     break;
   } // switch
 
+  this->ip_addr = WiFi.localIP();
+
   if ( this->cur_mode == NETMGR_MODE_WIFI_ON
        || this->cur_mode == NETMGR_MODE_TRY_WIFI ) {
     this->cur_ssid = ssid;
