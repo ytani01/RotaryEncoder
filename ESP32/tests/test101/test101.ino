@@ -110,10 +110,7 @@ void cbBtn_OB(ButtonInfo_t *bi) {
  */
 void setup() {
   Serial.begin(115200);
-  do {
-    task_delay(500);
-    log_d(".");
-  } while (!Serial);
+  delay(1000);
 
   log_i("===== start =====");
   log_d("portTICK_PERIOD_MS=%d", portTICK_PERIOD_MS);

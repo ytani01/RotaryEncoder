@@ -118,22 +118,18 @@ NetMgr::NetMgr(String ap_ssid_hdr, unsigned int try_count_max) {
     this->try_count_max = try_count_max;
   }
 
-  esp_read_mac(this->mac_addr, ESP_MAC_WIFI_STA);
-  char mac_str[13];
-  sprintf(mac_str, "%02X%02X%02X%02X%02X%02X",
-          this->mac_addr[0], this->mac_addr[1], this->mac_addr[2],
-          this->mac_addr[3], this->mac_addr[4], this->mac_addr[5]);
-  log_i("MacAddr=%s", mac_str);
+  String mac_String = get_mac_addr_String();
 
-  this->ap_ssid = this->ap_ssid_hdr + "_" + get_mac_addr_String();
-  this->ap_ip = IPAddress(this->ap_ip_int[0],
-                          this->ap_ip_int[1],
-                          this->ap_ip_int[2],
-                          this->ap_ip_int[3]);
-  this->ap_netmask = IPAddress(this->ap_netmask_int[0],
-                               this->ap_netmask_int[1],
-                               this->ap_netmask_int[2],
-                               this->ap_netmask_int[3]);
+  this->ap_ssid = this->ap_ssid_hdr + "_" + mac_String;
+  log_i("ap_ssid=%s", this->ap_ssid.c_str());
+
+  this->ap_ip = IPAddress
+    (this->ap_ip_int[0], this->ap_ip_int[1],
+     this->ap_ip_int[2], this->ap_ip_int[3]);
+
+  this->ap_netmask = IPAddress
+    (this->ap_netmask_int[0], this->ap_netmask_int[1],
+     this->ap_netmask_int[2], this->ap_netmask_int[3]);
 
   confSsid = new Conf_Ssid;
 
