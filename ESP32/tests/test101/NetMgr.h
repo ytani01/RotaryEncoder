@@ -37,7 +37,7 @@ static const char *WL_STATUS_T_STR[]
 class NetMgr {
 public:
   static const unsigned int TRY_INTERVAL  = 1000; // ms
-  static const unsigned int DEF_TRY_COUNT_MAX = 10;
+  static const unsigned int DEF_TRY_COUNT_MAX = 15;
   
   static const unsigned int SSID_N_MAX = 40;
   
@@ -85,6 +85,8 @@ protected:
 
   void _restart(NetMgrMode_t mode=NETMGR_MODE_START);
 
+  // Webのハンドラー内で使うため、static !
+  static unsigned int scan_ssid();
   static void         async_scan_ssid_start();
   static unsigned int async_scan_ssid_wait();
 
