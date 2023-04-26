@@ -25,7 +25,7 @@ Display_t *Disp;
 std::vector<Task *> task;
 
 // Timer
-constexpr TickType_t TIMER1_INTERVAL = 10 * 1000; // tick == ms (?)
+constexpr TickType_t TIMER1_INTERVAL = 30 * 1000; // tick == ms (?)
 Ticker timer1;
 
 // WiFi

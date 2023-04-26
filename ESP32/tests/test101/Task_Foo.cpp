@@ -28,5 +28,5 @@ void Task_Foo::loop() {
   log_d("'%s':%u:%u", this->conf.name, cur_ms, d_ms);
 
   prev_ms = cur_ms;
-  task_delay(10000);
+  task_delay(60 * 1000);
 } // Task_Foo::loop()

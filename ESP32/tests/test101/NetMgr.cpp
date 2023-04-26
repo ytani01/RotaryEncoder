@@ -197,17 +197,30 @@ NetMgrMode_t NetMgr::loop() {
     WiFi.mode(WIFI_STA);
     log_i("WIFI_STA");
 
-    WiFi.disconnect(true, true);
+    task_delay(300);
+
     log_i("WiFi.disconnect()");
+    while (! WiFi.disconnect(false, false) ) {
+      log_i("Retry: WiFi.disconnect()");
+      task_delay(500);
+    }
 
     task_delay(1000); // > 600 (?)
     
     // scan SSIDs
     log_i("scan SSID ..");
 
-    //NetMgr::ssidN = NetMgr::scan_ssid(); // こっちはなぜかスキャンが失敗!?
-    NetMgr::async_scan_ssid_start();
-    NetMgr::ssidN = NetMgr::async_scan_ssid_wait();
+    // なぜかスキャンが失敗!?
+    //NetMgr::ssidN = NetMgr::scan_ssid();
+    //log_i("ssidN=%d", NetMgr::ssidN);
+
+    // なぜかスキャンが失敗!?
+    //NetMgr::async_scan_ssid_start();
+    //NetMgr::ssidN = NetMgr::async_scan_ssid_wait();
+    //log_i("ssidN=%d", NetMgr::ssidN);
+
+    NetMgr::ssidN = WiFi.scanNetworks();
+    log_i("ssidN=%d", NetMgr::ssidN);
     
     if ( NetMgr::ssidN <= 0 ) {
       WiFi.mode(WIFI_STA);
@@ -216,9 +229,22 @@ NetMgrMode_t NetMgr::loop() {
 
       log_i("retry: scan SSID ..");
 
-      NetMgr::ssidN = NetMgr::scan_ssid();
+      //NetMgr::ssidN = NetMgr::scan_ssid();
+      //log_i("ssidN=%d", NetMgr::ssidN);
+
+      //NetMgr::async_scan_ssid_start();
+      //NetMgr::ssidN = NetMgr::async_scan_ssid_wait();
+      //log_i("ssidN=%d", NetMgr::ssidN);
+
+      NetMgr::ssidN = WiFi.scanNetworks();      
       log_i("ssidN=%d", NetMgr::ssidN);
     }
+
+    // SSID保存
+    for (int i=0; i < NetMgr::ssidN; i++) {
+      NetMgr::ssidEnt[i].set(WiFi.SSID(i), WiFi.RSSI(i), WiFi.encryptionType(i));
+      log_i("%3d: %s", i, ssidEnt[i].toString().c_str());
+    } // for()
     
     if ( NetMgr::ssidN <= 0 ) {
       log_w("%s", WL_STATUS_T_STR[WiFi.status()]);
@@ -229,6 +255,8 @@ NetMgrMode_t NetMgr::loop() {
     }
 
     // スキャン成功
+    WiFi.scanDelete();
+    
     ssid = "";
     for (int i=0; i < NetMgr::ssidN; i++) {
       auto itr = confSsid->ent.find(NetMgr::ssidEnt[i].ssid().c_str());
@@ -500,10 +528,12 @@ String NetMgr::html_footer() {
 /** static
  * XXX これを使うと何故かスキャン失敗ばかり!?
  */
+/*
 unsigned int NetMgr::scan_ssid() {
   NetMgr::async_scan_ssid_start();
   return NetMgr::async_scan_ssid_wait();
 } // Netmgr::scan_ssid()
+*/
 
 /** static
  *
@@ -512,7 +542,12 @@ void NetMgr::async_scan_ssid_start() {
   //WiFi.mode(WIFI_STA);
   //WiFi.disconnect();
   //delay(200);
-  //WiFi.scanDelete();
+
+  /*
+  WiFi.scanDelete();
+  log_i("WiFi.scanDelete()");
+  task_delay(1000);
+  */
 
   WiFi.scanNetworks(true);
   log_i("WiFi.scanNetworks()");
@@ -521,12 +556,12 @@ void NetMgr::async_scan_ssid_start() {
 /** static
  *
  */
-unsigned int NetMgr::async_scan_ssid_wait() {
+unsigned int NetMgr::async_scan_ssid_wait(unsigned long interval) {
   int16_t ret;
 
   while ( (ret = WiFi.scanComplete()) == WIFI_SCAN_RUNNING ) {
     log_i("scanning.. ret=%d, %s", ret, WL_STATUS_T_STR[WiFi.status()]);
-    task_delay(1000);
+    task_delay(interval);
   }
   if ( ret == WIFI_SCAN_FAILED ) {
     log_e("SSID scan faild: ret=%d", ret);
