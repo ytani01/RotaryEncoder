@@ -182,7 +182,6 @@ NetMgrMode_t NetMgr::loop() {
     }
     
     /*
-     * XXX 以下、悪あがき
      * XXX TBD
      */
     WiFi.mode(WIFI_OFF);
@@ -200,10 +199,7 @@ NetMgrMode_t NetMgr::loop() {
     task_delay(300);
 
     log_i("WiFi.disconnect()");
-    while (! WiFi.disconnect(false, false) ) {
-      log_i("Retry: WiFi.disconnect()");
-      task_delay(500);
-    }
+    WiFi.disconnect(false, false);
 
     task_delay(1000); // > 600 (?)
     

@@ -30,26 +30,87 @@ void Mode_Main::enter() {
  */
 void Mode_Main::loop(unsigned long cur_ms) {
   static NetMgrMode_t prev_netmgr_mode = NETMGR_MODE_NULL;
-  NetMgrMode_t netmgr_mode = commonData.netMgr->cur_mode;
+  NetMgrMode_t netmgr_mode = commonData.net_mgr->cur_mode;
 
   static String prev_ip_str = "";
-  String ip_str = commonData.netMgr->ip_addr.toString();
+  String ip_str = commonData.net_mgr->ip_addr.toString();
+
+  static sntp_sync_status_t prev_sntp_stat = SNTP_SYNC_STATUS_COMPLETED;
+  sntp_sync_status_t sntp_stat = commonData.ntp->info.sntp_stat;
+
+  struct tm ti;
+  getLocalTime(&ti);
+  
+  static String prev_date_String = "";
+  String date_String = Task_Ntp::get_date_str(&ti);
+
+  static String prev_time_String = "";
+  String time_String = Task_Ntp::get_time_str(&ti);
+
+  //Disp->clearDisplay();
+  Disp->setFont(NULL);
+  Disp->setTextSize(1);
+  Disp->setTextWrap(true);
+  Disp->setTextColor(WHITE, BLACK);
+
+  char mac_str[13];
+  Disp->setCursor(0, 0);
+  Disp->printf("MAC:%s \n", get_mac_addr_str(mac_str));
+
+  bool flag_update = false;
 
   if ( netmgr_mode != prev_netmgr_mode ) {
     log_i("%s:%s", NETMGR_MODE_STR[netmgr_mode], ip_str.c_str());
 
-    commonData.disp->clearDisplay();
-    commonData.disp->setCursor(2, 2);
-    commonData.disp->printf(" %s \n %s \n",
-                            NETMGR_MODE_STR[netmgr_mode],
-                            ip_str.c_str());
-    commonData.disp->display();
+    Disp->setCursor(0, 1 * DISPLAY_CH_H);
+    Disp->printf("WiFi:%-16s\n %-16s \n",
+                 NETMGR_MODE_STR[netmgr_mode], ip_str.c_str());
+
+    flag_update = true;
 
     prev_netmgr_mode = netmgr_mode;
-    prev_ip_str = ip_str;
   }
-  
-  task_delay(2000);
+
+  if ( sntp_stat != prev_sntp_stat ) {
+    log_i("NTP: %-16s", SNTP_SYNC_STATUS_STR[sntp_stat]);
+    
+    Disp->setCursor(0, 4 * DISPLAY_CH_H);
+    Disp->printf("NTP:%-15s\n", SNTP_SYNC_STATUS_STR[sntp_stat]);
+
+    flag_update = true;
+
+    prev_sntp_stat = sntp_stat;
+  }
+
+  if ( date_String != prev_date_String ) {
+    log_i("date: %s", date_String.c_str());
+
+    Disp->setCursor(0, 5 * DISPLAY_CH_H);
+    Disp->printf(" %-20s\n", date_String.c_str());
+
+    flag_update = true;
+
+    prev_date_String = date_String;
+  }
+       
+  if ( time_String != prev_time_String ) {
+    log_d("time: %s", time_String.c_str());
+
+    Disp->setCursor(0, 6 * DISPLAY_CH_H);
+    Disp->printf(" %-20s\n", time_String.c_str());
+
+    flag_update = true;
+
+    prev_time_String = time_String;
+  }
+       
+  if ( flag_update ) {
+    Disp->display();
+  }
+
+  prev_ip_str = ip_str;
+
+  task_delay(100);
 } // Mode_Main::enter()
 
 /**

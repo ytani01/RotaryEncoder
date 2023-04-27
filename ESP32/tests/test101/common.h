@@ -12,9 +12,10 @@
 
 #include "commonlib.h"
 #include "NetMgr.h"
+#include "Task_Ntp.h"
 #include "Display.h"
 
-#define VERSION_STR "0.01"
+#define VERSION_STR "0.02"
 
 /*
 typedef struct {
@@ -28,10 +29,12 @@ typedef struct {
 */
 
 typedef struct {
-  NetMgr* netMgr;
+  NetMgr* net_mgr;
+  Task_Ntp* ntp;
   Display_t* disp;
 } CommonData_t;
 
 extern CommonData_t commonData;
+#define Disp commonData.disp
 
 #endif // _COMMON_H_

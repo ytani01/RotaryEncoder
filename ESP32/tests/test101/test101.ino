@@ -10,16 +10,17 @@
 
 #include "Task_Foo.h"
 #include "Task_NetMgr.h"
+#include "Task_Ntp.h"
 #include "Task_Button.h"
 
 #define LOOP_DELAY 1
 
-CommonData_t commonData;
+CommonData_t commonData;  // see commo.h
 
 Task_Foo* task_Foo;
 
 // Display
-Display_t *Disp;
+//Display_t *Disp;
 
 // Task
 std::vector<Task *> task;
@@ -30,6 +31,10 @@ Ticker timer1;
 
 // WiFi
 Task_NetMgr* task_NetMgr;
+
+// NTP
+Task_Ntp* task_Ntp;
+String NTP_SVR[] = {"ntp.nict.jp", "pool.ntp.org", "time.google.com"};
 
 // Button
 constexpr uint8_t PIN_BTN_RE = 26;
@@ -55,11 +60,11 @@ void cb_timer1() {
 
   //Serial.println("--------");
   Disp->setFont(NULL);
-  Disp->setTextColor(WHITE, BLACK);
   Disp->setTextSize(1);
+  Disp->setTextColor(WHITE, BLACK);
   //Disp->setCursor(5, 10);
   Disp->setTextWrap(true);
-  Disp->printf(" %6d", tick1);
+  Disp->printf(".", tick1);
   Disp->display();
 
   prev_tick1 = tick1;
@@ -123,6 +128,7 @@ void setup() {
   Disp->clearDisplay();
   Disp->display();
 
+
   // Task
   task_Foo = new Task_Foo("task_foo");
   task.push_back(task_Foo);
@@ -137,10 +143,12 @@ void setup() {
   // Task: WiFi
   task_NetMgr = new Task_NetMgr("task_NetMgr", "foo");
   task.push_back(task_NetMgr);
+  commonData.net_mgr = task_NetMgr->netMgr;
 
-  // common data
-  commonData.netMgr = task_NetMgr->netMgr;
-  commonData.disp = Disp;
+  // Task: Ntp
+  task_Ntp = new Task_Ntp("task_NTP", NTP_SVR, commonData.net_mgr, NULL);
+  task.push_back(task_Ntp);
+  commonData.ntp = task_Ntp;
 
   // Task start
   for (int i=0; i < task.size(); i++) {
