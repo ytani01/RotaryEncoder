@@ -36,8 +36,8 @@ static const char *WL_STATUS_T_STR[]
  */
 class NetMgr {
 public:
-  static const unsigned int TRY_INTERVAL  = 2000; // ms
-  static const unsigned int DEF_TRY_COUNT_MAX = 10;
+  static const unsigned int TRY_INTERVAL  = 3000; // ms
+  static const unsigned int DEF_TRY_COUNT_MAX = 5;
   
   static const unsigned int SSID_N_MAX = 40;
   static const unsigned long SCAN_WAIT_INTERVAL = 2000;

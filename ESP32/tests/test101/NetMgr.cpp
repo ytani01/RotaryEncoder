@@ -18,8 +18,9 @@ WebServer NetMgr::web_svr(WEBSVR_PORT);
 /** TBD: for debug
  *
  */
-static void onWiFiEvent(WiFiEvent_t event_id, WiFiEventInfo_t info) {
-  log_i("event_id = %3d", event_id);
+//static void onWiFiEvent(WiFiEvent_t event_id, WiFiEventInfo_t info) {
+static void onWiFiEvent(WiFiEvent_t event_id) {
+  log_i("event_id = %d", event_id);
   switch (event_id) {
   case ARDUINO_EVENT_WIFI_READY: 
     Serial.println("WiFi interface ready");
@@ -104,8 +105,8 @@ static void onWiFiEvent(WiFiEvent_t event_id, WiFiEventInfo_t info) {
     Serial.println("Obtained IP address");
     break;
   default: break;
-  }
-}
+  } // switch
+} // onWiFiEvent()
 
 /** constructor
  *
@@ -144,6 +145,9 @@ NetMgrMode_t NetMgr::loop() {
   static String ssid = "";
   static String pw = "";
   static int retry_count = 1; // XXX WiFiが頻繁に切れるのでリトライ
+
+  bool res;
+  wl_status_t wifi_begin_res;
 
   if ( this->cur_mode != prev_mode ) {
     log_i("cur_mode: %s(%d) ==> %s(%d)",
@@ -184,8 +188,9 @@ NetMgrMode_t NetMgr::loop() {
     /*
      * XXX TBD
      */
-    WiFi.mode(WIFI_OFF);
-    log_i("WIFI_OFF");
+    log_i("WIFI_OFF...");
+    res = WiFi.mode(WIFI_OFF);
+    log_i("WIFI_OFF:%d", res);
 
     task_delay(700); // > 600 (?)
 
@@ -193,8 +198,9 @@ NetMgrMode_t NetMgr::loop() {
     //log_i("esp_wifi_restore()");
     //delay(5000);
 
-    WiFi.mode(WIFI_STA);
-    log_i("WIFI_STA");
+    log_i("WIFI_STA...");
+    res = WiFi.mode(WIFI_STA);
+    log_i("WIFI_STA:%d", res);
 
     task_delay(300);
 
@@ -219,7 +225,9 @@ NetMgrMode_t NetMgr::loop() {
     log_i("ssidN=%d", NetMgr::ssidN);
     
     if ( NetMgr::ssidN <= 0 ) {
-      WiFi.mode(WIFI_STA);
+      res = WiFi.mode(WIFI_STA);
+      log_i("WIFI_STA:%d", res);
+
       WiFi.disconnect();
       task_delay(1000);
 
@@ -261,7 +269,7 @@ NetMgrMode_t NetMgr::loop() {
         // 登録してある SSID が見つかった
         ssid = (itr->first).c_str();
         pw = (itr->second).c_str();
-        log_i("found:|%s|%s|", ssid.c_str(), pw.c_str());
+        log_i("found |%s|%s|", ssid.c_str(), pw.c_str());
         break;
       } // for(itr)
     } // for(i)
@@ -271,12 +279,16 @@ NetMgrMode_t NetMgr::loop() {
       this->cur_mode = NETMGR_MODE_AP_INIT;
       break;
     }
+
+    task_delay(500);
       
-    WiFi.begin(ssid.c_str(), pw.c_str());
-    log_i("WiFi.begin(%s)", ssid.c_str());
+    wifi_begin_res = WiFi.begin(ssid.c_str(), pw.c_str());
+    log_i("WiFi.begin(%s): %s", ssid.c_str(), WL_STATUS_T_STR[wifi_begin_res]);
 
     this->_loop_count = 0;
     this->cur_mode = NETMGR_MODE_TRY_WIFI;
+
+    task_delay(TRY_INTERVAL);
     break;
 
   case NETMGR_MODE_TRY_WIFI:
@@ -301,7 +313,7 @@ NetMgrMode_t NetMgr::loop() {
         task_delay(1000);
         break;
       }
-      
+
       log_w(" WiFi faild: retry_count=%d", retry_count);
       this->cur_mode = NETMGR_MODE_AP_INIT;
       break;
@@ -322,16 +334,18 @@ NetMgrMode_t NetMgr::loop() {
     log_i("cur_mode=%s", NETMGR_MODE_STR[this->cur_mode]);
 
     WiFi.disconnect(true); // 重要:以前の接続情報を削除
-    WiFi.mode(WIFI_OFF);
+    res = WiFi.mode(WIFI_OFF);
+    log_i("WIFI_OFF:%d", res);
     task_delay(100);
 
-    WiFi.mode(WIFI_AP);
-    log_i("WiFi.softAP: %s .. ", this->ap_ssid.c_str());
+    res = WiFi.mode(WIFI_AP);
+    log_i("WIFI_AP:%d .. %s", res, this->ap_ssid.c_str());
     task_delay(100);
 
     if ( ! WiFi.softAP(this->ap_ssid.c_str()) ) {
       log_i(" .. failed");
-      WiFi.mode(WIFI_OFF);
+      res = WiFi.mode(WIFI_OFF);
+      log_i("WIFI_OFF:%d", res);
 
       this->cur_mode = NETMGR_MODE_WIFI_OFF;
       break;

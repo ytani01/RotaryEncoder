@@ -79,38 +79,42 @@ void Mode_Main::loop(unsigned long cur_ms) {
   // get local time
   struct tm ti;
   getLocalTime(&ti);
-  
-  // Date
-  static String prev_date_String = "";
-  String date_String = Task_Ntp::get_date_str(&ti);
 
-  if ( date_String != prev_date_String ) {
-    log_i("date: %s", date_String.c_str());
+  if ( ti.tm_year + 1900 > 2000 ) {
 
-    Disp->setCursor(0, 5 * DISPLAY_CH_H);
-    Disp->printf(" %-20s\n", date_String.c_str());
+    // Date
+    static String prev_date_String = "";
+    String date_String = Task_Ntp::get_date_str(&ti);
 
-    flag_update = true;
+    if ( date_String != prev_date_String ) {
+      log_i("date: %s", date_String.c_str());
 
-    prev_date_String = date_String;
-  }
+      Disp->setCursor(0, 5 * DISPLAY_CH_H);
+      Disp->printf(" %-20s\n", date_String.c_str());
 
-  // Time
-  static String prev_time_String = "";
-  String time_String = Task_Ntp::get_time_str(&ti);
+      flag_update = true;
 
-  if ( time_String != prev_time_String ) {
-    log_d("time: %s", time_String.c_str());
+      prev_date_String = date_String;
+    }
 
-    Disp->setCursor(0, 6 * DISPLAY_CH_H);
-    Disp->setTextSize(2);
-    Disp->printf(" %-20s\n", time_String.c_str());
+    // Time
+    static String prev_time_String = "";
+    String time_String = Task_Ntp::get_time_str(&ti);
 
-    flag_update = true;
+    if ( time_String != prev_time_String ) {
+      log_d("time: %s", time_String.c_str());
 
-    prev_time_String = time_String;
-  }
-       
+      Disp->setCursor(0, 6 * DISPLAY_CH_H);
+      Disp->setTextSize(2);
+      Disp->printf(" %-20s\n", time_String.c_str());
+
+      flag_update = true;
+
+      prev_time_String = time_String;
+    }
+
+  }       
+
   if ( flag_update ) {
     Disp->display();
   }
