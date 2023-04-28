@@ -99,7 +99,7 @@ String Conf::read_line() {
   String line = this->file.readStringUntil('\n');
   line.trim(); // XXX Important !!
   this->line_count++;
-  log_i("%5d|%s|", line_count, line.c_str());
+  log_d("%5d|%s|", line_count, line.c_str());
   return line;
 } // Conf::read_line()
 
