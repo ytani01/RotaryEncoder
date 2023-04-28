@@ -144,7 +144,7 @@ NetMgrMode_t NetMgr::loop() {
   static NetMgrMode_t prev_mode = NETMGR_MODE_NULL;
   static String ssid = "";
   static String pw = "";
-  static int retry_count = 1; // XXX WiFiが頻繁に切れるのでリトライ
+  static int retry_count = 2; // XXX WiFiが頻繁に切れるのでリトライ
 
   bool res;
   wl_status_t wifi_begin_res;
