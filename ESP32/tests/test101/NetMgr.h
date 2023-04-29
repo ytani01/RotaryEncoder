@@ -13,15 +13,16 @@
 #include "SSIDent.h"
 #include "Conf_Ssid.h"
 
-typedef enum { NETMGR_MODE_NULL,
-               NETMGR_MODE_START,
-               NETMGR_MODE_TRY_WIFI,
-               NETMGR_MODE_AP_INIT,
-               NETMGR_MODE_AP_LOOP,
-               NETMGR_MODE_SCANNING_SSID,
-               NETMGR_MODE_WIFI_ON,
-               NETMGR_MODE_WIFI_OFF,
-               NETMGR_MODE_N
+typedef enum {
+  NETMGR_MODE_NULL,
+  NETMGR_MODE_START,
+  NETMGR_MODE_TRY_WIFI,
+  NETMGR_MODE_AP_INIT,
+  NETMGR_MODE_AP_LOOP,
+  NETMGR_MODE_SCANNING_SSID,
+  NETMGR_MODE_WIFI_ON,
+  NETMGR_MODE_WIFI_OFF,
+  NETMGR_MODE_N
 } NetMgrMode_t;
 static const char *NETMGR_MODE_STR[]
 = {"NULL", "START", "TRY_WIFI", "AP_INIT", "AP_LOOP",
@@ -39,7 +40,7 @@ public:
   static const unsigned int TRY_INTERVAL  = 5 * 1000; // ms
   static const unsigned int DEF_TRY_COUNT_MAX = 5;
   
-  static const unsigned int SSID_N_MAX = 40;
+  static const unsigned int SSID_N_MAX = 15;
   static const unsigned long SCAN_WAIT_INTERVAL = 2000;
   
   static const int DNS_PORT    = 53;

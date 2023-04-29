@@ -9,6 +9,7 @@
 #include "Mode_Main.h"
 
 #include "Task_Foo.h"
+#include "Task_ScanSsid.h"
 #include "Task_NetMgr.h"
 #include "Task_Ntp.h"
 #include "Task_Button.h"
@@ -19,8 +20,7 @@ CommonData_t commonData;  // see commo.h
 
 Task_Foo* task_Foo;
 
-// Display
-//Display_t *Disp;
+Task_ScanSsid* task_ScanSsid;
 
 // Task
 std::vector<Task *> task;
@@ -132,6 +132,9 @@ void setup() {
   // Task
   task_Foo = new Task_Foo("task_foo");
   task.push_back(task_Foo);
+
+  task_ScanSsid = new Task_ScanSsid("scan SSID");
+  task.push_back(task_ScanSsid);
 
   // Task: Button
   task_Btn_RE = new Task_ButtonWatcher("btnRE", PIN_BTN_RE, cbBtn_RE);

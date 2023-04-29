@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Yoichi Tanibayashi
+ * Copyright (c) 2023 Yoichi Tanibayashi
  */
 #ifndef SSID_ENT_H
 #define SSID_ENT_H
@@ -15,16 +15,18 @@ class SSIDent {
   SSIDent(String ssid, int dbm, wifi_auth_mode_t enc_type);
   
   void set(String ssid, int dbm, wifi_auth_mode_t enc_type);
-
-  static String encTypeStr(wifi_auth_mode_t enc_type);
+  void clear();
 
   String ssid();
   int dbm();
   String encType();
 
   String toString(boolean flag_ssid = true,
-                  boolean flag_dbm = false,
-                  boolean flag_enctype = false);
+                  boolean flag_dbm = true,
+                  boolean flag_enctype = true);
+
+  static String encType_String(wifi_auth_mode_t enc_type);
+
  private:
   String _ssid;
   int _dbm;

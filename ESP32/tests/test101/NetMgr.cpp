@@ -222,8 +222,20 @@ NetMgrMode_t NetMgr::loop() {
     //NetMgr::ssidN = NetMgr::async_scan_ssid_wait();
     //log_i("ssidN=%d", NetMgr::ssidN);
 
-    NetMgr::ssidN = WiFi.scanNetworks();
+    while ( (NetMgr::ssidN = WiFi.scanComplete()) == WIFI_SCAN_RUNNING ) {
+      log_w("WIFI_SCAN_RUNNING");
+      task_delay(1000);
+    }
     log_i("ssidN=%d", NetMgr::ssidN);
+
+    if ( NetMgr::ssidN <= 5 ) { // TBD
+      NetMgr::ssidN = WiFi.scanNetworks();
+      while ( (NetMgr::ssidN = WiFi.scanNetworks()) == WIFI_SCAN_RUNNING ) {
+        log_w("WIFI_SCAN_RUNNING");
+        task_delay(10000);
+      }
+      log_i("ssidN=%d", NetMgr::ssidN);
+    }
     
     if ( NetMgr::ssidN <= 0 ) {
       res = WiFi.mode(WIFI_STA);
@@ -241,11 +253,18 @@ NetMgrMode_t NetMgr::loop() {
       //NetMgr::ssidN = NetMgr::async_scan_ssid_wait();
       //log_i("ssidN=%d", NetMgr::ssidN);
 
-      NetMgr::ssidN = WiFi.scanNetworks();      
+      while ( (NetMgr::ssidN = WiFi.scanNetworks()) == WIFI_SCAN_RUNNING ) {
+        log_w("WIFI_SCAN_RUNNING");
+        task_delay(10000);
+      }
       log_i("ssidN=%d", NetMgr::ssidN);
     }
 
     // SSID保存
+    if ( NetMgr::ssidN > SSID_N_MAX ) {
+      NetMgr::ssidN = SSID_N_MAX;
+      log_i("ssidN=%d (SSID_N_MAX)", NetMgr::ssidN);
+    }
     for (int i=0; i < NetMgr::ssidN; i++) {
       NetMgr::ssidEnt[i].set(WiFi.SSID(i), WiFi.RSSI(i), WiFi.encryptionType(i));
       log_i("%3d: %s", i, ssidEnt[i].toString().c_str());
@@ -260,7 +279,8 @@ NetMgrMode_t NetMgr::loop() {
     }
 
     // スキャン成功
-    WiFi.scanDelete();
+    //WiFi.scanDelete();
+    //log_i("scanDelete()");
     
     ssid = "";
     for (int i=0; i < NetMgr::ssidN; i++) {
