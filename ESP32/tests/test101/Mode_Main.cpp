@@ -52,7 +52,7 @@ void Mode_Main::loop(unsigned long cur_ms) {
   if ( netmgr_mode != prev_netmgr_mode ) {
     log_i("%s:%s", NETMGR_MODE_STR[netmgr_mode], ip_str.c_str());
 
-    Disp->setCursor(0, 1 * DISPLAY_CH_H);
+    Disp->setCursor(0, 1 * (DISPLAY_CH_H + 1));
     Disp->printf("WiFi:%-16s\n %-16s \n",
                  NETMGR_MODE_STR[netmgr_mode], ip_str.c_str());
 
@@ -68,7 +68,7 @@ void Mode_Main::loop(unsigned long cur_ms) {
   if ( sntp_stat != prev_sntp_stat ) {
     log_i("NTP: %-16s", SNTP_SYNC_STATUS_STR[sntp_stat]);
     
-    Disp->setCursor(0, 4 * DISPLAY_CH_H);
+    Disp->setCursor(0, 3 * (DISPLAY_CH_H + 1));
     Disp->printf("NTP:%-15s\n", SNTP_SYNC_STATUS_STR[sntp_stat]);
 
     flag_update = true;
@@ -89,7 +89,7 @@ void Mode_Main::loop(unsigned long cur_ms) {
     if ( date_String != prev_date_String ) {
       log_i("date: %s", date_String.c_str());
 
-      Disp->setCursor(0, 5 * DISPLAY_CH_H);
+      Disp->setCursor(0, 4 * (DISPLAY_CH_H + 1));
       Disp->printf(" %-20s\n", date_String.c_str());
 
       flag_update = true;
@@ -104,7 +104,7 @@ void Mode_Main::loop(unsigned long cur_ms) {
     if ( time_String != prev_time_String ) {
       log_d("time: %s", time_String.c_str());
 
-      Disp->setCursor(0, 6 * DISPLAY_CH_H);
+      Disp->setCursor(0, 5 * (DISPLAY_CH_H + 1));
       Disp->setTextSize(2);
       Disp->printf(" %-20s\n", time_String.c_str());
 

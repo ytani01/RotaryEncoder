@@ -64,8 +64,8 @@ void cb_timer1() {
   Disp->setTextColor(WHITE, BLACK);
   //Disp->setCursor(5, 10);
   Disp->setTextWrap(true);
-  Disp->printf(".", tick1);
-  Disp->display();
+  //Disp->printf(".", tick1);
+  //Disp->display();
 
   prev_tick1 = tick1;
 } // cb_timer1()
@@ -95,7 +95,7 @@ void cbBtn_RE(ButtonInfo_t *bi) {
   }
 
   if ( bi->click_count >= 3 ) {
-    log_w("ESP.restart()");
+    log_i("ESP.restart()");
 
     WiFi.mode(WIFI_OFF);
     task_delay(100);
