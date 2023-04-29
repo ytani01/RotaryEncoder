@@ -50,6 +50,11 @@ void Mode_Main::loop(unsigned long cur_ms) {
   String ip_str = commonData.net_mgr->ip_addr.toString();
 
   if ( netmgr_mode != prev_netmgr_mode ) {
+    if ( netmgr_mode == NETMGR_MODE_AP_INIT ||
+         netmgr_mode == NETMGR_MODE_AP_LOOP ) {
+      ip_str = commonData.net_mgr->ap_ip.toString();
+    }
+
     log_i("%s:%s", NETMGR_MODE_STR[netmgr_mode], ip_str.c_str());
 
     Disp->setCursor(0, 1 * (DISPLAY_CH_H + 1));

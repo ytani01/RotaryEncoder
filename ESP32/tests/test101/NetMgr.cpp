@@ -18,8 +18,8 @@ WebServer NetMgr::web_svr(WEBSVR_PORT);
 /** TBD: for debug
  *
  */
-//static void onWiFiEvent(WiFiEvent_t event_id, WiFiEventInfo_t info) {
-static void onWiFiEvent(WiFiEvent_t event_id) {
+//static void onWiFiEvent(WiFiEvent_t event_id) {
+static void onWiFiEvent(WiFiEvent_t event_id, WiFiEventInfo_t info) {
   log_i("event_id = %d", event_id);
   switch (event_id) {
   case ARDUINO_EVENT_WIFI_READY: 
@@ -38,7 +38,8 @@ static void onWiFiEvent(WiFiEvent_t event_id) {
     Serial.println("Connected to access point");
     break;
   case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
-    Serial.println("Disconnected from WiFi access point");
+    Serial.printf("Disconnected from WiFi access poin: %u\n",
+                   info.wifi_sta_disconnected.reason);
     break;
   case ARDUINO_EVENT_WIFI_STA_AUTHMODE_CHANGE:
     Serial.println("Authentication mode of access point has changed");
@@ -324,6 +325,31 @@ NetMgrMode_t NetMgr::loop() {
           this->_loop_count, this->try_count_max,
           WL_STATUS_T_STR[wl_stat], wl_stat);
 
+#if 0
+    log_i("WIFI_OFF...");
+    res = WiFi.mode(WIFI_OFF);
+    log_i("WIFI_OFF: %d", res);
+
+    task_delay(700);
+
+    log_i("WIFI_STA...");
+    res = WiFi.mode(WIFI_STA);
+    log_i("WIFI_STA: %d", res);
+
+    task_delay(300);
+#endif
+    log_i("WiFi.disconnect...");
+    res = WiFi.disconnect();
+    log_i("WiFi.disconnect: %d", res);
+
+    task_delay(1000);
+
+    wifi_begin_res = WiFi.begin(ssid.c_str(), pw.c_str());
+    log_i("WiFi.begin(%s): %s", ssid.c_str(), WL_STATUS_T_STR[wifi_begin_res]);
+    if ( wifi_begin_res == WL_CONNECT_FAILED ) {
+      this->cur_mode = NETMGR_MODE_START;
+    }
+    
     task_delay(TRY_INTERVAL);
     break;
 
@@ -339,26 +365,29 @@ NetMgrMode_t NetMgr::loop() {
     task_delay(100);
 
     res = WiFi.mode(WIFI_AP);
-    log_i("WIFI_AP:%d .. %s", res, this->ap_ssid.c_str());
+    log_i("WIFI_AP: %d .. %s", res, this->ap_ssid.c_str());
     task_delay(100);
 
+    log_i("softAP: %s", this->ap_ssid.c_str());
     if ( ! WiFi.softAP(this->ap_ssid.c_str()) ) {
       log_i(" .. failed");
       res = WiFi.mode(WIFI_OFF);
-      log_i("WIFI_OFF:%d", res);
+      log_i("WIFI_OFF: %d", res);
+
+      task_delay(700);
 
       this->cur_mode = NETMGR_MODE_WIFI_OFF;
       break;
     }
 
-    log_i(" .. start");
     task_delay(300);
 
+    log_i("softAPConfig: %s", this->ap_ip.toString().c_str());
     WiFi.softAPConfig(this->ap_ip, this->ap_ip, this->ap_netmask);
 
     this->dns_svr.setErrorReplyCode(DNSReplyCode::NoError);
     this->dns_svr.start(DNS_PORT, "*", this->ap_ip);
-    log_i("DNS server[%d] started", DNS_PORT);
+    log_i("DNS server[port=%d] started", DNS_PORT);
 
     NetMgr::async_scan_ssid_start();
 
