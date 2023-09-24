@@ -73,7 +73,7 @@ int16_t Task_ScanSsid::scan() {
  *
  */
 void Task_ScanSsid::clear() {
-  for (int i; i < SSID_N_MAX; i++) {
+  for (int i=0; i < SSID_N_MAX; i++) {
     this->ssidEnt[i]->clear();
   }
   this->ssidN = 0;
